@@ -1,0 +1,48 @@
+{
+  "name": "Savitri Shipping Development",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  
+  "forwardPorts": [3000, 5000, 5173, 5555],
+  
+  "portsAttributes": {
+    "3000": {
+      "label": "Public Website (Next.js)",
+      "onAutoForward": "notify"
+    },
+    "5000": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Admin Panel (Vite)",
+      "onAutoForward": "notify"
+    },
+    "5555": {
+      "label": "Prisma Studio",
+      "onAutoForward": "silent"
+    }
+  },
+  
+  "postCreateCommand": "echo 'Codespace ready! Run npm install in each project folder.'",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "Prisma.prisma",
+        "formulahendry.auto-rename-tag"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  }
+}

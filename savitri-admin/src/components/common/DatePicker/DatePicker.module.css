@@ -1,0 +1,23 @@
+/* DatePicker specific styles */
+/* Most styles are inherited from Input component */
+
+/* Remove default calendar icon on some browsers */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Firefox */
+input[type="date"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Placeholder text color for empty date input */
+input[type="date"]:invalid {
+  color: var(--text-tertiary);
+}

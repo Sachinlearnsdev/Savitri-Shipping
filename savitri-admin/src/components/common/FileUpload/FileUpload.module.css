@@ -1,0 +1,190 @@
+/* File Upload Wrapper */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+/* Label */
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Hidden Input */
+.input {
+  display: none;
+}
+
+/* Dropzone */
+.dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: var(--spacing-6);
+  border: 2px dashed var(--border-color-dark);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-50);
+}
+
+.dragging {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-50);
+}
+
+/* Content */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-align: center;
+}
+
+/* Icon */
+.icon {
+  font-size: 48px;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+/* Text */
+.text {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.highlight {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Hint */
+.hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  line-height: var(--line-height-normal);
+}
+
+/* Preview */
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+/* File Item */
+.fileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* File Info */
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSize {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+/* Remove Button */
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: var(--font-size-base);
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition-colors);
+  flex-shrink: 0;
+}
+
+.removeButton:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+/* States */
+.disabled .dropzone {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.disabled .dropzone:hover {
+  border-color: var(--border-color-dark);
+  background-color: var(--bg-secondary);
+}
+
+.hasError .dropzone {
+  border-color: var(--color-error);
+}
+
+/* Error Message */
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dropzone {
+    min-height: 150px;
+    padding: var(--spacing-4);
+  }
+  
+  .icon {
+    font-size: 36px;
+  }
+  
+  .text {
+    font-size: var(--font-size-sm);
+  }
+  
+  .hint {
+    font-size: 10px;
+  }
+}

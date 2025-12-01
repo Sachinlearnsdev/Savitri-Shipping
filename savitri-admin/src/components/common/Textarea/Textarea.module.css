@@ -1,0 +1,136 @@
+/* Textarea Wrapper */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+/* Label */
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.required {
+  color: var(--color-error);
+  margin-left: var(--spacing-1);
+}
+
+/* Textarea Base Styles */
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  outline: none;
+  resize: vertical;
+  transition: var(--transition-colors);
+}
+
+.textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-50);
+}
+
+.textarea:disabled {
+  background-color: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  resize: none;
+}
+
+/* No Resize */
+.noResize {
+  resize: none;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-height: 20px;
+}
+
+.left {
+  flex: 1;
+}
+
+/* Hint & Error Messages */
+.hint,
+.error {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.hint {
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--color-error);
+}
+
+/* Character Count */
+.count {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* States */
+.hasError .textarea {
+  border-color: var(--color-error);
+}
+
+.hasError .textarea:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px var(--color-error-light);
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Scrollbar */
+.textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-md);
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .textarea {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+}

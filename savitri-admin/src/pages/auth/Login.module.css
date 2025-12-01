@@ -1,0 +1,126 @@
+/* Login Container */
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-4);
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+}
+
+/* Card */
+.card {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--spacing-8);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+}
+
+.logoIcon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.logoText {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  text-align: center;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-6);
+}
+
+.title {
+  margin: 0 0 var(--spacing-2) 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+/* Forgot Password */
+.forgotPassword {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: calc(var(--spacing-3) * -1);
+}
+
+.link {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-colors);
+}
+
+.link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.footerText {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-2);
+  }
+  
+  .card {
+    padding: var(--spacing-6);
+  }
+  
+  .logoIcon {
+    font-size: 40px;
+  }
+  
+  .logoText {
+    font-size: var(--font-size-xl);
+  }
+  
+  .title {
+    font-size: var(--font-size-xl);
+  }
+}

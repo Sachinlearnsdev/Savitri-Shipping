@@ -1,0 +1,68 @@
+/* Card Container */
+.card {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: var(--transition-all);
+}
+
+/* Hoverable */
+.hoverable:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Clickable */
+.clickable {
+  cursor: pointer;
+}
+
+/* Header */
+.header {
+  padding: var(--spacing-5) var(--spacing-6);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+/* Content */
+.content {
+  padding: var(--spacing-6);
+}
+
+.noPadding {
+  padding: 0;
+}
+
+/* Footer */
+.footer {
+  padding: var(--spacing-5) var(--spacing-6);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-4);
+  }
+  
+  .content {
+    padding: var(--spacing-4);
+  }
+  
+  .footer {
+    padding: var(--spacing-4);
+  }
+  
+  .title {
+    font-size: var(--font-size-base);
+  }
+}

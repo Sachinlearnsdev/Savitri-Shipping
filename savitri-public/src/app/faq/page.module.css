@@ -1,0 +1,208 @@
+/**
+ * FAQ Page Styles
+ */
+
+.faqPage {
+  min-height: 100vh;
+}
+
+/* Hero */
+.hero {
+  background: var(--gradient-hero);
+  padding: var(--spacing-20) 0 var(--spacing-12);
+  text-align: center;
+  color: white;
+}
+
+.heroTitle {
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-extrabold);
+  margin-bottom: var(--spacing-4);
+}
+
+.heroDescription {
+  font-size: var(--font-size-xl);
+  opacity: 0.95;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Section */
+.section {
+  padding: var(--spacing-16) 0;
+  background: var(--bg-secondary);
+}
+
+.faqContent {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Category */
+.category {
+  margin-bottom: var(--spacing-12);
+}
+
+.categoryTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* FAQ Item */
+.faqItem {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--transition-normal);
+}
+
+.faqItem:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5) var(--spacing-6);
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.question:hover {
+  background: var(--bg-secondary);
+}
+
+.icon,
+.iconOpen {
+  color: var(--color-primary);
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.iconOpen {
+  transform: rotate(180deg);
+}
+
+.answer {
+  padding: 0 var(--spacing-6) var(--spacing-6);
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.answer p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* Contact Section */
+.contact {
+  max-width: 600px;
+  margin: var(--spacing-16) auto 0;
+  padding: var(--spacing-10);
+  background: var(--bg-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.contact h2 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+.contact p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-6);
+}
+
+.contactButtons {
+  display: flex;
+  gap: var(--spacing-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.contactButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4) var(--spacing-8);
+  background: var(--gradient-button);
+  color: white;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-secondary);
+  transition: all var(--transition-normal);
+}
+
+.contactButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-16) 0 var(--spacing-8);
+  }
+
+  .heroTitle {
+    font-size: var(--font-size-4xl);
+  }
+
+  .section {
+    padding: var(--spacing-12) 0;
+  }
+
+  .category {
+    margin-bottom: var(--spacing-8);
+  }
+
+  .question {
+    padding: var(--spacing-4);
+    font-size: var(--font-size-base);
+  }
+
+  .answer {
+    padding: 0 var(--spacing-4) var(--spacing-4);
+  }
+
+  .contact {
+    padding: var(--spacing-6);
+  }
+
+  .contactButtons {
+    flex-direction: column;
+  }
+
+  .contactButton {
+    width: 100%;
+  }
+}

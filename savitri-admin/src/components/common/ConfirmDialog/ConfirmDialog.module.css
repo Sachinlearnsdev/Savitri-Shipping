@@ -1,0 +1,29 @@
+/* Actions Container */
+.actions {
+  display: flex;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.actions > * {
+  flex: 1;
+}
+
+/* Message */
+.message {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+  
+  .message {
+    font-size: var(--font-size-sm);
+  }
+}

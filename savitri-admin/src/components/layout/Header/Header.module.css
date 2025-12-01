@@ -1,0 +1,235 @@
+/* Header Container */
+.header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-width);
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: 0 var(--spacing-6);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: var(--z-sticky);
+  transition: left var(--transition-normal);
+}
+
+/* Left Section */
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+/* Right Section */
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* Icon Button */
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xl);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.iconButton:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* User Menu Container */
+.userMenuContainer {
+  position: relative;
+}
+
+/* User Button */
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2);
+  background: none;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.userButton:hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Avatar */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+}
+
+/* User Info */
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.userName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.userRole {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  line-height: 1.2;
+}
+
+/* Chevron */
+.chevron {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* User Menu Dropdown */
+.userMenu {
+  position: absolute;
+  top: calc(100% + var(--spacing-2));
+  right: 0;
+  min-width: 200px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User Menu Header */
+.userMenuHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-4);
+}
+
+.menuUserName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.menuUserEmail {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  word-break: break-all;
+}
+
+/* Menu Divider */
+.userMenuDivider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: var(--spacing-1) 0;
+}
+
+/* Menu Item */
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.menuItem:hover {
+  background-color: var(--bg-secondary);
+}
+
+.menuItem.danger {
+  color: var(--color-error);
+}
+
+.menuItem.danger:hover {
+  background-color: var(--color-error-light);
+}
+
+.menuIcon {
+  font-size: var(--font-size-lg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    left: 0;
+    padding: 0 var(--spacing-4);
+  }
+  
+  .title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .userInfo {
+    display: none;
+  }
+  
+  .iconButton {
+    width: 36px;
+    height: 36px;
+    font-size: var(--font-size-lg);
+  }
+}

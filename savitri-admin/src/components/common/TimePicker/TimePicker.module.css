@@ -1,0 +1,23 @@
+/* TimePicker specific styles */
+/* Most styles are inherited from Input component */
+
+/* Remove default clock icon on some browsers */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Firefox */
+input[type="time"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Placeholder text color for empty time input */
+input[type="time"]:invalid {
+  color: var(--text-tertiary);
+}

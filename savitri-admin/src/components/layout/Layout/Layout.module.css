@@ -1,0 +1,39 @@
+/* Layout Container */
+.layout {
+  min-height: 100vh;
+  background-color: var(--bg-secondary);
+}
+
+/* Main Content Area */
+.main {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+  transition: margin-left var(--transition-normal);
+}
+
+.main.collapsed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Content Wrapper */
+.content {
+  padding: var(--spacing-6);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main {
+    margin-left: 0;
+  }
+  
+  .main.collapsed {
+    margin-left: 0;
+  }
+  
+  .content {
+    padding: var(--spacing-4);
+  }
+}

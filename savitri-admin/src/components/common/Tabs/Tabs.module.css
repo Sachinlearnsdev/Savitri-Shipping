@@ -1,0 +1,149 @@
+/* Tabs Wrapper */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Tab List */
+.tabList {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Line Variant */
+.line {
+  border-bottom: 2px solid var(--border-color);
+  gap: 0;
+}
+
+/* Pills Variant */
+.pills {
+  gap: var(--spacing-2);
+}
+
+/* Tab Button */
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-colors);
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+/* Line Variant Tab */
+.line .tab {
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.line .tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Pills Variant Tab */
+.pills .tab {
+  border-radius: var(--radius-lg);
+}
+
+.pills .tab:hover:not(:disabled) {
+  background-color: var(--bg-tertiary);
+}
+
+.pills .tab.active {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* Disabled Tab */
+.tab.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--spacing-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  background-color: var(--color-error);
+  color: var(--color-white);
+  border-radius: var(--radius-full);
+}
+
+.active .badge {
+  background-color: var(--color-white);
+  color: var(--color-primary);
+}
+
+.pills .active .badge {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: var(--color-white);
+}
+
+/* Tab Panel */
+.tabPanel {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tabList {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .tab {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .tabList::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tabList {
+    scrollbar-width: none;
+  }
+}

@@ -1,0 +1,179 @@
+/* Radio Wrapper */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+/* Label Container */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Hidden Input */
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Radio Visual */
+.radio {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-color-dark);
+  border-radius: var(--radius-full);
+  transition: var(--transition-colors);
+}
+
+.radio:hover {
+  border-color: var(--color-primary);
+}
+
+/* Sizes */
+.sm {
+  width: 16px;
+  height: 16px;
+}
+
+.md {
+  width: 20px;
+  height: 20px;
+}
+
+.lg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Checked State */
+.checked {
+  border-color: var(--color-primary);
+}
+
+.checked:hover {
+  border-color: var(--color-primary-dark);
+}
+
+/* Dot */
+.dot {
+  display: block;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: var(--transition-transform);
+}
+
+.sm .dot {
+  width: 8px;
+  height: 8px;
+}
+
+.md .dot {
+  width: 10px;
+  height: 10px;
+}
+
+.lg .dot {
+  width: 12px;
+  height: 12px;
+}
+
+/* Label Text */
+.labelText {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Focus State */
+.input:focus + .radio {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Disabled State */
+.disabled .label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.disabled .radio {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.disabled .radio:hover {
+  border-color: var(--border-color);
+}
+
+.disabled .dot {
+  background-color: var(--color-gray-400);
+}
+
+.disabled .labelText {
+  color: var(--text-tertiary);
+}
+
+/* Error State */
+.hasError .radio {
+  border-color: var(--color-error);
+}
+
+.hasError .radio:hover {
+  border-color: var(--color-error-dark);
+}
+
+/* Error Message */
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  line-height: 1.5;
+  margin-left: calc(var(--spacing-2) + 20px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sm {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .md {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .lg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .sm .dot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .md .dot {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .lg .dot {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .labelText {
+    font-size: var(--font-size-sm);
+  }
+}

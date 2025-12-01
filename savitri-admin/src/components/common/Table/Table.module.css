@@ -1,0 +1,127 @@
+/* Table Wrapper */
+.wrapper {
+  width: 100%;
+}
+
+/* Table Container */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+/* Table Head */
+.thead {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.th {
+  padding: var(--spacing-4) var(--spacing-5);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.sortIcon {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+}
+
+/* Table Body */
+.tbody {
+  background-color: var(--bg-primary);
+}
+
+.tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition-colors);
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.td {
+  padding: var(--spacing-4) var(--spacing-5);
+  color: var(--text-secondary);
+}
+
+/* Striped Rows */
+.striped .tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
+/* Hoverable Rows */
+.hoverable .tr:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Clickable Rows */
+.clickable {
+  cursor: pointer;
+}
+
+/* Checkbox Cell */
+.checkboxCell {
+  width: 48px;
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+/* Scrollbar */
+.tableContainer::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+.tableContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .th,
+  .td {
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: var(--font-size-xs);
+  }
+  
+  .checkboxCell {
+    width: 40px;
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+}

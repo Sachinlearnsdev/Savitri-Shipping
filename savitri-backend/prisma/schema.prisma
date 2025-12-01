@@ -1,0 +1,213 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+  DELETED
+}
+
+enum OTPType {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  LOGIN
+  PASSWORD_RESET
+  EMAIL_CHANGE
+  PHONE_CHANGE
+}
+
+enum VehicleType {
+  CAR
+  BIKE
+  CYCLE
+}
+
+// ==================== ADMIN & AUTH ====================
+
+model AdminUser {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  password       String
+  name           String
+  phone          String?
+  avatar         String?
+  roleId         String
+  role           Role         @relation(fields: [roleId], references: [id])
+  status         UserStatus   @default(ACTIVE)
+  failedAttempts Int          @default(0)
+  lockedUntil    DateTime?
+  lastLogin      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  sessions       AdminSession[]
+  activities     ActivityLog[]
+
+  @@index([email])
+  @@index([status])
+  @@index([roleId])
+}
+
+model Role {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  permissions Json
+  isSystem    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  adminUsers  AdminUser[]
+
+  @@index([name])
+}
+
+model AdminSession {
+  id          String    @id @default(cuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  userAgent   String?
+  ipAddress   String?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@index([adminUserId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model ActivityLog {
+  id          String    @id @default(cuid())
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  action      String
+  module      String
+  description String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([adminUserId])
+  @@index([module])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ==================== CUSTOMER ====================
+
+model Customer {
+  id                  String           @id @default(cuid())
+  email               String           @unique
+  password            String
+  name                String
+  phone               String?          @unique
+  avatar              String?
+  emailVerified       Boolean          @default(false)
+  phoneVerified       Boolean          @default(false)
+  status              UserStatus       @default(ACTIVE)
+  failedAttempts      Int              @default(0)
+  lockedUntil         DateTime?
+  lastLogin           DateTime?
+  emailNotifications  Boolean          @default(true)
+  smsNotifications    Boolean          @default(true)
+  promotionalEmails   Boolean          @default(false)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  deletedAt           DateTime?
+  sessions            CustomerSession[]
+  savedVehicles       SavedVehicle[]
+  loginHistory        LoginHistory[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+}
+
+model CustomerSession {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  userAgent  String?
+  ipAddress  String?
+  deviceInfo String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model LoginHistory {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  ipAddress  String?
+  userAgent  String?
+  deviceInfo String?
+  location   String?
+  success    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model SavedVehicle {
+  id             String      @id @default(cuid())
+  customerId     String
+  customer       Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type           VehicleType
+  brand          String
+  model          String
+  registrationNo String?
+  nickname       String?
+  isDefault      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([customerId])
+}
+
+// ==================== OTP ====================
+
+model OTP {
+  id         String   @id @default(cuid())
+  identifier String
+  otp        String
+  type       OTPType
+  expiresAt  DateTime
+  verified   Boolean  @default(false)
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, type])
+  @@index([expiresAt])
+}
+
+// ==================== SETTINGS ====================
+
+model Setting {
+  id        String   @id @default(cuid())
+  group     String
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([group, key])
+  @@index([group])
+}

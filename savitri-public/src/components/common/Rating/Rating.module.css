@@ -1,0 +1,70 @@
+/**
+ * Rating Styles
+ */
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.stars {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.star {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: default;
+  transition: transform var(--transition-fast);
+}
+
+.interactive .star {
+  cursor: pointer;
+}
+
+.interactive .star:hover {
+  transform: scale(1.1);
+}
+
+.star svg {
+  display: block;
+}
+
+/* Sizes */
+.sm .star svg {
+  width: 16px;
+  height: 16px;
+}
+
+.md .star svg {
+  width: 20px;
+  height: 20px;
+}
+
+.lg .star svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Star states */
+.filled {
+  color: var(--color-secondary);
+}
+
+.half {
+  color: var(--color-secondary);
+  opacity: 0.5;
+}
+
+.empty {
+  color: var(--color-gray-300);
+}
+
+.value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}

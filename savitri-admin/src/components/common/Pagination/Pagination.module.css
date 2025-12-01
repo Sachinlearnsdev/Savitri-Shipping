@@ -1,0 +1,140 @@
+/* Pagination Wrapper */
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+/* Info Text */
+.info {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+/* Page Size Selector */
+.pageSize {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.select {
+  height: 32px;
+  padding: 0 var(--spacing-2);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.select:hover {
+  border-color: var(--border-color-dark);
+}
+
+.select:focus {
+  border-color: var(--color-primary);
+}
+
+/* Pages Container */
+.pages {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+/* Page Button */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--spacing-2);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color-dark);
+  color: var(--text-primary);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.button.active:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* Ellipsis */
+.ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-3);
+  }
+  
+  .info {
+    text-align: center;
+    font-size: var(--font-size-xs);
+  }
+  
+  .pageSize {
+    justify-content: center;
+    font-size: var(--font-size-xs);
+  }
+  
+  .pages {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .button {
+    min-width: 28px;
+    height: 28px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .ellipsis {
+    min-width: 28px;
+    height: 28px;
+    font-size: var(--font-size-xs);
+  }
+}
