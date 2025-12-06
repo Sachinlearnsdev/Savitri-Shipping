@@ -2,43 +2,43 @@
  * Reset Password Page
  */
 
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import authService from '@/services/auth.service';
-import useToast from '@/hooks/useToast';
-import { validateOTP, validatePassword } from '@/utils/validators';
-import Input from '@/components/common/Input';
-import Button from '@/components/common/Button';
-import styles from '../login/page.module.css';
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import authService from "@/services/auth.service";
+import useToast from "@/hooks/useToast";
+import { validateOTP, validatePassword } from "@/utils/validators";
+import Input from "@/components/common/Input";
+import Button from "@/components/common/Button";
+import styles from "./page.module.css";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { success, error: showError } = useToast();
 
-  const email = searchParams.get('email');
+  const email = searchParams.get("email");
 
   const [formData, setFormData] = useState({
-    otp: '',
-    newPassword: '',
-    confirmPassword: '',
+    otp: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!email) {
-      showError('Email parameter is missing');
-      router.push('/forgot-password');
+      showError("Email parameter is missing");
+      router.push("/forgot-password");
     }
   }, [email, router, showError]);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
     if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
+      setErrors({ ...errors, [field]: "" });
     }
   };
 
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -77,13 +77,15 @@ export default function ResetPasswordPage() {
     });
 
     if (apiError) {
-      showError(apiError.message || 'Failed to reset password');
+      showError(apiError.message || "Failed to reset password");
       setLoading(false);
       return;
     }
 
-    success('Password reset successfully! Please login with your new password.');
-    router.push('/login');
+    success(
+      "Password reset successfully! Please login with your new password."
+    );
+    router.push("/login");
 
     setLoading(false);
   };
@@ -104,7 +106,7 @@ export default function ResetPasswordPage() {
             type="text"
             placeholder="000000"
             value={formData.otp}
-            onChange={handleChange('otp')}
+            onChange={handleChange("otp")}
             error={errors.otp}
             maxLength={6}
             required
@@ -115,7 +117,7 @@ export default function ResetPasswordPage() {
             type="password"
             placeholder="Create a strong password"
             value={formData.newPassword}
-            onChange={handleChange('newPassword')}
+            onChange={handleChange("newPassword")}
             error={errors.newPassword}
             hint="Min 8 characters, 1 uppercase, 1 number, 1 special character"
             required
@@ -126,17 +128,12 @@ export default function ResetPasswordPage() {
             type="password"
             placeholder="Re-enter your password"
             value={formData.confirmPassword}
-            onChange={handleChange('confirmPassword')}
+            onChange={handleChange("confirmPassword")}
             error={errors.confirmPassword}
             required
           />
 
-          <Button
-            type="submit"
-            fullWidth
-            loading={loading}
-            disabled={loading}
-          >
+          <Button type="submit" fullWidth loading={loading} disabled={loading}>
             Reset Password
           </Button>
         </form>
@@ -147,8 +144,7 @@ export default function ResetPasswordPage() {
 
         <div className={styles.authFooter}>
           <p>
-            Remember your password?{' '}
-            <Link href="/login">Login</Link>
+            Remember your password? <Link href="/login">Login</Link>
           </p>
         </div>
 

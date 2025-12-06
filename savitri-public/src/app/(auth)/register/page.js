@@ -12,7 +12,7 @@ import { validateEmail, validatePassword, validateName, validatePhone } from '@/
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
 import Checkbox from '@/components/common/Checkbox';
-import styles from '../login/page.module.css';
+import styles from './page.module.css';
 
 export default function RegisterPage() {
   const router = useRouter();

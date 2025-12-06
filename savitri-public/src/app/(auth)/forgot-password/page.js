@@ -2,28 +2,28 @@
  * Forgot Password Page
  */
 
-'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import authService from '@/services/auth.service';
-import useToast from '@/hooks/useToast';
-import { validateEmail } from '@/utils/validators';
-import Input from '@/components/common/Input';
-import Button from '@/components/common/Button';
-import styles from '../login/page.module.css';
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import authService from "@/services/auth.service";
+import useToast from "@/hooks/useToast";
+import { validateEmail } from "@/utils/validators";
+import Input from "@/components/common/Input";
+import Button from "@/components/common/Button";
+import styles from "./page.module.css";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const { success, error: showError } = useToast();
 
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setEmail(e.target.value);
-    if (error) setError('');
+    if (error) setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -40,12 +40,12 @@ export default function ForgotPasswordPage() {
     const { error: apiError } = await authService.forgotPassword({ email });
 
     if (apiError) {
-      showError(apiError.message || 'Failed to send reset code');
+      showError(apiError.message || "Failed to send reset code");
       setLoading(false);
       return;
     }
 
-    success('Password reset code sent to your email');
+    success("Password reset code sent to your email");
     router.push(`/reset-password?email=${encodeURIComponent(email)}`);
 
     setLoading(false);
@@ -72,12 +72,7 @@ export default function ForgotPasswordPage() {
             required
           />
 
-          <Button
-            type="submit"
-            fullWidth
-            loading={loading}
-            disabled={loading}
-          >
+          <Button type="submit" fullWidth loading={loading} disabled={loading}>
             Send Reset Code
           </Button>
         </form>
@@ -88,8 +83,7 @@ export default function ForgotPasswordPage() {
 
         <div className={styles.authFooter}>
           <p>
-            Remember your password?{' '}
-            <Link href="/login">Login</Link>
+            Remember your password? <Link href="/login">Login</Link>
           </p>
         </div>
 
