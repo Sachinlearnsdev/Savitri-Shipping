@@ -1,0 +1,305 @@
+/**
+ * CTA Section - Improved Design
+ * Dramatic full-width call-to-action
+ */
+
+.cta {
+  position: relative;
+  padding: 140px 0;
+  overflow: hidden;
+  background: var(--color-gray-900);
+}
+
+/* Background Image */
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/cta-background.jpg");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(10, 126, 164, 0.95) 0%,
+    rgba(12, 24, 33, 0.9) 100%
+  );
+  z-index: 1;
+}
+
+.container {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  z-index: 2;
+}
+
+.content {
+  text-align: center;
+}
+
+/* Icon */
+.iconWrapper {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 60px rgba(255, 107, 74, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  animation: float 6s ease-in-out infinite;
+}
+
+.icon {
+  font-size: 5rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+}
+
+/* Typography */
+.title {
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 900;
+  color: white;
+  margin-bottom: 24px;
+  font-family: var(--font-heading);
+  line-height: 1.1;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  font-size: 1.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 48px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 48px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  text-align: center;
+}
+
+.statValue {
+  font-size: 3rem;
+  font-weight: 900;
+  color: white;
+  font-family: var(--font-heading);
+  line-height: 1;
+  margin-bottom: 8px;
+  text-shadow: 0 0 30px rgba(255, 107, 74, 0.8);
+}
+
+.statLabel {
+  font-size: 1.125rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.divider {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.actions a {
+  text-decoration: none;
+}
+
+.outlineBtn {
+  background: transparent !important;
+  border: 2px solid white !important;
+  color: white !important;
+}
+
+.outlineBtn:hover {
+  background: white !important;
+  color: var(--color-primary) !important;
+}
+
+/* Trust Badges */
+.trustBadges {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badgeIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-success);
+  color: white;
+  font-size: 1.125rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.badgeText {
+  font-size: 1rem;
+  color: white;
+  font-weight: 600;
+}
+
+/* Decorative Waves */
+.waves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  z-index: 1;
+}
+
+.waves svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 80px;
+}
+
+/* Animations */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .cta {
+    padding: 100px 0;
+  }
+
+  .stats {
+    gap: 32px;
+  }
+
+  .statValue {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .cta {
+    padding: 80px 0;
+  }
+
+  .iconWrapper {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 24px;
+  }
+
+  .icon {
+    font-size: 4rem;
+  }
+
+  .title {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 36px;
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .statValue {
+    font-size: 2rem;
+  }
+
+  .statLabel {
+    font-size: 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .actions a {
+    width: 100%;
+  }
+
+  .trustBadges {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .badge {
+    justify-content: center;
+  }
+}

@@ -1,170 +1,172 @@
 /**
- * SAVITRI SHIPPING - PUBLIC WEBSITE THEME
- * Professional Sea Theme - Warm but Professional
+ * SAVITRI SHIPPING - IMPROVED THEME
+ * "Nautical Sunset" - Warm, Professional, Cozy
  * 
- * Change colors here and entire website updates automatically!
+ * Color Psychology:
+ * - Deep Ocean Blues (trust, stability, professionalism)
+ * - Warm Coral/Sunset (energy, warmth, action)
+ * - Cream/Beige (comfort, elegance, sophistication)
  */
 
 :root {
-  /* ==================== BRAND COLORS (SEA THEME) ==================== */
-  
-  /* Primary - Ocean Teal (Professional, Trust) */
-  --color-primary: #0891b2;           /* Main ocean teal */
-  --color-primary-light: #06b6d4;     /* Lighter teal */
-  --color-primary-dark: #0e7490;      /* Darker teal */
-  --color-primary-50: #ecfeff;        /* Very light teal */
-  --color-primary-100: #cffafe;       /* Light teal bg */
-  --color-primary-200: #a5f3fc;
-  --color-primary-600: #0891b2;
-  --color-primary-700: #0e7490;
-  --color-primary-800: #155e75;
-  --color-primary-900: #164e63;
-  
-  /* Secondary - Sunset Orange (Warm, Action) */
-  --color-secondary: #f97316;         /* Vibrant orange */
-  --color-secondary-light: #fb923c;   /* Lighter orange */
-  --color-secondary-dark: #ea580c;    /* Darker orange */
-  --color-secondary-50: #fff7ed;      /* Very light orange */
-  --color-secondary-100: #ffedd5;     /* Light orange bg */
-  
-  /* ==================== NEUTRAL COLORS (WARM GRAYS) ==================== */
+  /* ==================== PRIMARY - DEEP OCEAN BLUE ==================== */
+  --color-primary: #0a7ea4; /* Deep teal-blue (main brand) */
+  --color-primary-light: #0ea5d1; /* Lighter ocean */
+  --color-primary-dark: #085f7c; /* Darker ocean */
+  --color-primary-50: #e8f4f8; /* Very light blue */
+  --color-primary-100: #c1e8f5; /* Light blue bg */
+  --color-primary-600: #0a7ea4;
+  --color-primary-700: #085f7c;
+  --color-primary-800: #064758;
+  --color-primary-900: #043340;
+
+  /* ==================== SECONDARY - SUNSET CORAL ==================== */
+  --color-secondary: #ff6b4a; /* Warm coral/sunset */
+  --color-secondary-light: #ff8a6d; /* Light coral */
+  --color-secondary-dark: #e5563a; /* Deep coral */
+  --color-secondary-50: #fff3f0; /* Very light coral */
+  --color-secondary-100: #ffe4dd; /* Light coral bg */
+
+  /* ==================== ACCENT - GOLDEN SAND ==================== */
+  --color-accent: #f4a261; /* Warm golden sand */
+  --color-accent-light: #f7b77f; /* Light sand */
+  --color-accent-dark: #e38b48; /* Deep sand */
+
+  /* ==================== NEUTRAL - WARM CREAM/NAVY ==================== */
   --color-white: #ffffff;
-  --color-black: #000000;
-  
+  --color-black: #0c1821; /* Deep navy (not pure black) */
+
   /* Warm neutral palette */
-  --color-gray-50: #fafaf9;           /* Off-white, not harsh */
-  --color-gray-100: #f5f5f4;          /* Very light warm gray */
-  --color-gray-200: #e7e5e4;          /* Light warm gray */
-  --color-gray-300: #d6d3d1;          /* Medium light gray */
-  --color-gray-400: #a8a29e;          /* Medium gray */
-  --color-gray-500: #78716c;          /* True medium gray */
-  --color-gray-600: #57534e;          /* Medium dark gray */
-  --color-gray-700: #44403c;          /* Dark gray */
-  --color-gray-800: #292524;          /* Very dark gray */
-  --color-gray-900: #1c1917;          /* Almost black */
-  
+  --color-gray-50: #faf9f7; /* Warm cream white */
+  --color-gray-100: #f5f3f0; /* Light cream */
+  --color-gray-200: #eee9e4; /* Cream beige */
+  --color-gray-300: #d8d2cc; /* Light warm gray */
+  --color-gray-400: #b5ada4; /* Medium warm gray */
+  --color-gray-500: #8b8178; /* True warm gray */
+  --color-gray-600: #6b6157; /* Dark warm gray */
+  --color-gray-700: #4a433c; /* Very dark gray */
+  --color-gray-800: #2d2821; /* Almost black warm */
+  --color-gray-900: #1a1612; /* Deep warm black */
+
   /* ==================== SEMANTIC COLORS ==================== */
-  
-  /* Success - Sea Green */
-  --color-success: #10b981;
-  --color-success-light: #6ee7b7;
-  --color-success-dark: #059669;
-  --color-success-bg: #d1fae5;
-  
-  /* Error - Coral Red (softer than pure red) */
-  --color-error: #ef4444;
-  --color-error-light: #f87171;
-  --color-error-dark: #dc2626;
-  --color-error-bg: #fee2e2;
-  
-  /* Warning - Golden Amber */
-  --color-warning: #f59e0b;
-  --color-warning-light: #fbbf24;
-  --color-warning-dark: #d97706;
-  --color-warning-bg: #fef3c7;
-  
-  /* Info - Sky Blue */
-  --color-info: #3b82f6;
-  --color-info-light: #60a5fa;
-  --color-info-dark: #2563eb;
-  --color-info-bg: #dbeafe;
-  
+  --color-success: #52b788; /* Ocean green */
+  --color-success-light: #74d1a0;
+  --color-success-dark: #3a9b6f;
+  --color-success-bg: #e8f5ef;
+
+  --color-error: #e63946; /* Warm red */
+  --color-error-light: #f15b66;
+  --color-error-dark: #d32735;
+  --color-error-bg: #ffebee;
+
+  --color-warning: #f4a261; /* Golden amber */
+  --color-warning-light: #f7b77f;
+  --color-warning-dark: #e38b48;
+  --color-warning-bg: #fff4e6;
+
+  --color-info: #457b9d; /* Slate blue */
+  --color-info-light: #6b9fbf;
+  --color-info-dark: #2f5973;
+  --color-info-bg: #e8f1f5;
+
   /* ==================== BACKGROUNDS ==================== */
-  --bg-primary: var(--color-white);
-  --bg-secondary: var(--color-gray-50);      /* Warm off-white */
-  --bg-tertiary: var(--color-gray-100);      /* Light warm gray */
-  --bg-inverse: var(--color-gray-900);       /* Dark background */
-  --bg-overlay: rgba(0, 0, 0, 0.5);          /* For hero overlays */
-  --bg-overlay-light: rgba(0, 0, 0, 0.3);
-  
+  --bg-primary: #ffffff;
+  --bg-secondary: #faf9f7; /* Warm cream */
+  --bg-tertiary: #f5f3f0; /* Light cream */
+  --bg-accent: #fff8f3; /* Peachy cream */
+  --bg-inverse: #0c1821; /* Deep navy */
+  --bg-overlay: rgba(12, 24, 33, 0.6); /* Navy overlay */
+  --bg-overlay-light: rgba(12, 24, 33, 0.3);
+
   /* ==================== TEXT COLORS ==================== */
-  --text-primary: var(--color-gray-900);     /* Main text */
-  --text-secondary: var(--color-gray-600);   /* Secondary text */
-  --text-tertiary: var(--color-gray-400);    /* Disabled/placeholder */
-  --text-inverse: var(--color-white);        /* Text on dark bg */
-  --text-link: var(--color-primary);         /* Links */
-  --text-link-hover: var(--color-primary-dark);
-  
+  --text-primary: #1a1612; /* Warm black */
+  --text-secondary: #4a433c; /* Dark warm gray */
+  --text-tertiary: #8b8178; /* Medium warm gray */
+  --text-inverse: #ffffff;
+  --text-link: #0a7ea4; /* Ocean blue */
+  --text-link-hover: #085f7c;
+
   /* ==================== BORDERS ==================== */
-  --border-color: var(--color-gray-200);
-  --border-color-dark: var(--color-gray-300);
-  --border-color-light: var(--color-gray-100);
-  
+  --border-color: #eee9e4; /* Light warm border */
+  --border-color-dark: #d8d2cc;
+  --border-color-light: #f5f3f0;
+
   /* ==================== TYPOGRAPHY ==================== */
-  
-  /* Font Families */
-  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+  --font-primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-heading: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
   /* Font Sizes */
-  --font-size-xs: 0.75rem;      /* 12px */
-  --font-size-sm: 0.875rem;     /* 14px */
-  --font-size-base: 1rem;       /* 16px */
-  --font-size-lg: 1.125rem;     /* 18px */
-  --font-size-xl: 1.25rem;      /* 20px */
-  --font-size-2xl: 1.5rem;      /* 24px */
-  --font-size-3xl: 1.875rem;    /* 30px */
-  --font-size-4xl: 2.25rem;     /* 36px */
-  --font-size-5xl: 3rem;        /* 48px */
-  --font-size-6xl: 3.75rem;     /* 60px */
-  
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem; /* 36px */
+  --font-size-5xl: 3rem; /* 48px */
+  --font-size-6xl: 3.75rem; /* 60px */
+
   /* Font Weights */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
-  
+
   /* Line Heights */
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
   --line-height-loose: 2;
-  
+
   /* ==================== SPACING ==================== */
   --spacing-0: 0;
-  --spacing-1: 0.25rem;     /* 4px */
-  --spacing-2: 0.5rem;      /* 8px */
-  --spacing-3: 0.75rem;     /* 12px */
-  --spacing-4: 1rem;        /* 16px */
-  --spacing-5: 1.25rem;     /* 20px */
-  --spacing-6: 1.5rem;      /* 24px */
-  --spacing-8: 2rem;        /* 32px */
-  --spacing-10: 2.5rem;     /* 40px */
-  --spacing-12: 3rem;       /* 48px */
-  --spacing-16: 4rem;       /* 64px */
-  --spacing-20: 5rem;       /* 80px */
-  --spacing-24: 6rem;       /* 96px */
-  --spacing-32: 8rem;       /* 128px */
-  
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-16: 4rem; /* 64px */
+  --spacing-20: 5rem; /* 80px */
+  --spacing-24: 6rem; /* 96px */
+  --spacing-32: 8rem; /* 128px */
+
   /* ==================== BORDER RADIUS ==================== */
   --radius-none: 0;
-  --radius-sm: 0.25rem;     /* 4px */
-  --radius-md: 0.375rem;    /* 6px */
-  --radius-lg: 0.5rem;      /* 8px */
-  --radius-xl: 0.75rem;     /* 12px */
-  --radius-2xl: 1rem;       /* 16px */
-  --radius-3xl: 1.5rem;     /* 24px */
-  --radius-full: 9999px;    /* Circular */
-  
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
+  --radius-2xl: 1.5rem; /* 24px */
+  --radius-3xl: 2rem; /* 32px */
+  --radius-full: 9999px;
+
   /* ==================== SHADOWS ==================== */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  
-  /* Colored shadows for emphasis */
-  --shadow-primary: 0 4px 14px 0 rgba(8, 145, 178, 0.2);
-  --shadow-secondary: 0 4px 14px 0 rgba(249, 115, 22, 0.2);
-  
+  --shadow-xs: 0 1px 2px 0 rgba(26, 22, 18, 0.05);
+  --shadow-sm: 0 2px 4px 0 rgba(26, 22, 18, 0.08);
+  --shadow-md: 0 4px 8px -2px rgba(26, 22, 18, 0.1);
+  --shadow-lg: 0 8px 16px -4px rgba(26, 22, 18, 0.12);
+  --shadow-xl: 0 16px 32px -8px rgba(26, 22, 18, 0.15);
+  --shadow-2xl: 0 24px 48px -12px rgba(26, 22, 18, 0.2);
+
+  /* Colored shadows */
+  --shadow-primary: 0 8px 24px -4px rgba(10, 126, 164, 0.3);
+  --shadow-secondary: 0 8px 24px -4px rgba(255, 107, 74, 0.3);
+  --shadow-accent: 0 8px 24px -4px rgba(244, 162, 97, 0.3);
+
   /* ==================== TRANSITIONS ==================== */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
   /* ==================== Z-INDEX SCALE ==================== */
   --z-base: 0;
   --z-dropdown: 100;
@@ -176,63 +178,45 @@
   --z-tooltip: 700;
   --z-toast: 800;
   --z-max: 999;
-  
-  /* ==================== BREAKPOINTS (for reference) ==================== */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-  
-  /* ==================== CONTAINER ==================== */
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-  --container-max: 1440px;
-  --container-padding: var(--spacing-4);
-  
-  /* ==================== HEADER & FOOTER ==================== */
-  --header-height: 80px;
-  --header-height-mobile: 64px;
-  --footer-height: auto;
-  
-  /* ==================== GRADIENT OVERLAYS ==================== */
-  --gradient-hero: linear-gradient(135deg, rgba(8, 145, 178, 0.9) 0%, rgba(14, 116, 144, 0.85) 50%, rgba(249, 115, 22, 0.7) 100%);
-  --gradient-card: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0.1) 100%);
-  --gradient-button: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
-  
+
+  /* ==================== GRADIENTS ==================== */
+  --gradient-hero: linear-gradient(
+    135deg,
+    rgba(10, 126, 164, 0.95) 0%,
+    rgba(8, 95, 124, 0.9) 50%,
+    rgba(255, 107, 74, 0.85) 100%
+  );
+
+  --gradient-ocean: linear-gradient(135deg, #0a7ea4 0%, #085f7c 100%);
+
+  --gradient-sunset: linear-gradient(135deg, #ff6b4a 0%, #f4a261 100%);
+
+  --gradient-warm: linear-gradient(135deg, #f4a261 0%, #ff6b4a 100%);
+
+  --gradient-card: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(26, 22, 18, 0.05) 100%
+  );
+
+  /* ==================== GLASSMORPHISM ==================== */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px 0 rgba(26, 22, 18, 0.15);
+  --glass-blur: blur(12px);
+
   /* ==================== ANIMATIONS ==================== */
   --animation-wave: wave 3s ease-in-out infinite;
   --animation-float: float 6s ease-in-out infinite;
   --animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* ==================== DARK MODE (OPTIONAL - FUTURE) ==================== */
-[data-theme="dark"] {
-  --bg-primary: var(--color-gray-900);
-  --bg-secondary: var(--color-gray-800);
-  --bg-tertiary: var(--color-gray-700);
-  --bg-inverse: var(--color-white);
-  
-  --text-primary: var(--color-gray-50);
-  --text-secondary: var(--color-gray-300);
-  --text-tertiary: var(--color-gray-500);
-  --text-inverse: var(--color-gray-900);
-  
-  --border-color: var(--color-gray-700);
-  --border-color-dark: var(--color-gray-600);
-  --border-color-light: var(--color-gray-800);
-  
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  --animation-shimmer: shimmer 2s linear infinite;
 }
 
 /* ==================== ANIMATION KEYFRAMES ==================== */
 
 @keyframes wave {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -241,29 +225,42 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   33% {
-    transform: translateY(-10px) rotate(1deg);
+    transform: translateY(-15px) rotate(2deg);
   }
   66% {
-    transform: translateY(-5px) rotate(-1deg);
+    transform: translateY(-8px) rotate(-2deg);
   }
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
   }
 }
 
 @keyframes slideInFromBottom {
   from {
-    transform: translateY(20px);
+    transform: translateY(30px);
     opacity: 0;
   }
   to {
@@ -277,6 +274,39 @@
     opacity: 0;
   }
   to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
     opacity: 1;
   }
 }
