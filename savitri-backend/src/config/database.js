@@ -1,28 +1,35 @@
-// src/config/database.js
-const { PrismaClient } = require("@prisma/client");
+const mongoose = require('mongoose');
+const config = require('./env');
 
-const clientOptions = {
-  log:
-    process.env.NODE_ENV === "development"
-      ? ["query", "info", "warn", "error"]
-      : ["error"],
-  accelerateUrl: process.env.PRISMA_ACCELERATE_URL,
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(config.databaseUrl, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+
+    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ MongoDB connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('⚠️  MongoDB disconnected');
+    });
+
+    process.on('SIGINT', async () => {
+      await mongoose.connection.close();
+      console.log('MongoDB connection closed through app termination');
+      process.exit(0);
+    });
+
+    return conn;
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error.message);
+    process.exit(1);
+  }
 };
 
-const prisma = new PrismaClient(clientOptions);
-
-prisma
-  .$connect()
-  .then(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        "✅ Database connected successfully (Prisma v7 + Accelerate)"
-      );
-    }
-  })
-  .catch((error) => {
-    console.error("❌ Database connection failed:", error);
-    if (process.env.NODE_ENV !== "development") process.exit(1);
-  });
-
-module.exports = prisma;
+module.exports = connectDB;

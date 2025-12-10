@@ -101,6 +101,23 @@ app.use('/api/admin/settings', require('./modules/settings/settings.routes'));
 app.use('/api/profile', require('./modules/profile/profile.routes'));
 app.use('/api/profile/vehicles', require('./modules/savedVehicles/savedVehicles.routes'));
 
+
+// Root / welcome endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Savitri Shipping Backend is running ✅',
+    environment: config.nodeEnv,
+    urls: {
+      backend: config.backendUrl,
+      frontend: config.frontendUrl,
+      admin: config.adminUrl
+    }
+  });
+});
+
+
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

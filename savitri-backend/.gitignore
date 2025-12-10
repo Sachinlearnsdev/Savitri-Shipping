@@ -30,7 +30,6 @@ Thumbs.db
 *~
 
 # Prisma
-prisma/migrations/
 
 # Build files
 dist/

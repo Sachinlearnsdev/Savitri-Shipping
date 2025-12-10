@@ -19,7 +19,7 @@ const FeaturedBoats = () => {
       type: "Speed Boat",
       price: "₹2,500/hr",
       rating: 5,
-      image: "/images/boat-1.jpg",
+      image: "https://picsum.photos/800/600?random=10", // Placeholder
       features: ["Fast", "6 Seats", "Life Jackets"],
     },
     {
@@ -28,7 +28,7 @@ const FeaturedBoats = () => {
       type: "Party Boat",
       price: "₹18,000",
       rating: 5,
-      image: "/images/boat-2.jpg",
+      image: "https://picsum.photos/800/600?random=11", // Placeholder
       features: ["Music System", "20 Guests", "Catering"],
     },
     {
@@ -37,7 +37,7 @@ const FeaturedBoats = () => {
       type: "Ferry",
       price: "₹80/trip",
       rating: 4,
-      image: "/images/boat-3.jpg",
+      image: "https://picsum.photos/800/600?random=12", // Placeholder
       features: ["Vehicle Transport", "Daily", "Reliable"],
     },
   ];

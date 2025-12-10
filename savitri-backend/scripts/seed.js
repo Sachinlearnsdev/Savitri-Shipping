@@ -1,20 +1,26 @@
-// prisma/seed.js
+// scripts/seed.js
 
-const { PrismaClient } = require('@prisma/client');
+require('dotenv').config();
+const connectDB = require('../src/config/database');
+const { Role, AdminUser, Setting } = require('../src/models');
 const bcrypt = require('bcryptjs');
 
-const prisma = new PrismaClient();
+async function seed() {
+  try {
+    console.log('🌱 Starting database seed...');
 
-async function main() {
-  console.log('🌱 Starting database seed...');
+    // Connect to database
+    await connectDB();
 
-  // ==================== ROLES ====================
-  console.log('Creating roles...');
+    // Clear existing data (optional - comment out in production)
+    await Role.deleteMany({});
+    await AdminUser.deleteMany({});
+    await Setting.deleteMany({});
 
-  const superAdminRole = await prisma.role.upsert({
-    where: { name: 'Super Admin' },
-    update: {},
-    create: {
+    // ==================== ROLES ====================
+    console.log('Creating roles...');
+
+    const superAdminRole = await Role.create({
       name: 'Super Admin',
       description: 'Full system access',
       isSystem: true,
@@ -44,13 +50,9 @@ async function main() {
         settings: { view: true, edit: true },
         reports: { view: true, export: true },
       },
-    },
-  });
+    });
 
-  const operationsManagerRole = await prisma.role.upsert({
-    where: { name: 'Operations Manager' },
-    update: {},
-    create: {
+    await Role.create({
       name: 'Operations Manager',
       description: 'Manage operations and bookings',
       isSystem: true,
@@ -66,13 +68,9 @@ async function main() {
         settings: { view: true },
         reports: { view: true, export: true },
       },
-    },
-  });
+    });
 
-  const fleetManagerRole = await prisma.role.upsert({
-    where: { name: 'Fleet Manager' },
-    update: {},
-    create: {
+    await Role.create({
       name: 'Fleet Manager',
       description: 'Manage fleet and vessels',
       isSystem: true,
@@ -88,13 +86,9 @@ async function main() {
         bookings: { view: true },
         reports: { view: true },
       },
-    },
-  });
+    });
 
-  const bookingAgentRole = await prisma.role.upsert({
-    where: { name: 'Booking Agent' },
-    update: {},
-    create: {
+    await Role.create({
       name: 'Booking Agent',
       description: 'Handle customer bookings',
       isSystem: true,
@@ -108,13 +102,9 @@ async function main() {
         bookings: { view: true, create: true, edit: true, cancel: true },
         reviews: { view: true },
       },
-    },
-  });
+    });
 
-  const contentManagerRole = await prisma.role.upsert({
-    where: { name: 'Content Manager' },
-    update: {},
-    create: {
+    await Role.create({
       name: 'Content Manager',
       description: 'Manage website content',
       isSystem: true,
@@ -128,13 +118,9 @@ async function main() {
         pages: { view: true, create: true, edit: true, delete: true },
         reviews: { view: true, moderate: true },
       },
-    },
-  });
+    });
 
-  const supportStaffRole = await prisma.role.upsert({
-    where: { name: 'Support Staff' },
-    update: {},
-    create: {
+    await Role.create({
       name: 'Support Staff',
       description: 'Customer support',
       isSystem: true,
@@ -146,41 +132,33 @@ async function main() {
         reviews: { view: true },
         faqs: { view: true },
       },
-    },
-  });
+    });
 
-  console.log('✅ Roles created');
+    console.log('✅ Roles created');
 
-  // ==================== SUPER ADMIN USER ====================
-  console.log('Creating Super Admin user...');
+    // ==================== SUPER ADMIN ====================
+    console.log('Creating Super Admin user...');
 
-  const hashedPassword = await bcrypt.hash('Admin@123', 10);
+    const hashedPassword = await bcrypt.hash('Admin@123', 10);
 
-  const superAdmin = await prisma.adminUser.upsert({
-    where: { email: 'admin@savitrishipping.in' },
-    update: {},
-    create: {
+    await AdminUser.create({
       email: 'admin@savitrishipping.in',
       password: hashedPassword,
       name: 'Super Administrator',
       phone: '9876543210',
-      roleId: superAdminRole.id,
+      roleId: superAdminRole._id,
       status: 'ACTIVE',
-    },
-  });
+    });
 
-  console.log('✅ Super Admin created');
-  console.log('   Email: admin@savitrishipping.in');
-  console.log('   Password: Admin@123');
+    console.log('✅ Super Admin created');
+    console.log('   Email: admin@savitrishipping.in');
+    console.log('   Password: Admin@123');
 
-  // ==================== SETTINGS ====================
-  console.log('Creating default settings...');
+    // ==================== SETTINGS ====================
+    console.log('Creating default settings...');
 
-  // General Settings
-  await prisma.setting.upsert({
-    where: { group_key: { group: 'general', key: 'company' } },
-    update: {},
-    create: {
+    // General Settings
+    await Setting.create({
       group: 'general',
       key: 'company',
       value: {
@@ -200,14 +178,10 @@ async function main() {
         currency: 'INR',
         currencySymbol: '₹',
       },
-    },
-  });
+    });
 
-  // Billing Settings
-  await prisma.setting.upsert({
-    where: { group_key: { group: 'billing', key: 'config' } },
-    update: {},
-    create: {
+    // Billing Settings
+    await Setting.create({
       group: 'billing',
       key: 'config',
       value: {
@@ -229,14 +203,10 @@ async function main() {
         invoiceStartNumber: 1001,
         invoiceFooter: 'Thank you for choosing Savitri Shipping!',
       },
-    },
-  });
+    });
 
-  // Booking Settings
-  await prisma.setting.upsert({
-    where: { group_key: { group: 'booking', key: 'config' } },
-    update: {},
-    create: {
+    // Booking Settings
+    await Setting.create({
       group: 'booking',
       key: 'config',
       value: {
@@ -263,14 +233,10 @@ async function main() {
         },
         refundProcessingDays: 7,
       },
-    },
-  });
+    });
 
-  // Notification Settings
-  await prisma.setting.upsert({
-    where: { group_key: { group: 'notification', key: 'config' } },
-    update: {},
-    create: {
+    // Notification Settings
+    await Setting.create({
       group: 'notification',
       key: 'config',
       value: {
@@ -280,14 +246,10 @@ async function main() {
         reminderHoursBeforeTrip: 24,
         smsReminderHoursBeforeTrip: 2,
       },
-    },
-  });
+    });
 
-  // Content Settings
-  await prisma.setting.upsert({
-    where: { group_key: { group: 'content', key: 'pages' } },
-    update: {},
-    create: {
+    // Content Settings
+    await Setting.create({
       group: 'content',
       key: 'pages',
       value: {
@@ -296,19 +258,16 @@ async function main() {
         refundPolicy: '<p>Refund policy content will be added here...</p>',
         aboutUs: '<p>About us content will be added here...</p>',
       },
-    },
-  });
+    });
 
-  console.log('✅ Settings created');
+    console.log('✅ Settings created');
 
-  console.log('\n🎉 Database seed completed successfully!');
+    console.log('\n🎉 Database seed completed successfully!');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Seed failed:', error);
+    process.exit(1);
+  }
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Seed failed:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+seed();
