@@ -1,6 +1,5 @@
 // src/middleware/auth.js
-
-const prisma = require('../config/database');
+const Customer = require('../models/Customer');
 const ApiError = require('../utils/ApiError');
 const { verifyAccessToken, getTokenFromRequest } = require('../utils/jwt');
 const { USER_STATUS } = require('../config/constants');
@@ -25,19 +24,8 @@ const auth = async (req, res, next) => {
     }
     
     // Get customer from database
-    const customer = await prisma.customer.findUnique({
-      where: { id: decoded.customerId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        avatar: true,
-        emailVerified: true,
-        phoneVerified: true,
-        status: true,
-      },
-    });
+    const customer = await Customer.findById(decoded.customerId)
+      .select('-password');
     
     if (!customer) {
       throw ApiError.unauthorized('Customer not found');
@@ -49,8 +37,17 @@ const auth = async (req, res, next) => {
     }
     
     // Attach customer to request
-    req.customer = customer;
-    req.customerId = customer.id;
+    req.customer = {
+      id: customer._id.toString(),
+      email: customer.email,
+      name: customer.name,
+      phone: customer.phone,
+      avatar: customer.avatar,
+      emailVerified: customer.emailVerified,
+      phoneVerified: customer.phoneVerified,
+      status: customer.status,
+    };
+    req.customerId = customer._id.toString();
     
     next();
   } catch (error) {

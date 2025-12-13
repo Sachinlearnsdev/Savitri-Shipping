@@ -1,6 +1,5 @@
 // src/middleware/adminAuth.js
-
-const prisma = require('../config/database');
+const AdminUser = require('../models/AdminUser');
 const ApiError = require('../utils/ApiError');
 const { verifyAccessToken, getTokenFromRequest } = require('../utils/jwt');
 const { USER_STATUS } = require('../config/constants');
@@ -25,12 +24,9 @@ const adminAuth = async (req, res, next) => {
     }
     
     // Get admin user from database with role
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { id: decoded.adminUserId },
-      include: {
-        role: true,
-      },
-    });
+    const adminUser = await AdminUser.findById(decoded.adminUserId)
+      .populate('role')
+      .select('-password');
     
     if (!adminUser) {
       throw ApiError.unauthorized('Admin user not found');
@@ -48,7 +44,7 @@ const adminAuth = async (req, res, next) => {
     
     // Attach admin user to request
     req.adminUser = {
-      id: adminUser.id,
+      id: adminUser._id.toString(),
       email: adminUser.email,
       name: adminUser.name,
       phone: adminUser.phone,
@@ -57,7 +53,7 @@ const adminAuth = async (req, res, next) => {
       roleName: adminUser.role.name,
       permissions: adminUser.role.permissions,
     };
-    req.adminUserId = adminUser.id;
+    req.adminUserId = adminUser._id.toString();
     
     next();
   } catch (error) {

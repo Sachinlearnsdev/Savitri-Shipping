@@ -1,5 +1,6 @@
 /**
  * Register Page
+ * FIXED: Added confirmPassword to API call, template literals
  */
 
 'use client';
@@ -8,15 +9,22 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useAuth from '@/hooks/useAuth';
 import useToast from '@/hooks/useToast';
-import { validateEmail, validatePassword, validateName, validatePhone } from '@/utils/validators';
+import { 
+  validateEmail, 
+  validatePassword, 
+  validateConfirmPassword,
+  validateName, 
+  validatePhone 
+} from '@/utils/validators';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
 import Checkbox from '@/components/common/Checkbox';
 import styles from '../login/page.module.css';
+import styles from '../shared-auth.module.css';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register } = useAuth({ requireGuest: true });
   const { success, error: showError } = useToast();
 
   const [formData, setFormData] = useState({
@@ -27,6 +35,7 @@ export default function RegisterPage() {
     confirmPassword: '',
     agreeToTerms: false,
   });
+  
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -61,8 +70,9 @@ export default function RegisterPage() {
       newErrors.password = passwordValidation.message;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    const confirmValidation = validateConfirmPassword(formData.password, formData.confirmPassword);
+    if (!confirmValidation.valid) {
+      newErrors.confirmPassword = confirmValidation.message;
     }
 
     if (!formData.agreeToTerms) {
@@ -75,25 +85,28 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!validate()) return;
 
     setLoading(true);
-
+    
+    // Backend expects: { name, email, phone, password, confirmPassword }
     const result = await register({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
       password: formData.password,
+      confirmPassword: formData.confirmPassword, // FIXED: Added this
     });
-
+    
     if (result.success) {
       success('Registration successful! Please verify your email.');
+      // Redirect to email verification page
       router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } else {
-      showError(result.error?.message || 'Registration failed');
+      showError(result.error || 'Registration failed');
     }
-
+    
     setLoading(false);
   };
 

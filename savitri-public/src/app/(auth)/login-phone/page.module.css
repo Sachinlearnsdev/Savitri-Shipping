@@ -140,3 +140,32 @@
   }
 }
 
+
+.otpActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+}
+
+.resendButton,
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.resendButton:disabled {
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.alternativeLogin {
+  margin-top: var(--spacing-4);
+}
+

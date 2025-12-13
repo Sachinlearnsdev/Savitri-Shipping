@@ -1,99 +1,113 @@
 /**
  * Verify Phone Page
+ * FIXED: Uses correct resendOTP endpoint and toast destructuring
  */
 
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import authService from '@/services/auth.service';
-import useToast from '@/hooks/useToast';
-import Button from '@/components/common/Button';
-import Input from '@/components/common/Input';
-import Loader from '@/components/common/Loader';
-import styles from './page.module.css';
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import authService from "@/services/auth.service";
+import useToast from "@/hooks/useToast";
+import { validateOTP } from "@/utils/validators";
+import { formatPhone } from "@/utils/formatters";
+import Button from "@/components/common/Button";
+import Input from "@/components/common/Input";
+import Loader from "@/components/common/Loader";
+import styles from "./page.module.css";
+import styles from "../shared-auth.module.css";
 
 export default function VerifyPhonePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { showToast } = useToast();
+  const { success, error: showError, info } = useToast();
 
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [phone, setPhone] = useState('');
-  const [canResend, setCanResend] = useState(false);
-  const [resendTimer, setResendTimer] = useState(60);
+  const [otp, setOtp] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countdown, setCountdown] = useState(60);
 
   useEffect(() => {
     // Get phone from URL params
-    const phoneParam = searchParams.get('phone');
+    const phoneParam = searchParams.get("phone");
     if (phoneParam) {
       setPhone(phoneParam);
     } else {
-      // If no phone, redirect to profile
-      showToast('Phone number not found', 'error');
-      router.push('/account');
+      // If no phone, redirect to account
+      showError("Phone number not found");
+      router.push("/account");
     }
-  }, [searchParams, router, showToast]);
+  }, [searchParams, router, showError]);
 
-  // Resend timer
+  // Countdown timer
   useEffect(() => {
-    if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
     }
-  }, [resendTimer]);
+  }, [countdown]);
+
+  const handleOTPChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setOtp(value);
+  };
 
   const handleVerify = async (e) => {
     e.preventDefault();
 
-    if (!otp) {
-      showToast('Please enter OTP', 'error');
-      return;
-    }
-
-    if (otp.length !== 6) {
-      showToast('OTP must be 6 digits', 'error');
+    const otpValidation = validateOTP(otp);
+    if (!otpValidation.valid) {
+      showError(otpValidation.message);
       return;
     }
 
     setVerifying(true);
 
-    try {
-      await authService.verifyPhone({ phone, otp });
-      showToast('Phone verified successfully!', 'success');
-      
-      // Redirect to profile after 1 second
-      setTimeout(() => {
-        router.push('/account');
-      }, 1000);
-    } catch (error) {
-      showToast(error.response?.data?.message || 'Failed to verify phone', 'error');
-    } finally {
+    const { data, error } = await authService.verifyPhone({ phone, otp });
+
+    if (error) {
+      const errorMsg =
+        error.message || error.error?.message || "Failed to verify phone";
+      showError(errorMsg);
       setVerifying(false);
+      return;
     }
+
+    success("Phone verified successfully!");
+
+    // Redirect to account after success
+    setTimeout(() => {
+      router.push("/account");
+    }, 1000);
   };
 
   const handleResend = async () => {
-    if (!canResend) return;
+    if (countdown > 0) return;
 
     setLoading(true);
-    setCanResend(false);
-    setResendTimer(60);
 
-    try {
-      await authService.sendPhoneOTP({ phone });
-      showToast('OTP sent successfully!', 'success');
-    } catch (error) {
-      showToast(error.response?.data?.message || 'Failed to send OTP', 'error');
-      setCanResend(true);
-    } finally {
-      setLoading(false);
+    // FIXED: Use resendOTP with correct parameters
+    const { data, error } = await authService.resendOTP({
+      identifier: phone,
+      type: "phone",
+    });
+
+    if (error) {
+      const errorMsg =
+        error.message || error.error?.message || "Failed to send OTP";
+      showError(errorMsg);
+    } else {
+      info("OTP sent successfully!");
+      setCountdown(60);
     }
+
+    setLoading(false);
   };
+
+  if (!phone) {
+    return null;
+  }
 
   return (
     <div className={styles.verifyPhonePage}>
@@ -105,12 +119,13 @@ export default function VerifyPhonePage() {
 
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.icon}>
-              📱
-            </div>
+            <div className={styles.icon}>📱</div>
             <h1 className={styles.title}>Verify Phone Number</h1>
             <p className={styles.subtitle}>
-              We've sent a 6-digit OTP to <strong>{phone}</strong>
+              We've sent a 6-digit OTP to <strong>{formatPhone(phone)}</strong>
+            </p>
+            <p className={styles.hint}>
+              Note: Using master OTP <code>123456</code> in development
             </p>
           </div>
 
@@ -118,9 +133,9 @@ export default function VerifyPhonePage() {
             <Input
               label="Enter OTP"
               type="text"
-              placeholder="Enter 6-digit OTP"
+              placeholder="000000"
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={handleOTPChange}
               maxLength={6}
               required
               autoFocus
@@ -131,27 +146,26 @@ export default function VerifyPhonePage() {
               variant="primary"
               fullWidth
               disabled={verifying || otp.length !== 6}
+              loading={verifying}
             >
-              {verifying ? 'Verifying...' : 'Verify Phone'}
+              Verify Phone
             </Button>
           </form>
 
           <div className={styles.footer}>
             <p className={styles.resendText}>
-              Didn't receive OTP?{' '}
+              Didn't receive OTP?{" "}
               <button
                 type="button"
                 onClick={handleResend}
-                className={`${styles.resendLink} ${!canResend ? styles.disabled : ''}`}
-                disabled={!canResend || loading}
+                className={styles.resendButton}
+                disabled={countdown > 0 || loading}
               >
-                {loading ? (
-                  'Sending...'
-                ) : canResend ? (
-                  'Resend OTP'
-                ) : (
-                  `Resend in ${resendTimer}s`
-                )}
+                {loading
+                  ? "Sending..."
+                  : countdown > 0
+                  ? `Resend in ${countdown}s`
+                  : "Resend OTP"}
               </button>
             </p>
           </div>

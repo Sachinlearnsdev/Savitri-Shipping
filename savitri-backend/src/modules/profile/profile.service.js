@@ -1,12 +1,12 @@
 // src/modules/profile/profile.service.js
-
-const prisma = require('../../config/database');
+const { Customer, CustomerSession, LoginHistory } = require('../../models');
 const ApiError = require('../../utils/ApiError');
-const { hashPassword, comparePassword, sanitizeUser } = require('../../utils/helpers');
+const { hashPassword, comparePassword } = require('../../utils/helpers');
 const { createOTP, verifyOTP } = require('../../utils/otp');
 const { sendEmailVerificationOTP, sendPasswordChangedEmail } = require('../../utils/email');
 const { sendPhoneVerificationOTP } = require('../../utils/sms');
 const { OTP_TYPE } = require('../../config/constants');
+const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 const path = require('path');
 const fs = require('fs');
 const config = require('../../config/env');
@@ -16,28 +16,15 @@ class ProfileService {
    * Get profile
    */
   async getProfile(customerId) {
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        avatar: true,
-        emailVerified: true,
-        phoneVerified: true,
-        emailNotifications: true,
-        smsNotifications: true,
-        promotionalEmails: true,
-        createdAt: true,
-      },
-    });
+    const customer = await Customer.findById(customerId)
+      .select('id name email phone avatar emailVerified phoneVerified emailNotifications smsNotifications promotionalEmails createdAt')
+      .lean();
 
     if (!customer) {
       throw ApiError.notFound('Customer not found');
     }
 
-    return customer;
+    return formatDocument(customer);
   }
 
   /**
@@ -46,19 +33,15 @@ class ProfileService {
   async updateProfile(customerId, data) {
     const { name } = data;
 
-    const customer = await prisma.customer.update({
-      where: { id: customerId },
-      data: { name },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        avatar: true,
-      },
-    });
+    const customer = await Customer.findByIdAndUpdate(
+      customerId,
+      { name },
+      { new: true }
+    )
+      .select('id name email phone avatar')
+      .lean();
 
-    return customer;
+    return formatDocument(customer);
   }
 
   /**
@@ -70,9 +53,7 @@ class ProfileService {
     }
 
     // Get current customer
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-    });
+    const customer = await Customer.findById(customerId);
 
     // Delete old avatar if exists
     if (customer.avatar) {
@@ -84,27 +65,23 @@ class ProfileService {
 
     // Update avatar URL
     const avatarUrl = `/uploads/${file.filename}`;
-    
-    const updatedCustomer = await prisma.customer.update({
-      where: { id: customerId },
-      data: { avatar: avatarUrl },
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-      },
-    });
 
-    return updatedCustomer;
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      customerId,
+      { avatar: avatarUrl },
+      { new: true }
+    )
+      .select('id name avatar')
+      .lean();
+
+    return formatDocument(updatedCustomer);
   }
 
   /**
    * Change password
    */
   async changePassword(customerId, currentPassword, newPassword) {
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-    });
+    const customer = await Customer.findById(customerId);
 
     if (!customer) {
       throw ApiError.notFound('Customer not found');
@@ -121,9 +98,8 @@ class ProfileService {
     const hashedPassword = await hashPassword(newPassword);
 
     // Update password
-    await prisma.customer.update({
-      where: { id: customerId },
-      data: { password: hashedPassword },
+    await Customer.findByIdAndUpdate(customerId, {
+      password: hashedPassword,
     });
 
     // Send confirmation email
@@ -137,25 +113,18 @@ class ProfileService {
    */
   async updateEmail(customerId, newEmail) {
     // Check if email is already taken
-    const existingEmail = await prisma.customer.findUnique({
-      where: { email: newEmail },
-    });
+    const existingEmail = await Customer.findOne({ email: newEmail });
 
-    if (existingEmail && existingEmail.id !== customerId) {
+    if (existingEmail && existingEmail._id.toString() !== customerId) {
       throw ApiError.conflict('Email already in use');
     }
 
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-    });
+    const customer = await Customer.findById(customerId);
 
     // Generate and send OTP
     const otp = await createOTP(newEmail, OTP_TYPE.EMAIL_CHANGE);
     await sendEmailVerificationOTP(newEmail, customer.name, otp);
 
-    // Store pending email in a temporary way (you could use a separate table or cache)
-    // For now, we'll verify it in the next step
-    
     return { message: 'OTP sent to new email address', email: newEmail };
   }
 
@@ -169,20 +138,18 @@ class ProfileService {
       throw ApiError.unauthorized(otpResult.message);
     }
 
-    const customer = await prisma.customer.update({
-      where: { id: customerId },
-      data: {
+    const customer = await Customer.findByIdAndUpdate(
+      customerId,
+      {
         email: newEmail,
         emailVerified: true,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    });
+      { new: true }
+    )
+      .select('id name email')
+      .lean();
 
-    return customer;
+    return formatDocument(customer);
   }
 
   /**
@@ -190,11 +157,9 @@ class ProfileService {
    */
   async updatePhone(customerId, newPhone) {
     // Check if phone is already taken
-    const existingPhone = await prisma.customer.findUnique({
-      where: { phone: newPhone },
-    });
+    const existingPhone = await Customer.findOne({ phone: newPhone });
 
-    if (existingPhone && existingPhone.id !== customerId) {
+    if (existingPhone && existingPhone._id.toString() !== customerId) {
       throw ApiError.conflict('Phone number already in use');
     }
 
@@ -215,70 +180,57 @@ class ProfileService {
       throw ApiError.unauthorized(otpResult.message);
     }
 
-    const customer = await prisma.customer.update({
-      where: { id: customerId },
-      data: {
+    const customer = await Customer.findByIdAndUpdate(
+      customerId,
+      {
         phone: newPhone,
         phoneVerified: true,
       },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-      },
-    });
+      { new: true }
+    )
+      .select('id name phone')
+      .lean();
 
-    return customer;
+    return formatDocument(customer);
   }
 
   /**
    * Update notification preferences
    */
   async updateNotificationPreferences(customerId, preferences) {
-    const customer = await prisma.customer.update({
-      where: { id: customerId },
-      data: preferences,
-      select: {
-        id: true,
-        emailNotifications: true,
-        smsNotifications: true,
-        promotionalEmails: true,
-      },
-    });
+    const customer = await Customer.findByIdAndUpdate(
+      customerId,
+      preferences,
+      { new: true }
+    )
+      .select('id emailNotifications smsNotifications promotionalEmails')
+      .lean();
 
-    return customer;
+    return formatDocument(customer);
   }
 
   /**
    * Get active sessions
    */
   async getSessions(customerId) {
-    const sessions = await prisma.customerSession.findMany({
-      where: {
-        customerId,
-        expiresAt: { gte: new Date() },
-      },
-      select: {
-        id: true,
-        ipAddress: true,
-        userAgent: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const sessions = await CustomerSession.find({
+      customerId,
+      expiresAt: { $gte: new Date() },
+    })
+      .select('id ipAddress userAgent createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return sessions;
+    return formatDocuments(sessions);
   }
 
   /**
    * Delete specific session
    */
   async deleteSession(customerId, sessionId) {
-    await prisma.customerSession.deleteMany({
-      where: {
-        id: sessionId,
-        customerId,
-      },
+    await CustomerSession.deleteMany({
+      _id: sessionId,
+      customerId,
     });
 
     return { message: 'Session deleted successfully' };
@@ -288,9 +240,7 @@ class ProfileService {
    * Delete all sessions (logout from all devices)
    */
   async deleteAllSessions(customerId) {
-    await prisma.customerSession.deleteMany({
-      where: { customerId },
-    });
+    await CustomerSession.deleteMany({ customerId });
 
     return { message: 'Logged out from all devices successfully' };
   }
@@ -299,31 +249,25 @@ class ProfileService {
    * Get login history
    */
   async getLoginHistory(customerId) {
-    const history = await prisma.loginHistory.findMany({
-      where: { customerId },
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-    });
+    const history = await LoginHistory.find({ customerId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
 
-    return history;
+    return formatDocuments(history);
   }
 
   /**
    * Delete account (soft delete)
    */
   async deleteAccount(customerId) {
-    await prisma.customer.update({
-      where: { id: customerId },
-      data: {
-        status: 'DELETED',
-        deletedAt: new Date(),
-      },
+    await Customer.findByIdAndUpdate(customerId, {
+      status: 'DELETED',
+      deletedAt: new Date(),
     });
 
     // Delete all sessions
-    await prisma.customerSession.deleteMany({
-      where: { customerId },
-    });
+    await CustomerSession.deleteMany({ customerId });
 
     return { message: 'Account deleted successfully' };
   }

@@ -3,8 +3,8 @@
  * Handles all HTTP requests to the backend
  */
 
-'use client';
-import axios from 'axios';
+"use client";
+import axios from "axios";
 
 /**
  * Get the API base URL
@@ -12,66 +12,63 @@ import axios from 'axios';
  */
 const getApiBaseUrl = () => {
   // Server-side: Use environment variable
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  if (typeof window === "undefined") {
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
   }
-  
+
   // Client-side: Check if explicitly set
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  
+
   // Auto-detect Codespaces
   const currentHost = window.location.hostname;
-  
-  if (currentHost.includes('.app.github.dev')) {
+
+  if (currentHost.includes(".app.github.dev")) {
     // We're in Codespaces
     // Current URL: https://username-projectname-abc123-3000.app.github.dev
     // Backend URL: https://username-projectname-abc123-5000.app.github.dev
-    
-    const parts = currentHost.split('-');
-    // Replace the port part (last segment before .app.github.dev)
-    parts[parts.length - 1] = '5000';
-    const backendHost = parts.join('-');
-    
+
+    // FIXED: Properly replace port in Codespaces URL
+    const backendHost = currentHost.replace(
+      /-(\d+)\.app\.github\.dev$/,
+      "-5000.app.github.dev"
+    );
+
     return `https://${backendHost}/api`;
   }
-  
+
   // Default to localhost
-  return 'http://localhost:5000/api';
+  return "http://localhost:5000/api";
 };
 
 // Create axios instance with dynamic base URL
 const api = axios.create({
   baseURL: getApiBaseUrl(),
-  withCredentials: true,
+  withCredentials: true, // CRITICAL: This sends HTTP-only cookies
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 30000, // 30 seconds
 });
 
 // Log the API URL in development (client-side only)
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.log('🔗 API Base URL:', getApiBaseUrl());
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  console.log("🔗 API Base URL:", getApiBaseUrl());
 }
 
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Add auth token if available (client-side)
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('customerToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    
+    // NOTE: Token is sent via HTTP-only cookie (savitri_token)
+    // No need to manually add Authorization header
+    // Backend handles cookie-based auth automatically
+
     // Log request in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
     }
-    
+
     return config;
   },
   (error) => {
@@ -83,28 +80,39 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Log response in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log(`📥 ${response.status} ${response.config.url}`);
     }
     return response;
   },
   (error) => {
     // Handle 401 Unauthorized (client-side only)
-    if (typeof window !== 'undefined' && error.response?.status === 401) {
-      localStorage.removeItem('customerToken');
-      localStorage.removeItem('customerUser');
-      
+    if (typeof window !== "undefined" && error.response?.status === 401) {
+      // Clear any stored user data
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("customerUser");
+      }
+
       // Redirect to login if not already there
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+      const loginPaths = [
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password",
+      ];
+      const currentPath = window.location.pathname;
+
+      if (!loginPaths.some((path) => currentPath.includes(path))) {
+        window.location.href =
+          "/login?redirect=" + encodeURIComponent(currentPath);
       }
     }
-    
+
     // Log error in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('❌ API Error:', error.response?.data || error.message);
+    if (process.env.NODE_ENV === "development") {
+      console.error("❌ API Error:", error.response?.data || error.message);
     }
-    
+
     return Promise.reject(error);
   }
 );

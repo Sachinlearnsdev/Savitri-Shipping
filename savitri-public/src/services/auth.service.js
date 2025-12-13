@@ -1,14 +1,16 @@
 /**
  * Authentication Service
  * Handles all authentication-related API calls
+ * SYNCED WITH BACKEND API DOCUMENTATION
  */
 
-import api, { apiRequest } from './api';
+import { apiRequest } from './api';
 
 const authService = {
   /**
    * Register new customer
-   * @param {Object} data - { name, email, phone, password }
+   * POST /api/auth/register
+   * @param {Object} data - { name, email, phone, password, confirmPassword }
    */
   register: async (data) => {
     return await apiRequest.post('/auth/register', data);
@@ -16,6 +18,7 @@ const authService = {
 
   /**
    * Verify email with OTP
+   * POST /api/auth/verify-email
    * @param {Object} data - { email, otp }
    */
   verifyEmail: async (data) => {
@@ -23,15 +26,8 @@ const authService = {
   },
 
   /**
-   * Resend email verification OTP
-   * @param {Object} data - { email }
-   */
-  resendEmailOTP: async (data) => {
-    return await apiRequest.post('/auth/resend-email-otp', data);
-  },
-
-  /**
    * Verify phone with OTP
+   * POST /api/auth/verify-phone
    * @param {Object} data - { phone, otp }
    */
   verifyPhone: async (data) => {
@@ -39,31 +35,27 @@ const authService = {
   },
 
   /**
-   * Resend phone verification OTP
-   * @param {Object} data - { phone }
+   * Resend OTP for email or phone verification
+   * POST /api/auth/resend-otp
+   * @param {Object} data - { identifier: email/phone, type: 'email'/'phone' }
    */
-  resendPhoneOTP: async (data) => {
-    return await apiRequest.post('/auth/resend-phone-otp', data);
+  resendOTP: async (data) => {
+    return await apiRequest.post('/auth/resend-otp', data);
   },
 
   /**
    * Login with email and password
+   * POST /api/auth/login
    * @param {Object} data - { email, password }
+   * Returns: { token, customer } - Token is also set in HTTP-only cookie
    */
   login: async (data) => {
     return await apiRequest.post('/auth/login', data);
   },
 
   /**
-   * Verify login OTP (2FA)
-   * @param {Object} data - { email, otp }
-   */
-  verifyLoginOTP: async (data) => {
-    return await apiRequest.post('/auth/verify-login-otp', data);
-  },
-
-  /**
-   * Login with phone and OTP only
+   * Login with phone - Step 1 (sends OTP)
+   * POST /api/auth/login-phone
    * @param {Object} data - { phone }
    */
   loginWithPhone: async (data) => {
@@ -71,29 +63,18 @@ const authService = {
   },
 
   /**
-   * Verify phone login OTP
+   * Login with phone - Step 2 (verify OTP)
+   * POST /api/auth/verify-login-otp
    * @param {Object} data - { phone, otp }
+   * Returns: { token, customer } - Token is also set in HTTP-only cookie
    */
   verifyPhoneLoginOTP: async (data) => {
-    return await apiRequest.post('/auth/verify-phone-login-otp', data);
+    return await apiRequest.post('/auth/verify-login-otp', data);
   },
 
   /**
-   * Logout current session
-   */
-  logout: async () => {
-    return await apiRequest.post('/auth/logout');
-  },
-
-  /**
-   * Logout from all devices
-   */
-  logoutAll: async () => {
-    return await apiRequest.post('/auth/logout-all');
-  },
-
-  /**
-   * Forgot password - send reset OTP
+   * Forgot password - send reset OTP to email
+   * POST /api/auth/forgot-password
    * @param {Object} data - { email }
    */
   forgotPassword: async (data) => {
@@ -102,40 +83,36 @@ const authService = {
 
   /**
    * Reset password with OTP
-   * @param {Object} data - { email, otp, newPassword }
+   * POST /api/auth/reset-password
+   * @param {Object} data - { email, otp, password, confirmPassword }
    */
   resetPassword: async (data) => {
     return await apiRequest.post('/auth/reset-password', data);
   },
 
   /**
-   * Refresh access token
+   * Logout current session
+   * POST /api/auth/logout
    */
-  refreshToken: async () => {
-    return await apiRequest.post('/auth/refresh-token');
+  logout: async () => {
+    return await apiRequest.post('/auth/logout');
   },
 
   /**
    * Get current user profile
+   * GET /api/profile
    */
   getCurrentUser: async () => {
-    return await apiRequest.get('/auth/me');
+    return await apiRequest.get('/profile');
   },
 
   /**
-   * Check if email exists
-   * @param {string} email
+   * Refresh token (if implemented by backend)
+   * Note: Backend documentation doesn't explicitly mention this endpoint
+   * But it's common practice. Check with backend team.
    */
-  checkEmail: async (email) => {
-    return await apiRequest.get(`/auth/check-email?email=${email}`);
-  },
-
-  /**
-   * Check if phone exists
-   * @param {string} phone
-   */
-  checkPhone: async (phone) => {
-    return await apiRequest.get(`/auth/check-phone?phone=${phone}`);
+  refreshToken: async () => {
+    return await apiRequest.post('/auth/refresh-token');
   },
 };
 

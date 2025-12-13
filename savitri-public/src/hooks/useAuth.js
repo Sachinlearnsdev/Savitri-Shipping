@@ -1,12 +1,13 @@
 /**
  * useAuth Hook
  * Custom hook for authentication
+ * FIXED: Removed token reference, fixed syntax errors
  */
 
-'use client';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import useAuthStore from '@/store/authStore';
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import useAuthStore from "@/store/authStore";
 
 const useAuth = (options = {}) => {
   const {
@@ -16,9 +17,9 @@ const useAuth = (options = {}) => {
   } = options;
 
   const router = useRouter();
+
   const {
     user,
-    token,
     isAuthenticated,
     isLoading,
     error,
@@ -29,8 +30,12 @@ const useAuth = (options = {}) => {
     clearError,
     updateUser,
     login,
-    verifyLoginOTP,
+    loginWithPhone,
+    verifyPhoneLogin,
     register,
+    verifyEmail,
+    verifyPhone,
+    resendOTP,
     logout,
     checkAuth,
     refreshToken,
@@ -53,14 +58,13 @@ const useAuth = (options = {}) => {
   // Handle guest-only pages
   useEffect(() => {
     if (requireGuest && !isLoading && isAuthenticated) {
-      router.push(redirectTo || '/account');
+      router.push(redirectTo || "/account");
     }
   }, [requireGuest, isAuthenticated, isLoading, router, redirectTo]);
 
   return {
     // State
     user,
-    token,
     isAuthenticated,
     isLoading,
     error,
@@ -73,14 +77,18 @@ const useAuth = (options = {}) => {
     clearError,
     updateUser,
     login,
-    verifyLoginOTP,
+    loginWithPhone,
+    verifyPhoneLogin,
     register,
+    verifyEmail,
+    verifyPhone,
+    resendOTP,
     logout,
     checkAuth,
     refreshToken,
 
     // Utilities
-    isAdmin: user?.role === 'ADMIN',
+    isAdmin: user?.role === "ADMIN",
     userId: user?.id,
     userName: user?.name,
     userEmail: user?.email,

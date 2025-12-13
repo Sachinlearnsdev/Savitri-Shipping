@@ -1,3 +1,11 @@
+// UPDATED - 2024-12-11
+// CHANGES:
+// 1. Token is now stored in localStorage AND sent to backend via header
+// 2. Backend also sets HTTP-only cookie automatically (handled by browser)
+// 3. Added token validation
+// 4. Improved permission checking with null safety
+// 5. Added role-based helper methods
+
 import { create } from 'zustand';
 import { STORAGE_KEYS } from '../utils/constants';
 
@@ -20,6 +28,7 @@ const useAuthStore = create((set, get) => ({
    * @param {string} token - JWT token
    */
   login: (user, token) => {
+    // Store both user and token
     localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(user));
     localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, token);
     
@@ -28,12 +37,17 @@ const useAuthStore = create((set, get) => ({
       token,
       isAuthenticated: true,
     });
+    
+    if (import.meta.env.DEV) {
+      console.log('✅ User logged in:', user.email);
+    }
   },
   
   /**
    * Clear user and token on logout
    */
   logout: () => {
+    // Clear all auth data
     localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
     localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
     
@@ -42,6 +56,10 @@ const useAuthStore = create((set, get) => ({
       token: null,
       isAuthenticated: false,
     });
+    
+    if (import.meta.env.DEV) {
+      console.log('👋 User logged out');
+    }
   },
   
   /**
@@ -50,11 +68,21 @@ const useAuthStore = create((set, get) => ({
    */
   updateUser: (updates) => {
     const currentUser = get().user;
+    
+    if (!currentUser) {
+      console.warn('⚠️  Cannot update user: No user logged in');
+      return;
+    }
+    
     const updatedUser = { ...currentUser, ...updates };
     
     localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(updatedUser));
     
     set({ user: updatedUser });
+    
+    if (import.meta.env.DEV) {
+      console.log('✅ User updated:', updatedUser.email);
+    }
   },
   
   /**
@@ -62,8 +90,17 @@ const useAuthStore = create((set, get) => ({
    * @param {string} token - New JWT token
    */
   updateToken: (token) => {
+    if (!token) {
+      console.warn('⚠️  Cannot update token: Token is empty');
+      return;
+    }
+    
     localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, token);
     set({ token });
+    
+    if (import.meta.env.DEV) {
+      console.log('✅ Token refreshed');
+    }
   },
   
   /**
@@ -81,15 +118,36 @@ const useAuthStore = create((set, get) => ({
    */
   hasPermission: (permission) => {
     const { user } = get();
-    if (!user || !user.role || !user.role.permissions) return false;
     
+    // No user or no role
+    if (!user || !user.role) {
+      return false;
+    }
+    
+    // Super Admin has all permissions
+    if (user.role.name === 'Super Admin') {
+      return true;
+    }
+    
+    // No permissions defined
+    if (!user.role.permissions) {
+      return false;
+    }
+    
+    // Split permission string (e.g., 'adminUsers.create' -> ['adminUsers', 'create'])
     const [module, action] = permission.split('.');
-    const permissions = user.role.permissions;
     
-    if (!permissions[module]) return false;
-    if (!permissions[module][action]) return false;
+    // Check if module exists
+    if (!user.role.permissions[module]) {
+      return false;
+    }
     
-    return permissions[module][action] === true;
+    // Check if action exists and is true
+    if (!user.role.permissions[module][action]) {
+      return false;
+    }
+    
+    return user.role.permissions[module][action] === true;
   },
   
   /**
@@ -99,6 +157,12 @@ const useAuthStore = create((set, get) => ({
    */
   hasAnyPermission: (permissions) => {
     const { hasPermission } = get();
+    
+    if (!Array.isArray(permissions)) {
+      console.warn('⚠️  hasAnyPermission expects an array');
+      return false;
+    }
+    
     return permissions.some(permission => hasPermission(permission));
   },
   
@@ -109,6 +173,12 @@ const useAuthStore = create((set, get) => ({
    */
   hasAllPermissions: (permissions) => {
     const { hasPermission } = get();
+    
+    if (!Array.isArray(permissions)) {
+      console.warn('⚠️  hasAllPermissions expects an array');
+      return false;
+    }
+    
     return permissions.every(permission => hasPermission(permission));
   },
   
@@ -146,6 +216,32 @@ const useAuthStore = create((set, get) => ({
   isSuperAdmin: () => {
     const { user } = get();
     return user?.role?.name === 'Super Admin';
+  },
+  
+  /**
+   * Get user's avatar URL
+   * @returns {string|null} Avatar URL or null
+   */
+  getAvatar: () => {
+    const { user } = get();
+    return user?.avatar || null;
+  },
+  
+  /**
+   * Get user's phone
+   * @returns {string|null} Phone or null
+   */
+  getPhone: () => {
+    const { user } = get();
+    return user?.phone || null;
+  },
+  
+  /**
+   * Check if token exists
+   * @returns {boolean} True if token exists
+   */
+  hasToken: () => {
+    return !!get().token;
   },
 }));
 

@@ -1,15 +1,22 @@
 // src/utils/email.js
-
-const nodemailer = require('nodemailer');
-const fs = require('fs');
-const path = require('path');
-const config = require('../config/env');
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
+const config = require("../config/env");
 
 /**
  * Create email transporter
  */
 const createTransporter = () => {
-  if (config.emailService === 'google') {
+  // Check if SMTP credentials are configured
+  if (!config.smtpUser || !config.smtpPass) {
+    console.warn(
+      "⚠️  Email SMTP credentials not configured. Emails will not be sent."
+    );
+    return null;
+  }
+
+  if (config.emailService === "google") {
     return nodemailer.createTransport({
       host: config.smtpHost,
       port: config.smtpPort,
@@ -20,22 +27,27 @@ const createTransporter = () => {
       },
     });
   }
-  
+
   // Add other email services here (Resend, SendGrid, etc.)
-  throw new Error('Email service not configured');
+  throw new Error("Email service not configured");
 };
 
 /**
  * Load email template
  */
 const loadTemplate = (templateName) => {
-  const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
-  
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "templates",
+    `${templateName}.html`
+  );
+
   if (!fs.existsSync(templatePath)) {
     throw new Error(`Email template ${templateName} not found`);
   }
-  
-  return fs.readFileSync(templatePath, 'utf-8');
+
+  return fs.readFileSync(templatePath, "utf-8");
 };
 
 /**
@@ -43,12 +55,12 @@ const loadTemplate = (templateName) => {
  */
 const replaceVariables = (template, variables) => {
   let result = template;
-  
-  Object.keys(variables).forEach(key => {
-    const regex = new RegExp(`{{${key}}}`, 'g');
+
+  Object.keys(variables).forEach((key) => {
+    const regex = new RegExp(`{{${key}}}`, "g");
     result = result.replace(regex, variables[key]);
   });
-  
+
   return result;
 };
 
@@ -59,7 +71,7 @@ const sendEmail = async ({ to, subject, templateName, variables = {} }) => {
   try {
     // Load and process template
     let html = loadTemplate(templateName);
-    
+
     // Add default variables
     const allVariables = {
       companyName: config.companyName,
@@ -67,12 +79,24 @@ const sendEmail = async ({ to, subject, templateName, variables = {} }) => {
       frontendUrl: config.frontendUrl,
       ...variables,
     };
-    
+
     html = replaceVariables(html, allVariables);
-    
+
     // Create transporter
     const transporter = createTransporter();
-    
+
+    // If no transporter (SMTP not configured), log and return
+    if (!transporter) {
+      if (config.nodeEnv === "development") {
+        console.log("📧 Email would be sent (SMTP not configured):");
+        console.log(`   To: ${to}`);
+        console.log(`   Subject: ${subject}`);
+        console.log(`   Template: ${templateName}`);
+        console.log(`   Variables:`, variables);
+      }
+      return { success: true, messageId: "dev-mode-no-smtp" };
+    }
+
     // Send email
     const info = await transporter.sendMail({
       from: config.emailFrom,
@@ -80,14 +104,14 @@ const sendEmail = async ({ to, subject, templateName, variables = {} }) => {
       subject,
       html,
     });
-    
-    if (config.nodeEnv === 'development') {
-      console.log('✅ Email sent:', info.messageId);
+
+    if (config.nodeEnv === "development") {
+      console.log("✅ Email sent:", info.messageId);
     }
-    
+
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Email sending failed:', error);
+    console.error("❌ Email sending failed:", error.message);
     return { success: false, error: error.message };
   }
 };
@@ -99,7 +123,7 @@ const sendWelcomeEmail = async (email, name) => {
   return sendEmail({
     to: email,
     subject: `Welcome to ${config.companyName}!`,
-    templateName: 'welcome',
+    templateName: "welcome",
     variables: { name },
   });
 };
@@ -110,8 +134,8 @@ const sendWelcomeEmail = async (email, name) => {
 const sendEmailVerificationOTP = async (email, name, otp) => {
   return sendEmail({
     to: email,
-    subject: 'Verify Your Email Address',
-    templateName: 'verify-email',
+    subject: "Verify Your Email Address",
+    templateName: "verify-email",
     variables: { name, otp },
   });
 };
@@ -122,8 +146,8 @@ const sendEmailVerificationOTP = async (email, name, otp) => {
 const sendLoginOTP = async (email, name, otp) => {
   return sendEmail({
     to: email,
-    subject: 'Your Login OTP',
-    templateName: 'login-otp',
+    subject: "Your Login OTP",
+    templateName: "login-otp",
     variables: { name, otp },
   });
 };
@@ -134,8 +158,8 @@ const sendLoginOTP = async (email, name, otp) => {
 const sendPasswordResetOTP = async (email, name, otp) => {
   return sendEmail({
     to: email,
-    subject: 'Reset Your Password',
-    templateName: 'password-reset',
+    subject: "Reset Your Password",
+    templateName: "password-reset",
     variables: { name, otp },
   });
 };
@@ -146,8 +170,8 @@ const sendPasswordResetOTP = async (email, name, otp) => {
 const sendPasswordChangedEmail = async (email, name) => {
   return sendEmail({
     to: email,
-    subject: 'Password Changed Successfully',
-    templateName: 'password-changed',
+    subject: "Password Changed Successfully",
+    templateName: "password-changed",
     variables: { name },
   });
 };

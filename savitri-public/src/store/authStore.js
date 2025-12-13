@@ -1,6 +1,13 @@
 /**
  * Authentication Store (Zustand)
- * Global state management for authentication
+ * HYBRID APPROACH: Uses both localStorage and HTTP-only cookies
+ * - localStorage: User data for quick access & offline state
+ * - HTTP-only Cookie: Actual JWT token (set by backend)
+ * 
+ * This provides the best of both worlds:
+ * 1. Fast initial render with cached user data
+ * 2. Secure token storage in HTTP-only cookie
+ * 3. Graceful fallback if cookie expires
  */
 
 'use client';
@@ -13,7 +20,6 @@ const useAuthStore = create(
     (set, get) => ({
       // ==================== STATE ====================
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -21,21 +27,14 @@ const useAuthStore = create(
       // ==================== ACTIONS ====================
 
       /**
-       * Set user and token
+       * Set user (token is in HTTP-only cookie, we only store user data)
        */
-      setAuth: (user, token) => {
+      setAuth: (user) => {
         set({
           user,
-          token,
           isAuthenticated: true,
           error: null,
         });
-
-        // Store token in localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('customerToken', token);
-          localStorage.setItem('customerUser', JSON.stringify(user));
-        }
       },
 
       /**
@@ -44,16 +43,9 @@ const useAuthStore = create(
       clearAuth: () => {
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           error: null,
         });
-
-        // Clear localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('customerToken');
-          localStorage.removeItem('customerUser');
-        }
       },
 
       /**
@@ -83,71 +75,172 @@ const useAuthStore = create(
       updateUser: (userData) => {
         const currentUser = get().user;
         const updatedUser = { ...currentUser, ...userData };
-        
         set({ user: updatedUser });
-
-        // Update localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('customerUser', JSON.stringify(updatedUser));
-        }
       },
 
       /**
-       * Login
+       * Login with email and password
+       * Backend returns token in HTTP-only cookie + user data
        */
       login: async (email, password) => {
         set({ isLoading: true, error: null });
-
+        
         const { data, error } = await authService.login({ email, password });
-
+        
         if (error) {
-          set({ isLoading: false, error: error.message || 'Login failed' });
-          return { success: false, error };
+          const errorMessage = error.message || error.error?.message || 'Login failed';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
         }
 
-        // If 2FA required, return needsOTP flag
-        if (data.needsOTP) {
+        // Backend returns: { success, message, data: { token, customer } }
+        // Token is also set in HTTP-only cookie automatically
+        const customer = data.data?.customer || data.customer;
+        
+        if (customer) {
+          get().setAuth(customer);
           set({ isLoading: false });
-          return { success: true, needsOTP: true };
+          return { success: true, user: customer };
+        } else {
+          const errorMessage = 'Invalid response from server';
+          set({ isLoading: false, error: errorMessage });
+          return { success: false, error: errorMessage };
         }
-
-        // Set auth state
-        get().setAuth(data.user, data.token);
-        set({ isLoading: false });
-
-        return { success: true };
       },
 
       /**
-       * Verify login OTP
+       * Login with phone - Step 1: Request OTP
        */
-      verifyLoginOTP: async (email, otp) => {
+      loginWithPhone: async (phone) => {
         set({ isLoading: true, error: null });
-
-        const { data, error } = await authService.verifyLoginOTP({ email, otp });
-
+        
+        const { data, error } = await authService.loginWithPhone({ phone });
+        
         if (error) {
-          set({ isLoading: false, error: error.message || 'OTP verification failed' });
-          return { success: false, error };
+          const errorMessage = error.message || error.error?.message || 'Failed to send OTP';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
         }
 
-        get().setAuth(data.user, data.token);
         set({ isLoading: false });
-
-        return { success: true };
+        return { success: true, data };
       },
 
       /**
-       * Register
+       * Login with phone - Step 2: Verify OTP
+       */
+      verifyPhoneLogin: async (phone, otp) => {
+        set({ isLoading: true, error: null });
+        
+        const { data, error } = await authService.verifyPhoneLoginOTP({ phone, otp });
+        
+        if (error) {
+          const errorMessage = error.message || error.error?.message || 'OTP verification failed';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
+        }
+
+        // Backend returns: { success, message, data: { token, customer } }
+        const customer = data.data?.customer || data.customer;
+        
+        if (customer) {
+          get().setAuth(customer);
+          set({ isLoading: false });
+          return { success: true, user: customer };
+        } else {
+          const errorMessage = 'Invalid response from server';
+          set({ isLoading: false, error: errorMessage });
+          return { success: false, error: errorMessage };
+        }
+      },
+
+      /**
+       * Register new customer
        */
       register: async (userData) => {
         set({ isLoading: true, error: null });
-
+        
         const { data, error } = await authService.register(userData);
-
+        
         if (error) {
-          set({ isLoading: false, error: error.message || 'Registration failed' });
-          return { success: false, error };
+          const errorMessage = error.message || error.error?.message || 'Registration failed';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
+        }
+
+        set({ isLoading: false });
+        return { success: true, data };
+      },
+
+      /**
+       * Verify email with OTP
+       */
+      verifyEmail: async (email, otp) => {
+        set({ isLoading: true, error: null });
+        
+        const { data, error } = await authService.verifyEmail({ email, otp });
+        
+        if (error) {
+          const errorMessage = error.message || error.error?.message || 'Email verification failed';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
+        }
+
+        set({ isLoading: false });
+        return { success: true, data };
+      },
+
+      /**
+       * Verify phone with OTP
+       */
+      verifyPhone: async (phone, otp) => {
+        set({ isLoading: true, error: null });
+        
+        const { data, error } = await authService.verifyPhone({ phone, otp });
+        
+        if (error) {
+          const errorMessage = error.message || error.error?.message || 'Phone verification failed';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
+        }
+
+        set({ isLoading: false });
+        return { success: true, data };
+      },
+
+      /**
+       * Resend OTP
+       */
+      resendOTP: async (identifier, type) => {
+        set({ isLoading: true, error: null });
+        
+        const { data, error } = await authService.resendOTP({ identifier, type });
+        
+        if (error) {
+          const errorMessage = error.message || error.error?.message || 'Failed to resend OTP';
+          set({ 
+            isLoading: false, 
+            error: errorMessage 
+          });
+          return { success: false, error: errorMessage };
         }
 
         set({ isLoading: false });
@@ -156,15 +249,19 @@ const useAuthStore = create(
 
       /**
        * Logout
+       * Clears HTTP-only cookie on backend + clears local state
        */
       logout: async () => {
         set({ isLoading: true });
-
+        
+        // Call backend to clear cookie
         await authService.logout();
-
+        
+        // Clear local state
         get().clearAuth();
+        
         set({ isLoading: false });
-
+        
         // Redirect to home
         if (typeof window !== 'undefined') {
           window.location.href = '/';
@@ -173,79 +270,71 @@ const useAuthStore = create(
 
       /**
        * Check authentication status
+       * Verifies with backend using HTTP-only cookie
+       * This is the "sync" mechanism between localStorage and cookie
        */
       checkAuth: async () => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('customerToken') : null;
-
-        if (!token) {
-          get().clearAuth();
-          return false;
-        }
-
+        // Don't check if already loading
+        if (get().isLoading) return get().isAuthenticated;
+        
         set({ isLoading: true });
-
+        
         const { data, error } = await authService.getCurrentUser();
-
+        
         if (error) {
+          // Cookie expired or invalid - clear local state
           get().clearAuth();
           set({ isLoading: false });
           return false;
         }
 
-        get().setAuth(data.user, token);
+        // Cookie is valid - update/sync user data
+        const userData = data.data || data;
+        get().setAuth(userData);
         set({ isLoading: false });
-
         return true;
       },
 
       /**
-       * Refresh token
+       * Initialize auth on app load
+       * HYBRID APPROACH:
+       * 1. Check localStorage for cached user (fast initial render)
+       * 2. Verify with backend using cookie (security check)
+       * 3. Sync if needed
+       */
+      initAuth: async () => {
+        // Step 1: Quick check - if we have user in localStorage, set it immediately
+        const storedUser = get().user;
+        if (storedUser) {
+          set({ isAuthenticated: true });
+        }
+        
+        // Step 2: Verify with backend (cookie-based auth)
+        // This will sync the state if cookie is still valid
+        await get().checkAuth();
+      },
+
+      /**
+       * Refresh token (if backend supports it)
        */
       refreshToken: async () => {
         const { data, error } = await authService.refreshToken();
-
+        
         if (error) {
           get().clearAuth();
           return false;
         }
-
-        if (data.token) {
-          const currentUser = get().user;
-          get().setAuth(currentUser, data.token);
-        }
-
-        return true;
-      },
-
-      /**
-       * Initialize auth from localStorage
-       */
-      initAuth: () => {
-        if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('customerToken');
-          const userStr = localStorage.getItem('customerUser');
-
-          if (token && userStr) {
-            try {
-              const user = JSON.parse(userStr);
-              set({
-                user,
-                token,
-                isAuthenticated: true,
-              });
-            } catch (error) {
-              console.error('Failed to parse user data:', error);
-              get().clearAuth();
-            }
-          }
-        }
+        
+        // Token is refreshed in cookie automatically
+        // Just verify we're still authenticated
+        return await get().checkAuth();
       },
     }),
     {
       name: 'auth-storage',
+      // Only persist user data, NOT token (token is in HTTP-only cookie)
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     }

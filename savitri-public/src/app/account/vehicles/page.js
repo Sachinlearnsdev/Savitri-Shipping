@@ -1,9 +1,11 @@
 /**
  * Saved Vehicles Page
+ * FIXED: Correct service method names and response structure
  */
 
 'use client';
 import { useState, useEffect } from 'react';
+import useAuth from '@/hooks/useAuth';
 import useToast from '@/hooks/useToast';
 import profileService from '@/services/profile.service';
 import EmptyState from '@/components/common/EmptyState';
@@ -12,10 +14,12 @@ import Card from '@/components/common/Card';
 import Modal from '@/components/common/Modal';
 import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
+import Loader from '@/components/common/Loader';
 import { VEHICLE_TYPES, VEHICLE_TYPE_LABELS } from '@/utils/constants';
 import styles from './page.module.css';
 
 export default function VehiclesPage() {
+  useAuth({ requireAuth: true });
   const { success, error: showError } = useToast();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,21 +31,31 @@ export default function VehiclesPage() {
 
   const fetchVehicles = async () => {
     setLoading(true);
-    const { data, error } = await profileService.getSavedVehicles();
+    
+    // FIXED: Use correct method name
+    const { data, error } = await profileService.getVehicles();
+    
     if (error) {
-      showError('Failed to load vehicles');
+      const errorMsg = error.message || error.error?.message || 'Failed to load vehicles';
+      showError(errorMsg);
+      setVehicles([]);
     } else {
-      setVehicles(data?.vehicles || []);
+      // Backend returns: { success, message, data: [...vehicles] }
+      setVehicles(data?.data || []);
     }
+    
     setLoading(false);
   };
 
   const handleDelete = async (vehicleId) => {
     if (!confirm('Are you sure you want to delete this vehicle?')) return;
 
-    const { error } = await profileService.deleteSavedVehicle(vehicleId);
+    // FIXED: Use correct method name
+    const { error } = await profileService.deleteVehicle(vehicleId);
+    
     if (error) {
-      showError('Failed to delete vehicle');
+      const errorMsg = error.message || error.error?.message || 'Failed to delete vehicle';
+      showError(errorMsg);
     } else {
       success('Vehicle deleted successfully');
       fetchVehicles();
@@ -49,7 +63,7 @@ export default function VehiclesPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   return (
@@ -69,7 +83,7 @@ export default function VehiclesPage() {
       {vehicles.length === 0 ? (
         <EmptyState
           icon={
-            <svg viewBox="0 0 80 80" fill="none">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
               <path
                 d="M10 35L15 30H65L70 35V55H10V35Z"
                 stroke="var(--color-gray-300)"
@@ -101,19 +115,26 @@ export default function VehiclesPage() {
                 </div>
                 <div className={styles.vehicleInfo}>
                   <h3 className={styles.vehicleName}>
-                    {vehicle.brand} {vehicle.model}
+                    {vehicle.nickname || `${vehicle.brand} ${vehicle.model}`}
                   </h3>
+                  <p className={styles.vehicleDetails}>
+                    {vehicle.brand} {vehicle.model}
+                  </p>
                   <p className={styles.vehicleType}>
                     {VEHICLE_TYPE_LABELS[vehicle.type]}
                   </p>
                   {vehicle.registrationNo && (
                     <p className={styles.vehicleReg}>{vehicle.registrationNo}</p>
                   )}
+                  {vehicle.isDefault && (
+                    <span className={styles.defaultBadge}>Default</span>
+                  )}
                 </div>
                 <button
                   className={styles.deleteButton}
                   onClick={() => handleDelete(vehicle.id)}
                   aria-label="Delete vehicle"
+                  title="Delete vehicle"
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path
@@ -148,6 +169,8 @@ function AddVehicleModal({ isOpen, onClose, onSuccess }) {
     brand: '',
     model: '',
     registrationNo: '',
+    nickname: '',
+    isDefault: false,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -159,30 +182,80 @@ function AddVehicleModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  const handleInputChange = (field) => (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    handleChange(field)(value);
+  };
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.type) newErrors.type = 'Vehicle type is required';
+    if (!formData.brand) newErrors.brand = 'Brand is required';
+    if (!formData.model) newErrors.model = 'Model is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validate()) return;
+
     setLoading(true);
-    const { error } = await profileService.addSavedVehicle(formData);
+
+    // FIXED: Use correct method name
+    const { data, error } = await profileService.addVehicle({
+      type: formData.type,
+      brand: formData.brand,
+      model: formData.model,
+      registrationNo: formData.registrationNo || undefined,
+      nickname: formData.nickname || undefined,
+      isDefault: formData.isDefault,
+    });
 
     if (error) {
-      showError(error.message || 'Failed to add vehicle');
+      const errorMsg = error.message || error.error?.message || 'Failed to add vehicle';
+      showError(errorMsg);
     } else {
       success('Vehicle added successfully');
       onClose();
       onSuccess();
-      setFormData({ type: '', brand: '', model: '', registrationNo: '' });
+      setFormData({
+        type: '',
+        brand: '',
+        model: '',
+        registrationNo: '',
+        nickname: '',
+        isDefault: false,
+      });
+      setErrors({});
     }
 
     setLoading(false);
   };
 
+  const handleClose = () => {
+    onClose();
+    setFormData({
+      type: '',
+      brand: '',
+      model: '',
+      registrationNo: '',
+      nickname: '',
+      isDefault: false,
+    });
+    setErrors({});
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Vehicle">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Add Vehicle">
       <form onSubmit={handleSubmit}>
         <Select
           label="Vehicle Type"
           options={[
+            { value: '', label: 'Select vehicle type' },
             { value: VEHICLE_TYPES.CAR, label: VEHICLE_TYPE_LABELS[VEHICLE_TYPES.CAR] },
             { value: VEHICLE_TYPES.BIKE, label: VEHICLE_TYPE_LABELS[VEHICLE_TYPES.BIKE] },
             { value: VEHICLE_TYPES.CYCLE, label: VEHICLE_TYPE_LABELS[VEHICLE_TYPES.CYCLE] },
@@ -192,32 +265,58 @@ function AddVehicleModal({ isOpen, onClose, onSuccess }) {
           error={errors.type}
           required
         />
+        
         <Input
           label="Brand"
+          placeholder="e.g., Maruti Suzuki"
           value={formData.brand}
-          onChange={(e) => handleChange('brand')(e.target.value)}
+          onChange={handleInputChange('brand')}
           error={errors.brand}
           required
         />
+        
         <Input
           label="Model"
+          placeholder="e.g., Swift"
           value={formData.model}
-          onChange={(e) => handleChange('model')(e.target.value)}
+          onChange={handleInputChange('model')}
           error={errors.model}
           required
         />
+        
         <Input
           label="Registration Number"
+          placeholder="e.g., MH01AB1234"
           value={formData.registrationNo}
-          onChange={(e) => handleChange('registrationNo')(e.target.value)}
+          onChange={handleInputChange('registrationNo')}
           error={errors.registrationNo}
-          hint="Optional (e.g., MH01AB1234)"
+          hint="Optional (Indian format: XX00XX0000)"
         />
+        
+        <Input
+          label="Nickname"
+          placeholder="e.g., My Car"
+          value={formData.nickname}
+          onChange={handleInputChange('nickname')}
+          hint="Optional (for easy identification)"
+        />
+        
+        <div style={{ marginTop: 'var(--spacing-4)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+            <input
+              type="checkbox"
+              checked={formData.isDefault}
+              onChange={handleInputChange('isDefault')}
+            />
+            <span>Set as default vehicle</span>
+          </label>
+        </div>
+
         <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-6)' }}>
-          <Button type="submit" loading={loading}>
+          <Button type="submit" loading={loading} disabled={loading}>
             Add Vehicle
           </Button>
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={handleClose}>
             Cancel
           </Button>
         </div>

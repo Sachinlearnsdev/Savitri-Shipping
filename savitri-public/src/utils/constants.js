@@ -1,6 +1,7 @@
 /**
  * Application Constants
  * Centralized constants for the entire application
+ * SYNCED WITH BACKEND API DOCUMENTATION
  */
 
 // ==================== API ENDPOINTS ====================
@@ -8,14 +9,16 @@ export const API_ENDPOINTS = {
   // Auth
   AUTH: {
     REGISTER: '/auth/register',
-    LOGIN: '/auth/login',
-    LOGOUT: '/auth/logout',
     VERIFY_EMAIL: '/auth/verify-email',
     VERIFY_PHONE: '/auth/verify-phone',
+    LOGIN: '/auth/login',
+    LOGIN_PHONE: '/auth/login-phone',
+    VERIFY_LOGIN_OTP: '/auth/verify-login-otp',
+    LOGOUT: '/auth/logout',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
+    RESEND_OTP: '/auth/resend-otp',
     REFRESH_TOKEN: '/auth/refresh-token',
-    ME: '/auth/me',
   },
   
   // Profile
@@ -23,21 +26,44 @@ export const API_ENDPOINTS = {
     GET: '/profile',
     UPDATE: '/profile',
     CHANGE_PASSWORD: '/profile/change-password',
-    UPLOAD_AVATAR: '/profile/upload-avatar',
+    UPDATE_EMAIL: '/profile/update-email',
+    VERIFY_EMAIL_CHANGE: '/profile/verify-email-change',
+    UPDATE_PHONE: '/profile/update-phone',
+    VERIFY_PHONE_CHANGE: '/profile/verify-phone-change',
+    UPLOAD_AVATAR: '/profile/avatar',
+    NOTIFICATIONS: '/profile/notifications',
     SESSIONS: '/profile/sessions',
-    VEHICLES: '/profile/vehicles',
-    BOOKINGS: '/profile/bookings',
-    REVIEWS: '/profile/reviews',
+    LOGIN_HISTORY: '/profile/login-history',
+    DELETE: '/profile',
   },
   
-  // Bookings
+  // Saved Vehicles
+  VEHICLES: {
+    LIST: '/profile/vehicles',
+    GET: '/profile/vehicles/:id',
+    CREATE: '/profile/vehicles',
+    UPDATE: '/profile/vehicles/:id',
+    DELETE: '/profile/vehicles/:id',
+  },
+  
+  // Bookings (Phase 2)
   BOOKINGS: {
-    SPEED_BOAT: '/bookings/speed-boat',
-    PARTY_BOAT: '/bookings/party-boat',
-    FERRY: '/bookings/ferry',
+    LIST: '/bookings',
+    GET: '/bookings/:id',
+    CREATE: '/bookings',
+    CANCEL: '/bookings/:id/cancel',
+    INVOICE: '/bookings/:id/invoice',
   },
   
-  // Public Data
+  // Reviews (Phase 2)
+  REVIEWS: {
+    LIST: '/reviews',
+    CREATE: '/reviews',
+    UPDATE: '/reviews/:id',
+    DELETE: '/reviews/:id',
+  },
+  
+  // Public Data (Phase 2)
   PUBLIC: {
     SPEED_BOATS: '/public/speed-boats',
     PARTY_BOATS: '/public/party-boats',
@@ -193,8 +219,8 @@ export const FILE_UPLOAD = {
 };
 
 // ==================== LOCAL STORAGE KEYS ====================
+// Note: Token is stored in HTTP-only cookie, not localStorage
 export const STORAGE_KEYS = {
-  TOKEN: 'customerToken',
   USER: 'customerUser',
   THEME: 'theme',
   LANGUAGE: 'language',

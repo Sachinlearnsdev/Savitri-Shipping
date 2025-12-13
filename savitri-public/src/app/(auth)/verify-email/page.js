@@ -1,40 +1,52 @@
 /**
  * Verify Email Page
+ * FIXED: Uses correct resendOTP endpoint and response structure
  */
 
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import authService from "@/services/auth.service";
-import useToast from "@/hooks/useToast";
-import { validateOTP } from "@/utils/validators";
-import Input from "@/components/common/Input";
-import Button from "@/components/common/Button";
-import styles from "./page.module.css";
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import authService from '@/services/auth.service';
+import useToast from '@/hooks/useToast';
+import { validateOTP } from '@/utils/validators';
+import Input from '@/components/common/Input';
+import Button from '@/components/common/Button';
+import styles from './page.module.css';
+import styles from '../shared-auth.module.css';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { success, error: showError, info } = useToast();
 
-  const email = searchParams.get("email");
+  const email = searchParams.get('email');
 
-  const [otp, setOtp] = useState("");
-  const [error, setError] = useState("");
+  const [otp, setOtp] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
     if (!email) {
-      showError("Email parameter is missing");
-      router.push("/register");
+      showError('Email parameter is missing');
+      router.push('/register');
     }
   }, [email, router, showError]);
 
+  // Countdown timer for resend
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
   const handleChange = (e) => {
-    setOtp(e.target.value);
-    if (error) setError("");
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setOtp(value);
+    if (error) setError('');
   };
 
   const handleVerify = async (e) => {
@@ -54,41 +66,55 @@ export default function VerifyEmailPage() {
     });
 
     if (apiError) {
-      showError(apiError.message || "Verification failed");
+      const errorMsg = apiError.message || apiError.error?.message || 'Verification failed';
+      showError(errorMsg);
       setLoading(false);
       return;
     }
 
-    success("Email verified successfully!");
+    success('Email verified successfully!');
 
-    // Check if phone verification is also required
-    if (data.phoneVerificationRequired) {
-      router.push(`/verify-phone?email=${encodeURIComponent(email)}`);
-    } else {
-      router.push("/login");
-    }
+    // Backend returns: { success, message }
+    // After email verification, check if phone needs verification
+    // For now, redirect to login (phone verification is optional during registration)
+    setTimeout(() => {
+      router.push('/login');
+    }, 1000);
 
     setLoading(false);
   };
 
   const handleResend = async () => {
+    if (countdown > 0) return;
+
     setResending(true);
 
-    const { error: apiError } = await authService.resendEmailOTP({ email });
+    // FIXED: Use resendOTP with type parameter
+    const { data, error: apiError } = await authService.resendOTP({
+      identifier: email,
+      type: 'email',
+    });
 
     if (apiError) {
-      showError(apiError.message || "Failed to resend OTP");
+      const errorMsg = apiError.message || apiError.error?.message || 'Failed to resend OTP';
+      showError(errorMsg);
     } else {
-      info("OTP has been resent to your email");
+      info('OTP has been resent to your email');
+      setCountdown(60); // 60 second cooldown
     }
 
     setResending(false);
   };
 
+  if (!email) {
+    return null;
+  }
+
   return (
     <div className={styles.authPage}>
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
+          <div className={styles.authIcon}>📧</div>
           <h1 className={styles.authTitle}>Verify Your Email</h1>
           <p className={styles.authDescription}>
             We've sent a 6-digit code to
@@ -107,10 +133,16 @@ export default function VerifyEmailPage() {
             error={error}
             maxLength={6}
             required
+            autoFocus
             hint="Check your email inbox and spam folder"
           />
 
-          <Button type="submit" fullWidth loading={loading} disabled={loading}>
+          <Button 
+            type="submit" 
+            fullWidth 
+            loading={loading} 
+            disabled={loading || otp.length !== 6}
+          >
             Verify Email
           </Button>
         </form>
@@ -121,21 +153,19 @@ export default function VerifyEmailPage() {
 
         <div className={styles.authFooter}>
           <p>
-            Didn't receive the code?{" "}
+            Didn't receive the code?{' '}
             <button
               type="button"
               onClick={handleResend}
-              disabled={resending}
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--color-primary)",
-                fontWeight: "var(--font-weight-semibold)",
-                cursor: resending ? "not-allowed" : "pointer",
-                opacity: resending ? 0.6 : 1,
-              }}
+              disabled={resending || countdown > 0}
+              className={styles.resendButton}
             >
-              {resending ? "Resending..." : "Resend OTP"}
+              {resending 
+                ? 'Resending...' 
+                : countdown > 0 
+                  ? `Resend in ${countdown}s`
+                  : 'Resend OTP'
+              }
             </button>
           </p>
         </div>

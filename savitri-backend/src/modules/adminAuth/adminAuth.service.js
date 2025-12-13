@@ -1,5 +1,4 @@
 // src/modules/adminAuth/adminAuth.service.js
-
 const { AdminUser, Role, AdminSession, ActivityLog } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { hashPassword, comparePassword, getClientIP, getUserAgent, addHours } = require('../../utils/helpers');
@@ -47,7 +46,7 @@ class AdminAuthService {
       await AdminUser.findByIdAndUpdate(adminUser._id, {
         failedAttempts: 0,
         lockedUntil: null,
-      });
+      });f
     }
 
     const otp = await createOTP(email, OTP_TYPE.LOGIN);
@@ -190,6 +189,7 @@ class AdminAuthService {
     });
 
     await AdminSession.deleteMany({ adminUserId: adminUser._id });
+
     await sendPasswordChangedEmail(email, adminUser.name);
 
     await ActivityLog.create({

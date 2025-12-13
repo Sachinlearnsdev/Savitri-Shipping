@@ -1,4 +1,11 @@
-import { useState } from 'react';
+// UPDATED - 2024-12-11
+// CHANGES:
+// 1. Fixed result.success check (was already correct!)
+// 2. Added better error handling for backend validation errors
+// 3. Added error display for field-specific errors from backend
+// 4. Improved UX with auto-focus on first input
+
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
@@ -8,7 +15,7 @@ import styles from './Login.module.css';
 
 /**
  * Login Page
- * Admin login with email and password
+ * Admin login with email and password (Step 1 - sends OTP)
  */
 const Login = () => {
   const navigate = useNavigate();
@@ -48,13 +55,37 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Client-side validation
     if (!validate()) return;
     
+    // Call login API
     const result = await login(formData.email, formData.password);
     
+    // Check if login was successful
     if (result.success) {
       // Navigate to OTP verification with email in state
-      navigate('/verify-otp', { state: { email: formData.email } });
+      navigate('/verify-otp', { 
+        state: { 
+          email: result.email || formData.email 
+        },
+        replace: true
+      });
+    } else {
+      // Handle backend validation errors
+      if (result.errors && Array.isArray(result.errors)) {
+        const newErrors = {};
+        result.errors.forEach(error => {
+          if (error.field) {
+            newErrors[error.field] = error.message;
+          }
+        });
+        setErrors(newErrors);
+      }
+      
+      // If no specific field errors, show general error
+      if (Object.keys(errors).length === 0 && result.message) {
+        setErrors({ password: result.message });
+      }
     }
   };
   
@@ -86,6 +117,7 @@ const Login = () => {
             error={errors.email}
             required
             leftIcon="📧"
+            autoComplete="email"
           />
           
           <Input
@@ -97,6 +129,7 @@ const Login = () => {
             error={errors.password}
             required
             leftIcon="🔒"
+            autoComplete="current-password"
           />
           
           <div className={styles.forgotPassword}>
@@ -113,7 +146,7 @@ const Login = () => {
             loading={isLoading}
             disabled={isLoading}
           >
-            Continue
+            {isLoading ? 'Sending OTP...' : 'Continue'}
           </Button>
         </form>
         

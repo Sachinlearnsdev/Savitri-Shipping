@@ -1,8 +1,8 @@
 // src/modules/adminUsers/adminUsers.service.js
-
-const prisma = require('../../config/database');
+const { AdminUser, Role, AdminSession, ActivityLog } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { hashPassword, paginate, sanitizeUser } = require('../../utils/helpers');
+const { formatDocument, formatDocuments, formatPaginatedResponse } = require('../../utils/responseFormatter');
 
 class AdminUsersService {
   /**
@@ -12,46 +12,38 @@ class AdminUsersService {
     const { page, limit, search, status, roleId } = query;
     const { skip, take, page: currentPage, limit: currentLimit } = paginate(page, limit);
 
-    const where = {};
+    const filter = {};
 
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
       ];
     }
 
     if (status) {
-      where.status = status;
+      filter.status = status;
     }
 
     if (roleId) {
-      where.roleId = roleId;
+      filter.roleId = roleId;
     }
 
     const [adminUsers, total] = await Promise.all([
-      prisma.adminUser.findMany({
-        where,
-        skip,
-        take,
-        include: {
-          role: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.adminUser.count({ where }),
+      AdminUser.find(filter)
+        .populate('roleId', 'id name')
+        .select('-password')
+        .skip(skip)
+        .limit(take)
+        .sort({ createdAt: -1 })
+        .lean(),
+      AdminUser.countDocuments(filter),
     ]);
 
-    // Remove password from response
-    const sanitizedUsers = adminUsers.map(user => sanitizeUser(user));
+    const formattedUsers = formatDocuments(adminUsers);
 
     return {
-      adminUsers: sanitizedUsers,
+      adminUsers: formattedUsers,
       pagination: {
         page: currentPage,
         limit: currentLimit,
@@ -64,30 +56,28 @@ class AdminUsersService {
    * Get admin user by ID
    */
   async getById(id) {
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { id },
-      include: {
-        role: true,
-        sessions: {
-          where: {
-            expiresAt: { gte: new Date() },
-          },
-          select: {
-            id: true,
-            ipAddress: true,
-            userAgent: true,
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
+    const adminUser = await AdminUser.findById(id)
+      .populate('roleId')
+      .select('-password')
+      .lean();
 
     if (!adminUser) {
       throw ApiError.notFound('Admin user not found');
     }
 
-    return sanitizeUser(adminUser);
+    // Get active sessions
+    const sessions = await AdminSession.find({
+      adminUserId: id,
+      expiresAt: { $gte: new Date() },
+    })
+      .select('id ipAddress userAgent createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const formatted = formatDocument(adminUser);
+    formatted.sessions = formatDocuments(sessions);
+
+    return formatted;
   }
 
   /**
@@ -97,18 +87,14 @@ class AdminUsersService {
     const { name, email, phone, password, roleId } = data;
 
     // Check if email exists
-    const existingEmail = await prisma.adminUser.findUnique({
-      where: { email },
-    });
+    const existingEmail = await AdminUser.findOne({ email });
 
     if (existingEmail) {
       throw ApiError.conflict('Email already exists');
     }
 
     // Check if role exists
-    const role = await prisma.role.findUnique({
-      where: { id: roleId },
-    });
+    const role = await Role.findById(roleId);
 
     if (!role) {
       throw ApiError.notFound('Role not found');
@@ -118,25 +104,20 @@ class AdminUsersService {
     const hashedPassword = await hashPassword(password);
 
     // Create admin user
-    const adminUser = await prisma.adminUser.create({
-      data: {
-        name,
-        email,
-        phone,
-        password: hashedPassword,
-        roleId,
-      },
-      include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+    const adminUser = await AdminUser.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      roleId,
     });
 
-    return sanitizeUser(adminUser);
+    const populated = await AdminUser.findById(adminUser._id)
+      .populate('roleId', 'id name')
+      .select('-password')
+      .lean();
+
+    return formatDocument(populated);
   }
 
   /**
@@ -146,9 +127,7 @@ class AdminUsersService {
     const { name, email, phone, roleId } = data;
 
     // Check if admin user exists
-    const existingUser = await prisma.adminUser.findUnique({
-      where: { id },
-    });
+    const existingUser = await AdminUser.findById(id);
 
     if (!existingUser) {
       throw ApiError.notFound('Admin user not found');
@@ -156,9 +135,7 @@ class AdminUsersService {
 
     // If email is being updated, check if it's already taken
     if (email && email !== existingUser.email) {
-      const emailExists = await prisma.adminUser.findUnique({
-        where: { email },
-      });
+      const emailExists = await AdminUser.findOne({ email });
 
       if (emailExists) {
         throw ApiError.conflict('Email already exists');
@@ -166,10 +143,8 @@ class AdminUsersService {
     }
 
     // If role is being updated, check if it exists
-    if (roleId && roleId !== existingUser.roleId) {
-      const role = await prisma.role.findUnique({
-        where: { id: roleId },
-      });
+    if (roleId && roleId !== existingUser.roleId.toString()) {
+      const role = await Role.findById(roleId);
 
       if (!role) {
         throw ApiError.notFound('Role not found');
@@ -177,96 +152,70 @@ class AdminUsersService {
     }
 
     // Update admin user
-    const updatedUser = await prisma.adminUser.update({
-      where: { id },
-      data: {
-        name,
-        email,
-        phone,
-        roleId,
-      },
-      include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+    const updatedUser = await AdminUser.findByIdAndUpdate(
+      id,
+      { name, email, phone, roleId },
+      { new: true }
+    )
+      .populate('roleId', 'id name')
+      .select('-password')
+      .lean();
 
-    return sanitizeUser(updatedUser);
+    return formatDocument(updatedUser);
   }
 
   /**
    * Update admin user status
    */
   async updateStatus(id, status) {
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { id },
-      include: { role: true },
-    });
+    const adminUser = await AdminUser.findById(id).populate('roleId');
 
     if (!adminUser) {
       throw ApiError.notFound('Admin user not found');
     }
 
     // Prevent deactivating Super Admin
-    if (adminUser.role.name === 'Super Admin' && status === 'INACTIVE') {
+    if (adminUser.roleId.name === 'Super Admin' && status === 'INACTIVE') {
       throw ApiError.forbidden('Cannot deactivate Super Admin');
     }
 
-    const updatedUser = await prisma.adminUser.update({
-      where: { id },
-      data: { status },
-      include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+    const updatedUser = await AdminUser.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    )
+      .populate('roleId', 'id name')
+      .select('-password')
+      .lean();
 
     // If deactivating, delete all sessions
     if (status === 'INACTIVE') {
-      await prisma.adminSession.deleteMany({
-        where: { adminUserId: id },
-      });
+      await AdminSession.deleteMany({ adminUserId: id });
     }
 
-    return sanitizeUser(updatedUser);
+    return formatDocument(updatedUser);
   }
 
   /**
    * Delete admin user (soft delete)
    */
   async delete(id) {
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { id },
-      include: { role: true },
-    });
+    const adminUser = await AdminUser.findById(id).populate('roleId');
 
     if (!adminUser) {
       throw ApiError.notFound('Admin user not found');
     }
 
     // Prevent deleting Super Admin
-    if (adminUser.role.name === 'Super Admin') {
+    if (adminUser.roleId.name === 'Super Admin') {
       throw ApiError.forbidden('Cannot delete Super Admin');
     }
 
     // Update status to DELETED
-    await prisma.adminUser.update({
-      where: { id },
-      data: { status: 'DELETED' },
-    });
+    await AdminUser.findByIdAndUpdate(id, { status: 'DELETED' });
 
     // Delete all sessions
-    await prisma.adminSession.deleteMany({
-      where: { adminUserId: id },
-    });
+    await AdminSession.deleteMany({ adminUserId: id });
 
     return { message: 'Admin user deleted successfully' };
   }
@@ -279,17 +228,16 @@ class AdminUsersService {
     const { skip, take, page: currentPage, limit: currentLimit } = paginate(page, limit);
 
     const [activities, total] = await Promise.all([
-      prisma.activityLog.findMany({
-        where: { adminUserId: id },
-        skip,
-        take,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.activityLog.count({ where: { adminUserId: id } }),
+      ActivityLog.find({ adminUserId: id })
+        .skip(skip)
+        .limit(take)
+        .sort({ createdAt: -1 })
+        .lean(),
+      ActivityLog.countDocuments({ adminUserId: id }),
     ]);
 
     return {
-      activities,
+      activities: formatDocuments(activities),
       pagination: {
         page: currentPage,
         limit: currentLimit,

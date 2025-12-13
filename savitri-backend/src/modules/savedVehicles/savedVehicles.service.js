@@ -1,40 +1,37 @@
 // src/modules/savedVehicles/savedVehicles.service.js
-
-const prisma = require('../../config/database');
-const ApiError = require('../../utils/ApiError');
+const { SavedVehicle } = require("../../models");
+const ApiError = require("../../utils/ApiError");
+const {
+  formatDocument,
+  formatDocuments,
+} = require("../../utils/responseFormatter");
 
 class SavedVehiclesService {
   /**
    * Get all saved vehicles for a customer
    */
   async getAll(customerId) {
-    const vehicles = await prisma.savedVehicle.findMany({
-      where: { customerId },
-      orderBy: [
-        { isDefault: 'desc' },
-        { createdAt: 'desc' },
-      ],
-    });
+    const vehicles = await SavedVehicle.find({ customerId })
+      .sort({ isDefault: -1, createdAt: -1 })
+      .lean();
 
-    return vehicles;
+    return formatDocuments(vehicles);
   }
 
   /**
    * Get vehicle by ID
    */
   async getById(customerId, vehicleId) {
-    const vehicle = await prisma.savedVehicle.findFirst({
-      where: {
-        id: vehicleId,
-        customerId,
-      },
-    });
+    const vehicle = await SavedVehicle.findOne({
+      _id: vehicleId,
+      customerId,
+    }).lean();
 
     if (!vehicle) {
-      throw ApiError.notFound('Vehicle not found');
+      throw ApiError.notFound("Vehicle not found");
     }
 
-    return vehicle;
+    return formatDocument(vehicle);
   }
 
   /**
@@ -45,25 +42,23 @@ class SavedVehiclesService {
 
     // If setting as default, remove default from others
     if (isDefault) {
-      await prisma.savedVehicle.updateMany({
-        where: { customerId, isDefault: true },
-        data: { isDefault: false },
-      });
+      await SavedVehicle.updateMany(
+        { customerId, isDefault: true },
+        { isDefault: false }
+      );
     }
 
-    const vehicle = await prisma.savedVehicle.create({
-      data: {
-        customerId,
-        type,
-        brand,
-        model,
-        registrationNo,
-        nickname,
-        isDefault: isDefault || false,
-      },
+    const vehicle = await SavedVehicle.create({
+      customerId,
+      type,
+      brand,
+      model,
+      registrationNo,
+      nickname,
+      isDefault: isDefault || false,
     });
 
-    return vehicle;
+    return formatDocument(vehicle.toObject());
   }
 
   /**
@@ -71,35 +66,32 @@ class SavedVehiclesService {
    */
   async update(customerId, vehicleId, data) {
     // Check if vehicle exists and belongs to customer
-    const existingVehicle = await prisma.savedVehicle.findFirst({
-      where: {
-        id: vehicleId,
-        customerId,
-      },
+    const existingVehicle = await SavedVehicle.findOne({
+      _id: vehicleId,
+      customerId,
     });
 
     if (!existingVehicle) {
-      throw ApiError.notFound('Vehicle not found');
+      throw ApiError.notFound("Vehicle not found");
     }
 
     // If setting as default, remove default from others
     if (data.isDefault) {
-      await prisma.savedVehicle.updateMany({
-        where: {
+      await SavedVehicle.updateMany(
+        {
           customerId,
           isDefault: true,
-          id: { not: vehicleId },
+          _id: { $ne: vehicleId },
         },
-        data: { isDefault: false },
-      });
+        { isDefault: false }
+      );
     }
 
-    const vehicle = await prisma.savedVehicle.update({
-      where: { id: vehicleId },
-      data,
-    });
+    const vehicle = await SavedVehicle.findByIdAndUpdate(vehicleId, data, {
+      new: true,
+    }).lean();
 
-    return vehicle;
+    return formatDocument(vehicle);
   }
 
   /**
@@ -107,22 +99,18 @@ class SavedVehiclesService {
    */
   async delete(customerId, vehicleId) {
     // Check if vehicle exists and belongs to customer
-    const vehicle = await prisma.savedVehicle.findFirst({
-      where: {
-        id: vehicleId,
-        customerId,
-      },
+    const vehicle = await SavedVehicle.findOne({
+      _id: vehicleId,
+      customerId,
     });
 
     if (!vehicle) {
-      throw ApiError.notFound('Vehicle not found');
+      throw ApiError.notFound("Vehicle not found");
     }
 
-    await prisma.savedVehicle.delete({
-      where: { id: vehicleId },
-    });
+    await SavedVehicle.findByIdAndDelete(vehicleId);
 
-    return { message: 'Vehicle deleted successfully' };
+    return { message: "Vehicle deleted successfully" };
   }
 }
 

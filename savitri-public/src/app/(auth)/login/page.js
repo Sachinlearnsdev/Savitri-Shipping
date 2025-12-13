@@ -1,5 +1,6 @@
 /**
  * Login Page
+ * FIXED: Template literals, removed OTP flow (not in current backend API)
  */
 
 'use client';
@@ -12,20 +13,22 @@ import { validateEmail, validatePassword } from '@/utils/validators';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
 import styles from './page.module.css';
+import styles from '../shared-auth.module.css';
+
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth();
+  const { login } = useAuth({ requireGuest: true });
   const { success, error: showError } = useToast();
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [needsOTP, setNeedsOTP] = useState(false);
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
@@ -53,27 +56,23 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!validate()) return;
 
     setLoading(true);
-
+    
     const result = await login(formData.email, formData.password);
-
+    
     if (result.success) {
-      if (result.needsOTP) {
-        setNeedsOTP(true);
-        success('OTP sent to your email');
-        router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}&type=login`);
-      } else {
-        success('Login successful!');
-        const redirect = searchParams.get('redirect') || '/account';
-        router.push(redirect);
-      }
+      success('Login successful!');
+      
+      // Redirect to intended page or account dashboard
+      const redirect = searchParams.get('redirect') || '/account';
+      router.push(redirect);
     } else {
-      showError(result.error?.message || 'Login failed');
+      showError(result.error || 'Login failed');
     }
-
+    
     setLoading(false);
   };
 
@@ -126,6 +125,14 @@ export default function LoginPage() {
 
         <div className={styles.authDivider}>
           <span>OR</span>
+        </div>
+
+        <div className={styles.alternativeLogin}>
+          <Link href="/login-phone">
+            <Button variant="outline" fullWidth>
+              Login with Phone OTP
+            </Button>
+          </Link>
         </div>
 
         <div className={styles.authFooter}>

@@ -1,5 +1,4 @@
 // src/utils/sms.js
-
 const config = require('../config/env');
 
 /**
@@ -19,7 +18,7 @@ const sendSMS = async (phone, message) => {
     
     if (config.smsService === 'msg91') {
       // MSG91 integration (to be implemented)
-      // const response = await fetch(`https://api.msg91.com/api/v5/flow/`, {
+      // const response = await fetch('https://api.msg91.com/api/v5/flow/', {
       //   method: 'POST',
       //   headers: {
       //     'authkey': config.msg91ApiKey,

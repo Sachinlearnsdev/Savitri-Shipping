@@ -1,128 +1,137 @@
-// src/app.js
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
+const compression = require("compression");
+const path = require("path");
 
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
-const compression = require('compression');
-const path = require('path');
-
-const config = require('./config/env');
-const errorHandler = require('./middleware/errorHandler');
+const config = require("./config/env");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
+// Trust proxy - IMPORTANT for rate limiting and IP detection
+// This is needed when running behind reverse proxies (nginx, GitHub Codespaces, etc.)
+app.set("trust proxy", 1);
+
 // Security middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 // CORS Configuration - Auto-handles Codespaces
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Check against allowed origins
-    const allowedOrigins = config.corsOrigins;
-    
-    for (const allowed of allowedOrigins) {
-      if (allowed instanceof RegExp) {
-        if (allowed.test(origin)) {
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      // Check against allowed origins
+      const allowedOrigins = config.corsOrigins;
+
+      for (const allowed of allowedOrigins) {
+        if (allowed instanceof RegExp) {
+          if (allowed.test(origin)) {
+            return callback(null, true);
+          }
+        } else if (origin === allowed) {
           return callback(null, true);
         }
-      } else if (origin === allowed) {
-        return callback(null, true);
       }
-    }
-    
-    // In development, log blocked origins for debugging
-    if (config.nodeEnv === 'development') {
-      console.warn(`⚠️  CORS blocked origin: ${origin}`);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+
+      // In development, log blocked origins for debugging
+      if (config.nodeEnv === "development") {
+        console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
 
 // Compression middleware
 app.use(compression());
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // Logging middleware
-if (config.nodeEnv === 'development') {
-  app.use(morgan('dev'));
+if (config.nodeEnv === "development") {
+  app.use(morgan("dev"));
 } else {
-  app.use(morgan('combined'));
+  app.use(morgan("combined"));
 }
 
 // Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
-    isCodespaces: config.isCodespaces
+    isCodespaces: config.isCodespaces,
   });
 });
 
 // API info endpoint (useful for frontend to discover backend URL)
-app.get('/api/info', (req, res) => {
+app.get("/api/info", (req, res) => {
   res.json({
-    name: 'Savitri Shipping API',
-    version: '1.0.0',
+    name: "Savitri Shipping API",
+    version: "1.0.0",
     environment: config.nodeEnv,
     urls: {
       backend: config.backendUrl,
       frontend: config.frontendUrl,
-      admin: config.adminUrl
-    }
+      admin: config.adminUrl,
+    },
   });
 });
 
 // API Routes
-app.use('/api/auth/admin', require('./modules/adminAuth/adminAuth.routes'));
-app.use('/api/auth', require('./modules/auth/auth.routes'));
-app.use('/api/admin/users', require('./modules/adminUsers/adminUsers.routes'));
-app.use('/api/admin/roles', require('./modules/roles/roles.routes'));
-app.use('/api/admin/customers', require('./modules/customers/customers.routes'));
-app.use('/api/admin/settings', require('./modules/settings/settings.routes'));
-app.use('/api/profile', require('./modules/profile/profile.routes'));
-app.use('/api/profile/vehicles', require('./modules/savedVehicles/savedVehicles.routes'));
-
+app.use("/api/auth/admin", require("./modules/adminAuth/adminAuth.routes"));
+app.use("/api/auth", require("./modules/auth/auth.routes"));
+app.use("/api/admin/users", require("./modules/adminUsers/adminUsers.routes"));
+app.use("/api/admin/roles", require("./modules/roles/roles.routes"));
+app.use(
+  "/api/admin/customers",
+  require("./modules/customers/customers.routes")
+);
+app.use("/api/admin/settings", require("./modules/settings/settings.routes"));
+app.use("/api/profile", require("./modules/profile/profile.routes"));
+app.use(
+  "/api/profile/vehicles",
+  require("./modules/savedVehicles/savedVehicles.routes")
+);
 
 // Root / welcome endpoint
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: 'Savitri Shipping Backend is running ✅',
+    message: "Savitri Shipping Backend is running ✅",
     environment: config.nodeEnv,
     urls: {
       backend: config.backendUrl,
       frontend: config.frontendUrl,
-      admin: config.adminUrl
-    }
+      admin: config.adminUrl,
+    },
   });
 });
-
-
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.method} ${req.url} not found`
+    message: `Route ${req.method} ${req.url} not found`,
   });
 });
 

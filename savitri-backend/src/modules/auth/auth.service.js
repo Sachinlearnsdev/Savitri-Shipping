@@ -1,13 +1,32 @@
 // src/modules/auth/auth.service.js
-
-const prisma = require('../../config/database');
-const ApiError = require('../../utils/ApiError');
-const { hashPassword, comparePassword, getClientIP, getUserAgent, addHours } = require('../../utils/helpers');
-const { generateAccessToken } = require('../../utils/jwt');
-const { createOTP, verifyOTP } = require('../../utils/otp');
-const { sendWelcomeEmail, sendEmailVerificationOTP, sendLoginOTP, sendPasswordResetOTP, sendPasswordChangedEmail } = require('../../utils/email');
-const { sendPhoneVerificationOTP, sendLoginOTP: sendPhoneLoginOTP } = require('../../utils/sms');
-const { USER_STATUS, OTP_TYPE, ACCOUNT_LOCK } = require('../../config/constants');
+const { Customer, CustomerSession, LoginHistory } = require("../../models");
+const ApiError = require("../../utils/ApiError");
+const {
+  hashPassword,
+  comparePassword,
+  getClientIP,
+  getUserAgent,
+  addHours,
+} = require("../../utils/helpers");
+const { generateAccessToken } = require("../../utils/jwt");
+const { createOTP, verifyOTP } = require("../../utils/otp");
+const {
+  sendWelcomeEmail,
+  sendEmailVerificationOTP,
+  sendLoginOTP,
+  sendPasswordResetOTP,
+  sendPasswordChangedEmail,
+} = require("../../utils/email");
+const {
+  sendPhoneVerificationOTP,
+  sendLoginOTP: sendPhoneLoginOTP,
+} = require("../../utils/sms");
+const {
+  USER_STATUS,
+  OTP_TYPE,
+  ACCOUNT_LOCK,
+} = require("../../config/constants");
+const { formatDocument } = require("../../utils/responseFormatter");
 
 class AuthService {
   /**
@@ -17,22 +36,18 @@ class AuthService {
     const { name, email, phone, password } = data;
 
     // Check if email already exists
-    const existingEmail = await prisma.customer.findUnique({
-      where: { email },
-    });
+    const existingEmail = await Customer.findOne({ email });
 
     if (existingEmail) {
-      throw ApiError.conflict('Email already registered');
+      throw ApiError.conflict("Email already registered");
     }
 
     // Check if phone already exists (if provided)
     if (phone) {
-      const existingPhone = await prisma.customer.findUnique({
-        where: { phone },
-      });
+      const existingPhone = await Customer.findOne({ phone });
 
       if (existingPhone) {
-        throw ApiError.conflict('Phone number already registered');
+        throw ApiError.conflict("Phone number already registered");
       }
     }
 
@@ -40,13 +55,11 @@ class AuthService {
     const hashedPassword = await hashPassword(password);
 
     // Create customer
-    const customer = await prisma.customer.create({
-      data: {
-        name,
-        email,
-        phone,
-        password: hashedPassword,
-      },
+    const customer = await Customer.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
     });
 
     // Generate and send email verification OTP
@@ -63,9 +76,9 @@ class AuthService {
     await sendWelcomeEmail(email, name);
 
     return {
-      message: 'Registration successful. Please verify your email',
+      message: "Registration successful. Please verify your email",
       customer: {
-        id: customer.id,
+        id: customer._id.toString(),
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
@@ -84,12 +97,9 @@ class AuthService {
     }
 
     // Update customer
-    await prisma.customer.update({
-      where: { email },
-      data: { emailVerified: true },
-    });
+    await Customer.findOneAndUpdate({ email }, { emailVerified: true });
 
-    return { message: 'Email verified successfully' };
+    return { message: "Email verified successfully" };
   }
 
   /**
@@ -103,12 +113,9 @@ class AuthService {
     }
 
     // Update customer
-    await prisma.customer.update({
-      where: { phone },
-      data: { phoneVerified: true },
-    });
+    await Customer.findOneAndUpdate({ phone }, { phoneVerified: true });
 
-    return { message: 'Phone verified successfully' };
+    return { message: "Phone verified successfully" };
   }
 
   /**
@@ -116,23 +123,25 @@ class AuthService {
    */
   async login(email, password, req) {
     // Find customer
-    const customer = await prisma.customer.findUnique({
-      where: { email },
-    });
+    const customer = await Customer.findOne({ email });
 
     if (!customer) {
-      throw ApiError.unauthorized('Invalid email or password');
+      throw ApiError.unauthorized("Invalid email or password");
     }
 
     // Check if account is active
     if (customer.status !== USER_STATUS.ACTIVE) {
-      throw ApiError.forbidden('Account is not active');
+      throw ApiError.forbidden("Account is not active");
     }
 
     // Check if account is locked
     if (customer.lockedUntil && new Date() < customer.lockedUntil) {
-      const remainingMinutes = Math.ceil((customer.lockedUntil - new Date()) / (1000 * 60));
-      throw ApiError.forbidden(`Account is locked. Try again in ${remainingMinutes} minutes`);
+      const remainingMinutes = Math.ceil(
+        (customer.lockedUntil - new Date()) / (1000 * 60)
+      );
+      throw ApiError.forbidden(
+        `Account is locked. Try again in ${remainingMinutes} minutes`
+      );
     }
 
     // Verify password
@@ -144,62 +153,56 @@ class AuthService {
       const updateData = { failedAttempts };
 
       if (failedAttempts >= ACCOUNT_LOCK.MAX_FAILED_ATTEMPTS) {
-        updateData.lockedUntil = addHours(new Date(), ACCOUNT_LOCK.LOCK_DURATION_MINUTES / 60);
+        updateData.lockedUntil = addHours(
+          new Date(),
+          ACCOUNT_LOCK.LOCK_DURATION_MINUTES / 60
+        );
       }
 
-      await prisma.customer.update({
-        where: { id: customer.id },
-        data: updateData,
-      });
-
-      throw ApiError.unauthorized('Invalid email or password');
+      await Customer.findByIdAndUpdate(customer._id, updateData);
+      throw ApiError.unauthorized("Invalid email or password");
     }
 
     // Reset failed attempts
     if (customer.failedAttempts > 0) {
-      await prisma.customer.update({
-        where: { id: customer.id },
-        data: { failedAttempts: 0, lockedUntil: null },
+      await Customer.findByIdAndUpdate(customer._id, {
+        failedAttempts: 0,
+        lockedUntil: null,
       });
     }
 
     // Generate JWT token
     const token = generateAccessToken({
-      customerId: customer.id,
+      customerId: customer._id.toString(),
       email: customer.email,
     });
 
     // Create session
-    await prisma.customerSession.create({
-      data: {
-        customerId: customer.id,
-        token,
-        ipAddress: getClientIP(req),
-        userAgent: getUserAgent(req),
-        expiresAt: addHours(new Date(), 24 * 7), // 7 days
-      },
+    await CustomerSession.create({
+      customerId: customer._id,
+      token,
+      ipAddress: getClientIP(req),
+      userAgent: getUserAgent(req),
+      expiresAt: addHours(new Date(), 24 * 7), // 7 days
     });
 
     // Update last login
-    await prisma.customer.update({
-      where: { id: customer.id },
-      data: { lastLogin: new Date() },
+    await Customer.findByIdAndUpdate(customer._id, {
+      lastLogin: new Date(),
     });
 
     // Add to login history
-    await prisma.loginHistory.create({
-      data: {
-        customerId: customer.id,
-        ipAddress: getClientIP(req),
-        userAgent: getUserAgent(req),
-        success: true,
-      },
+    await LoginHistory.create({
+      customerId: customer._id,
+      ipAddress: getClientIP(req),
+      userAgent: getUserAgent(req),
+      success: true,
     });
 
     return {
       token,
       customer: {
-        id: customer.id,
+        id: customer._id.toString(),
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
@@ -215,27 +218,27 @@ class AuthService {
    */
   async loginWithPhone(phone, req) {
     // Find customer
-    const customer = await prisma.customer.findUnique({
-      where: { phone },
-    });
+    const customer = await Customer.findOne({ phone });
 
     if (!customer) {
-      throw ApiError.unauthorized('Phone number not registered');
+      throw ApiError.unauthorized("Phone number not registered");
     }
 
     if (customer.status !== USER_STATUS.ACTIVE) {
-      throw ApiError.forbidden('Account is not active');
+      throw ApiError.forbidden("Account is not active");
     }
 
     if (!customer.phoneVerified) {
-      throw ApiError.forbidden('Phone number not verified. Please verify your phone first');
+      throw ApiError.forbidden(
+        "Phone number not verified. Please verify your phone first"
+      );
     }
 
     // Generate and send OTP
     const otp = await createOTP(phone, OTP_TYPE.LOGIN);
     await sendPhoneLoginOTP(phone, otp);
 
-    return { message: 'OTP sent to your phone', phone };
+    return { message: "OTP sent to your phone", phone };
   }
 
   /**
@@ -249,51 +252,44 @@ class AuthService {
     }
 
     // Find customer
-    const customer = await prisma.customer.findUnique({
-      where: { phone },
-    });
+    const customer = await Customer.findOne({ phone });
 
     if (!customer) {
-      throw ApiError.unauthorized('Customer not found');
+      throw ApiError.unauthorized("Customer not found");
     }
 
     // Generate JWT token
     const token = generateAccessToken({
-      customerId: customer.id,
+      customerId: customer._id.toString(),
       email: customer.email,
     });
 
     // Create session
-    await prisma.customerSession.create({
-      data: {
-        customerId: customer.id,
-        token,
-        ipAddress: getClientIP(req),
-        userAgent: getUserAgent(req),
-        expiresAt: addHours(new Date(), 24 * 7),
-      },
+    await CustomerSession.create({
+      customerId: customer._id,
+      token,
+      ipAddress: getClientIP(req),
+      userAgent: getUserAgent(req),
+      expiresAt: addHours(new Date(), 24 * 7),
     });
 
     // Update last login
-    await prisma.customer.update({
-      where: { id: customer.id },
-      data: { lastLogin: new Date() },
+    await Customer.findByIdAndUpdate(customer._id, {
+      lastLogin: new Date(),
     });
 
     // Add to login history
-    await prisma.loginHistory.create({
-      data: {
-        customerId: customer.id,
-        ipAddress: getClientIP(req),
-        userAgent: getUserAgent(req),
-        success: true,
-      },
+    await LoginHistory.create({
+      customerId: customer._id,
+      ipAddress: getClientIP(req),
+      userAgent: getUserAgent(req),
+      success: true,
     });
 
     return {
       token,
       customer: {
-        id: customer.id,
+        id: customer._id.toString(),
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
@@ -308,29 +304,30 @@ class AuthService {
    * Logout
    */
   async logout(customerId, token) {
-    await prisma.customerSession.deleteMany({
-      where: { customerId, token },
+    await CustomerSession.deleteMany({
+      customerId,
+      token,
     });
 
-    return { message: 'Logged out successfully' };
+    return { message: "Logged out successfully" };
   }
 
   /**
    * Forgot password
    */
   async forgotPassword(email) {
-    const customer = await prisma.customer.findUnique({
-      where: { email },
-    });
+    const customer = await Customer.findOne({ email });
 
     if (!customer) {
-      return { message: 'If the email exists, a password reset OTP has been sent' };
+      return {
+        message: "If the email exists, a password reset OTP has been sent",
+      };
     }
 
     const otp = await createOTP(email, OTP_TYPE.PASSWORD_RESET);
     await sendPasswordResetOTP(email, customer.name, otp);
 
-    return { message: 'Password reset OTP sent to your email' };
+    return { message: "Password reset OTP sent to your email" };
   }
 
   /**
@@ -343,33 +340,31 @@ class AuthService {
       throw ApiError.unauthorized(otpResult.message);
     }
 
-    const customer = await prisma.customer.findUnique({
-      where: { email },
-    });
+    const customer = await Customer.findOne({ email });
 
     if (!customer) {
-      throw ApiError.notFound('Customer not found');
+      throw ApiError.notFound("Customer not found");
     }
 
     const hashedPassword = await hashPassword(newPassword);
 
-    await prisma.customer.update({
-      where: { id: customer.id },
-      data: {
-        password: hashedPassword,
-        failedAttempts: 0,
-        lockedUntil: null,
-      },
+    await Customer.findByIdAndUpdate(customer._id, {
+      password: hashedPassword,
+      failedAttempts: 0,
+      lockedUntil: null,
     });
 
     // Delete all sessions
-    await prisma.customerSession.deleteMany({
-      where: { customerId: customer.id },
+    await CustomerSession.deleteMany({
+      customerId: customer._id,
     });
 
     await sendPasswordChangedEmail(email, customer.name);
 
-    return { message: 'Password reset successfully. Please login with your new password' };
+    return {
+      message:
+        "Password reset successfully. Please login with your new password",
+    };
   }
 
   /**
@@ -378,29 +373,29 @@ class AuthService {
   async resendOTP(identifier, type) {
     let otpType, customer;
 
-    if (type === 'email') {
+    if (type === "email") {
       otpType = OTP_TYPE.EMAIL_VERIFICATION;
-      customer = await prisma.customer.findUnique({ where: { email: identifier } });
-      
+      customer = await Customer.findOne({ email: identifier });
+
       if (!customer) {
-        throw ApiError.notFound('Email not found');
+        throw ApiError.notFound("Email not found");
       }
 
       const otp = await createOTP(identifier, otpType);
       await sendEmailVerificationOTP(identifier, customer.name, otp);
     } else {
       otpType = OTP_TYPE.PHONE_VERIFICATION;
-      customer = await prisma.customer.findUnique({ where: { phone: identifier } });
-      
+      customer = await Customer.findOne({ phone: identifier });
+
       if (!customer) {
-        throw ApiError.notFound('Phone number not found');
+        throw ApiError.notFound("Phone number not found");
       }
 
       const otp = await createOTP(identifier, otpType);
       await sendPhoneVerificationOTP(identifier, otp);
     }
 
-    return { message: 'OTP sent successfully' };
+    return { message: "OTP sent successfully" };
   }
 }
 

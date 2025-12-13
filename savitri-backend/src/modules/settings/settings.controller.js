@@ -1,5 +1,4 @@
 // src/modules/settings/settings.controller.js
-
 const settingsService = require('./settings.service');
 const ApiResponse = require('../../utils/ApiResponse');
 

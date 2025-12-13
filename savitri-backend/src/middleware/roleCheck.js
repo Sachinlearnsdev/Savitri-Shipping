@@ -1,6 +1,5 @@
 // src/middleware/roleCheck.js
-
-const ApiError = require('../utils/ApiError');
+const ApiError = require("../utils/ApiError");
 
 /**
  * Check if admin has permission for a specific module and action
@@ -12,21 +11,23 @@ const roleCheck = (module, action) => {
     try {
       // Check if admin user is attached to request
       if (!req.adminUser) {
-        throw ApiError.unauthorized('Authentication required');
+        throw ApiError.unauthorized("Authentication required");
       }
-      
+
       const permissions = req.adminUser.permissions;
-      
+
       // Check if permissions exist for the module
       if (!permissions || !permissions[module]) {
-        throw ApiError.forbidden('Access denied: No permissions for this module');
+        throw ApiError.forbidden(
+          "Access denied: No permissions for this module"
+        );
       }
-      
+
       // Check if the specific action is allowed
       if (!permissions[module][action]) {
         throw ApiError.forbidden(`Access denied: Cannot ${action} ${module}`);
       }
-      
+
       next();
     } catch (error) {
       next(error);
@@ -42,13 +43,13 @@ const hasRole = (allowedRoles) => {
   return (req, res, next) => {
     try {
       if (!req.adminUser) {
-        throw ApiError.unauthorized('Authentication required');
+        throw ApiError.unauthorized("Authentication required");
       }
-      
+
       if (!allowedRoles.includes(req.adminUser.roleName)) {
-        throw ApiError.forbidden('Access denied: Insufficient role privileges');
+        throw ApiError.forbidden("Access denied: Insufficient role privileges");
       }
-      
+
       next();
     } catch (error) {
       next(error);
@@ -62,13 +63,13 @@ const hasRole = (allowedRoles) => {
 const isSuperAdmin = (req, res, next) => {
   try {
     if (!req.adminUser) {
-      throw ApiError.unauthorized('Authentication required');
+      throw ApiError.unauthorized("Authentication required");
     }
-    
-    if (req.adminUser.roleName !== 'Super Admin') {
-      throw ApiError.forbidden('Access denied: Super Admin only');
+
+    if (req.adminUser.roleName !== "Super Admin") {
+      throw ApiError.forbidden("Access denied: Super Admin only");
     }
-    
+
     next();
   } catch (error) {
     next(error);

@@ -1,97 +1,109 @@
 /**
  * Profile Service
  * Handles all profile-related API calls
+ * SYNCED WITH BACKEND API DOCUMENTATION
  */
 
-import api, { apiRequest } from './api';
+import { apiRequest } from './api';
 
 const profileService = {
+  // ==================== PROFILE ====================
+
   /**
-   * Get current user profile
+   * Get current customer profile
+   * GET /api/profile
    */
   getProfile: async () => {
     return await apiRequest.get('/profile');
   },
 
   /**
-   * Update profile
-   * @param {Object} data - { name, email, phone, avatar }
+   * Update profile (name only)
+   * PUT /api/profile
+   * @param {Object} data - { name }
    */
   updateProfile: async (data) => {
     return await apiRequest.put('/profile', data);
   },
 
   /**
+   * Upload profile avatar
+   * POST /api/profile/avatar
+   * @param {FormData} formData - Form data with 'avatar' file
+   */
+  uploadAvatar: async (formData) => {
+    return await apiRequest.post('/profile/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  /**
    * Change password
-   * @param {Object} data - { currentPassword, newPassword }
+   * POST /api/profile/change-password
+   * @param {Object} data - { currentPassword, newPassword, confirmPassword }
    */
   changePassword: async (data) => {
     return await apiRequest.post('/profile/change-password', data);
   },
 
   /**
-   * Update email (sends OTP)
-   * @param {Object} data - { newEmail }
+   * Update email - Step 1 (sends OTP to new email)
+   * POST /api/profile/update-email
+   * @param {Object} data - { email }
    */
   updateEmail: async (data) => {
     return await apiRequest.post('/profile/update-email', data);
   },
 
   /**
-   * Verify email change with OTP
-   * @param {Object} data - { newEmail, otp }
+   * Update email - Step 2 (verify OTP)
+   * POST /api/profile/verify-email-change
+   * @param {Object} data - { email, otp }
    */
   verifyEmailChange: async (data) => {
     return await apiRequest.post('/profile/verify-email-change', data);
   },
 
   /**
-   * Update phone (sends OTP)
-   * @param {Object} data - { newPhone }
+   * Update phone - Step 1 (sends OTP to new phone)
+   * POST /api/profile/update-phone
+   * @param {Object} data - { phone }
    */
   updatePhone: async (data) => {
     return await apiRequest.post('/profile/update-phone', data);
   },
 
   /**
-   * Verify phone change with OTP
-   * @param {Object} data - { newPhone, otp }
+   * Update phone - Step 2 (verify OTP)
+   * POST /api/profile/verify-phone-change
+   * @param {Object} data - { phone, otp }
    */
   verifyPhoneChange: async (data) => {
     return await apiRequest.post('/profile/verify-phone-change', data);
   },
 
   /**
-   * Upload profile avatar
-   * @param {File} file - Image file
+   * Update notification preferences
+   * PATCH /api/profile/notifications
+   * @param {Object} data - { emailNotifications, smsNotifications, promotionalEmails }
    */
-  uploadAvatar: async (file) => {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    
-    return await apiRequest.post('/profile/upload-avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  updateNotifications: async (data) => {
+    return await apiRequest.patch('/profile/notifications', data);
   },
 
-  /**
-   * Get login history
-   */
-  getLoginHistory: async () => {
-    return await apiRequest.get('/profile/login-history');
-  },
+  // ==================== SESSIONS ====================
 
   /**
    * Get active sessions
+   * GET /api/profile/sessions
    */
   getSessions: async () => {
     return await apiRequest.get('/profile/sessions');
   },
 
   /**
-   * Delete a specific session
+   * Delete specific session
+   * DELETE /api/profile/sessions/:sessionId
    * @param {string} sessionId
    */
   deleteSession: async (sessionId) => {
@@ -100,129 +112,75 @@ const profileService = {
 
   /**
    * Logout from all devices
+   * DELETE /api/profile/sessions
    */
   logoutAllDevices: async () => {
     return await apiRequest.delete('/profile/sessions');
   },
 
   /**
-   * Update notification preferences
-   * @param {Object} data - { emailNotifications, smsNotifications, promotionalEmails }
+   * Get login history (last 10 logins)
+   * GET /api/profile/login-history
    */
-  updateNotificationPreferences: async (data) => {
-    return await apiRequest.put('/profile/notification-preferences', data);
-  },
-
-  /**
-   * Delete account (soft delete)
-   * @param {Object} data - { password, reason }
-   */
-  deleteAccount: async (data) => {
-    return await apiRequest.delete('/profile', { data });
+  getLoginHistory: async () => {
+    return await apiRequest.get('/profile/login-history');
   },
 
   // ==================== SAVED VEHICLES ====================
 
   /**
    * Get all saved vehicles
+   * GET /api/profile/vehicles
    */
-  getSavedVehicles: async () => {
+  getVehicles: async () => {
     return await apiRequest.get('/profile/vehicles');
   },
 
   /**
-   * Add a saved vehicle
-   * @param {Object} data - { type, brand, model, registrationNo, nickname }
+   * Get vehicle by ID
+   * GET /api/profile/vehicles/:id
+   * @param {string} id
    */
-  addSavedVehicle: async (data) => {
+  getVehicle: async (id) => {
+    return await apiRequest.get(`/profile/vehicles/${id}`);
+  },
+
+  /**
+   * Add saved vehicle
+   * POST /api/profile/vehicles
+   * @param {Object} data - { type, brand, model, registrationNo, nickname, isDefault }
+   */
+  addVehicle: async (data) => {
     return await apiRequest.post('/profile/vehicles', data);
   },
 
   /**
-   * Update a saved vehicle
-   * @param {string} vehicleId
-   * @param {Object} data
+   * Update saved vehicle
+   * PUT /api/profile/vehicles/:id
+   * @param {string} id
+   * @param {Object} data - { type, brand, model, registrationNo, nickname, isDefault }
    */
-  updateSavedVehicle: async (vehicleId, data) => {
-    return await apiRequest.put(`/profile/vehicles/${vehicleId}`, data);
+  updateVehicle: async (id, data) => {
+    return await apiRequest.put(`/profile/vehicles/${id}`, data);
   },
 
   /**
-   * Delete a saved vehicle
-   * @param {string} vehicleId
+   * Delete saved vehicle
+   * DELETE /api/profile/vehicles/:id
+   * @param {string} id
    */
-  deleteSavedVehicle: async (vehicleId) => {
-    return await apiRequest.delete(`/profile/vehicles/${vehicleId}`);
+  deleteVehicle: async (id) => {
+    return await apiRequest.delete(`/profile/vehicles/${id}`);
   },
 
-  /**
-   * Set vehicle as default
-   * @param {string} vehicleId
-   */
-  setDefaultVehicle: async (vehicleId) => {
-    return await apiRequest.patch(`/profile/vehicles/${vehicleId}/set-default`);
-  },
-
-  // ==================== BOOKINGS (For Account Page) ====================
+  // ==================== ACCOUNT ====================
 
   /**
-   * Get user bookings
-   * @param {Object} params - { status, type, page, limit }
+   * Delete account (soft delete)
+   * DELETE /api/profile
    */
-  getBookings: async (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    return await apiRequest.get(`/profile/bookings?${queryString}`);
-  },
-
-  /**
-   * Get booking details
-   * @param {string} bookingId
-   */
-  getBookingDetails: async (bookingId) => {
-    return await apiRequest.get(`/profile/bookings/${bookingId}`);
-  },
-
-  /**
-   * Cancel booking
-   * @param {string} bookingId
-   * @param {Object} data - { reason }
-   */
-  cancelBooking: async (bookingId, data) => {
-    return await apiRequest.post(`/profile/bookings/${bookingId}/cancel`, data);
-  },
-
-  // ==================== REVIEWS ====================
-
-  /**
-   * Get user reviews
-   */
-  getReviews: async () => {
-    return await apiRequest.get('/profile/reviews');
-  },
-
-  /**
-   * Add review
-   * @param {Object} data - { bookingId, rating, comment }
-   */
-  addReview: async (data) => {
-    return await apiRequest.post('/profile/reviews', data);
-  },
-
-  /**
-   * Update review
-   * @param {string} reviewId
-   * @param {Object} data - { rating, comment }
-   */
-  updateReview: async (reviewId, data) => {
-    return await apiRequest.put(`/profile/reviews/${reviewId}`, data);
-  },
-
-  /**
-   * Delete review
-   * @param {string} reviewId
-   */
-  deleteReview: async (reviewId) => {
-    return await apiRequest.delete(`/profile/reviews/${reviewId}`);
+  deleteAccount: async () => {
+    return await apiRequest.delete('/profile');
   },
 };
 

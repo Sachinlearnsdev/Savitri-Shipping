@@ -1,19 +1,18 @@
 // src/modules/settings/settings.service.js
-
-const prisma = require('../../config/database');
-const ApiError = require('../../utils/ApiError');
-const { SETTINGS_GROUPS } = require('../../config/constants');
+const { Setting } = require("../../models");
+const ApiError = require("../../utils/ApiError");
+const { SETTINGS_GROUPS } = require("../../config/constants");
 
 class SettingsService {
   /**
    * Get all settings
    */
   async getAll() {
-    const settings = await prisma.setting.findMany();
-    
+    const settings = await Setting.find().lean();
+
     // Group settings by group
     const grouped = {};
-    settings.forEach(setting => {
+    settings.forEach((setting) => {
       if (!grouped[setting.group]) {
         grouped[setting.group] = {};
       }
@@ -27,9 +26,7 @@ class SettingsService {
    * Get settings by group
    */
   async getByGroup(group) {
-    const settings = await prisma.setting.findMany({
-      where: { group },
-    });
+    const settings = await Setting.find({ group }).lean();
 
     if (settings.length === 0) {
       throw ApiError.notFound(`Settings for group '${group}' not found`);
@@ -37,7 +34,7 @@ class SettingsService {
 
     // Return as single object for convenience
     const result = {};
-    settings.forEach(setting => {
+    settings.forEach((setting) => {
       result[setting.key] = setting.value;
     });
 
@@ -56,26 +53,18 @@ class SettingsService {
     // Validate group
     const validGroups = Object.values(SETTINGS_GROUPS);
     if (!validGroups.includes(group)) {
-      throw ApiError.badRequest('Invalid settings group');
+      throw ApiError.badRequest("Invalid settings group");
     }
 
     // For most groups, we store all data under a single 'config' key
-    const key = group === SETTINGS_GROUPS.CONTENT ? 'pages' : 'config';
+    const key = group === SETTINGS_GROUPS.CONTENT ? "pages" : "config";
 
     // Upsert setting
-    const setting = await prisma.setting.upsert({
-      where: {
-        group_key: { group, key },
-      },
-      update: {
-        value: data,
-      },
-      create: {
-        group,
-        key,
-        value: data,
-      },
-    });
+    const setting = await Setting.findOneAndUpdate(
+      { group, key },
+      { group, key, value: data },
+      { upsert: true, new: true }
+    ).lean();
 
     return setting.value;
   }
@@ -85,7 +74,7 @@ class SettingsService {
    */
   async uploadLogo(file) {
     if (!file) {
-      throw ApiError.badRequest('No file uploaded');
+      throw ApiError.badRequest("No file uploaded");
     }
 
     const logoUrl = `/uploads/${file.filename}`;
