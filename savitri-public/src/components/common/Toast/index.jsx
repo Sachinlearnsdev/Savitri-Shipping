@@ -1,100 +1,108 @@
-/**
- * Toast Component
- * Toast notifications container
- */
-
 'use client';
-import { createPortal } from 'react-dom';
-import useUIStore from '@/store/uiStore';
+
+import React from 'react';
+import { useUIStore } from '@/store/uiStore';
 import styles from './Toast.module.css';
 
+/**
+ * Toast Container Component
+ * Displays toast notifications from the UI store
+ */
 const Toast = () => {
   const { toasts, removeToast } = useUIStore();
 
   if (toasts.length === 0) return null;
 
-  const getIcon = (type) => {
-    switch (type) {
-      case 'success':
-        return (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"
-              fill="currentColor"
-            />
-          </svg>
-        );
-      case 'error':
-        return (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z"
-              fill="currentColor"
-            />
-          </svg>
-        );
-      case 'warning':
-        return (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M1 17h18L10 1 1 17zm9-2h2v2h-2v-2zm0-6h2v4h-2V9z"
-              fill="currentColor"
-            />
-          </svg>
-        );
-      case 'info':
-      default:
-        return (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9V9h2v6zm0-8H9V5h2v2z"
-              fill="currentColor"
-            />
-          </svg>
-        );
-    }
-  };
-
-  const toastContent = (
-    <div className={styles.toastContainer}>
+  return (
+    <div className={styles.container}>
       {toasts.map((toast) => (
-        <div
+        <ToastItem
           key={toast.id}
-          className={`${styles.toast} ${styles[toast.type]}`}
-        >
-          <div className={styles.toastIcon}>
-            {getIcon(toast.type)}
-          </div>
-          
-          <div className={styles.toastMessage}>
-            {toast.message}
-          </div>
-          
-          <button
-            type="button"
-            className={styles.toastClose}
-            onClick={() => removeToast(toast.id)}
-            aria-label="Close"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M12 4L4 12M4 4L12 12"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
+          toast={toast}
+          onClose={() => removeToast(toast.id)}
+        />
       ))}
     </div>
   );
+};
 
-  if (typeof document !== 'undefined') {
-    return createPortal(toastContent, document.body);
-  }
+/**
+ * Individual Toast Item
+ */
+const ToastItem = ({ toast, onClose }) => {
+  const { type, message } = toast;
 
-  return null;
+  const icons = {
+    success: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M7.5 10L9.16667 11.6667L12.5 8.33333M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    error: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 6.66667V10M10 13.3333H10.0083M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    warning: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 6.66667V10M10 13.3333H10.0083M8.57465 3.21517L2.51626 13.0417C1.79394 14.2683 2.66895 15.8333 4.1139 15.8333H15.8861C17.331 15.8333 18.2061 14.2683 17.4837 13.0417L11.4254 3.21517C10.6982 1.97925 9.0018 1.97924 8.27465 3.21517H8.57465Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    info: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 13.3333V10M10 6.66667H10.0083M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  };
+
+  return (
+    <div className={`${styles.toast} ${styles[type]}`}>
+      <div className={styles.icon}>{icons[type]}</div>
+      
+      <div className={styles.message}>{message}</div>
+      
+      <button
+        type="button"
+        className={styles.closeButton}
+        onClick={onClose}
+        aria-label="Close notification"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M12 4L4 12M4 4L12 12"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
+  );
 };
 
 export default Toast;

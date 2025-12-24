@@ -1,188 +1,131 @@
 /**
- * Formatters
- * Functions to format data for display (Indian format)
- */
-
-import { CURRENCY } from './constants';
-
-/**
- * Format currency (Indian Rupee)
+ * Format currency in Indian Rupees
  * @param {number} amount - Amount to format
- * @param {boolean} showSymbol - Show currency symbol
+ * @returns {string} Formatted currency (₹1,234.56)
  */
-export const formatCurrency = (amount, showSymbol = true) => {
-  if (amount === null || amount === undefined || isNaN(amount)) {
-    return showSymbol ? `${CURRENCY.SYMBOL}0.00` : '0.00';
-  }
-
-  // Indian number format with commas
-  const formatted = new Intl.NumberFormat('en-IN', {
+export const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined) return '₹0.00';
+  
+  return `₹${Number(amount).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount);
-
-  return showSymbol ? `${CURRENCY.SYMBOL}${formatted}` : formatted;
+  })}`;
 };
 
 /**
- * Format date (DD/MM/YYYY)
- * @param {Date|string} date - Date to format
+ * Format date in Indian format (DD/MM/YYYY)
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date (20/11/2024)
  */
-export const formatDate = (date) => {
-  if (!date) return '';
+export const formatDate = (dateString) => {
+  if (!dateString) return '';
   
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-
+  const date = new Date(dateString);
+  
+  if (isNaN(date.getTime())) return '';
+  
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
   return `${day}/${month}/${year}`;
 };
 
 /**
- * Format date and time (DD/MM/YYYY hh:mm AM/PM)
- * @param {Date|string} date - Date to format
+ * Format time in 12-hour format with AM/PM
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted time (10:30 AM)
  */
-export const formatDateTime = (date) => {
-  if (!date) return '';
+export const formatTime = (dateString) => {
+  if (!dateString) return '';
   
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-
-  const dateStr = formatDate(date);
-  const timeStr = formatTime(date);
-
-  return `${dateStr} ${timeStr}`;
+  const date = new Date(dateString);
+  
+  if (isNaN(date.getTime())) return '';
+  
+  return date.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 };
 
 /**
- * Format time (hh:mm AM/PM)
- * @param {Date|string} date - Date to format
+ * Format date and time
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date and time (20/11/2024 10:30 AM)
  */
-export const formatTime = (date) => {
-  if (!date) return '';
+export const formatDateTime = (dateString) => {
+  if (!dateString) return '';
   
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-
-  let hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const formattedDate = formatDate(dateString);
+  const formattedTime = formatTime(dateString);
   
-  hours = hours % 12;
-  hours = hours ? hours : 12; // 0 should be 12
+  if (!formattedDate || !formattedTime) return '';
   
-  return `${hours}:${minutes} ${ampm}`;
+  return `${formattedDate} ${formattedTime}`;
 };
 
 /**
- * Format date to relative time (e.g., "2 hours ago")
- * @param {Date|string} date - Date to format
- */
-export const formatRelativeTime = (date) => {
-  if (!date) return '';
-  
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-
-  const now = new Date();
-  const diffMs = now - d;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-  const diffMonth = Math.floor(diffDay / 30);
-  const diffYear = Math.floor(diffDay / 365);
-
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
-  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-  if (diffDay < 30) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-  if (diffMonth < 12) return `${diffMonth} month${diffMonth > 1 ? 's' : ''} ago`;
-  return `${diffYear} year${diffYear > 1 ? 's' : ''} ago`;
-};
-
-/**
- * Format phone number (Indian format)
+ * Format phone number in Indian format
  * @param {string} phone - Phone number
- * @param {boolean} withCountryCode - Include +91
+ * @returns {string} Formatted phone (+91 98765 43210)
  */
-export const formatPhone = (phone, withCountryCode = true) => {
+export const formatPhone = (phone) => {
   if (!phone) return '';
   
-  // Remove all non-digits
+  // Remove all non-digit characters
   const cleaned = phone.replace(/\D/g, '');
   
-  // Remove country code if present
-  let number = cleaned;
-  if (cleaned.startsWith('91') && cleaned.length === 12) {
-    number = cleaned.slice(2);
+  // Indian phone number (10 digits)
+  if (cleaned.length === 10) {
+    return `+91 ${cleaned.substring(0, 5)} ${cleaned.substring(5)}`;
   }
   
-  // Format: +91 XXXXX XXXXX
-  if (number.length === 10) {
-    const formatted = `${number.slice(0, 5)} ${number.slice(5)}`;
-    return withCountryCode ? `+91 ${formatted}` : formatted;
+  // If already has country code
+  if (cleaned.length === 12 && cleaned.startsWith('91')) {
+    const phoneDigits = cleaned.substring(2);
+    return `+91 ${phoneDigits.substring(0, 5)} ${phoneDigits.substring(5)}`;
   }
   
-  return phone;
+  return phone; // Return as is if doesn't match expected format
 };
 
 /**
- * Format duration in minutes to hours and minutes
- * @param {number} minutes - Duration in minutes
+ * Format relative time (e.g., "2 hours ago")
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Relative time
  */
-export const formatDuration = (minutes) => {
-  if (!minutes || minutes < 0) return '0 minutes';
+export const formatRelativeTime = (dateString) => {
+  if (!dateString) return '';
   
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+  const date = new Date(dateString);
+  const now = new Date();
   
-  if (hours === 0) return `${mins} minute${mins !== 1 ? 's' : ''}`;
-  if (mins === 0) return `${hours} hour${hours !== 1 ? 's' : ''}`;
+  if (isNaN(date.getTime())) return '';
   
-  return `${hours} hour${hours !== 1 ? 's' : ''} ${mins} minute${mins !== 1 ? 's' : ''}`;
-};
-
-/**
- * Format capacity (e.g., "10 persons")
- * @param {number} capacity - Capacity number
- */
-export const formatCapacity = (capacity) => {
-  if (!capacity || capacity < 0) return '0 persons';
-  return `${capacity} person${capacity !== 1 ? 's' : ''}`;
-};
-
-/**
- * Format distance (km)
- * @param {number} distance - Distance in kilometers
- */
-export const formatDistance = (distance) => {
-  if (!distance || distance < 0) return '0 km';
-  return `${distance.toFixed(1)} km`;
-};
-
-/**
- * Format booking ID
- * @param {string} id - Booking ID
- * @param {string} type - Booking type (SPEED_BOAT, PARTY_BOAT, FERRY)
- */
-export const formatBookingId = (id, type) => {
-  const prefixes = {
-    SPEED_BOAT: 'SB',
-    PARTY_BOAT: 'PB',
-    FERRY: 'FR',
-  };
+  const diffMs = now - date;
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
   
-  const prefix = prefixes[type] || 'BK';
-  return `${prefix}-${id.slice(0, 8).toUpperCase()}`;
+  if (diffSecs < 60) return 'Just now';
+  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  if (diffWeeks < 4) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+  if (diffMonths < 12) return `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+  return `${diffYears} year${diffYears > 1 ? 's' : ''} ago`;
 };
 
 /**
  * Format file size
- * @param {number} bytes - Size in bytes
+ * @param {number} bytes - File size in bytes
+ * @returns {string} Formatted size (1.5 MB)
  */
 export const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes';
@@ -191,29 +134,31 @@ export const formatFileSize = (bytes) => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
 /**
- * Format percentage
- * @param {number} value - Value
- * @param {number} total - Total
- * @param {number} decimals - Decimal places
+ * Truncate text with ellipsis
+ * @param {string} text - Text to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated text
  */
-export const formatPercentage = (value, total, decimals = 0) => {
-  if (total === 0) return '0%';
-  const percent = ((value / total) * 100).toFixed(decimals);
-  return `${percent}%`;
-};
-
-/**
- * Format name (capitalize first letter of each word)
- * @param {string} name - Name to format
- */
-export const formatName = (name) => {
-  if (!name) return '';
+export const truncateText = (text, maxLength = 100) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
   
-  return name
+  return `${text.substring(0, maxLength)}...`;
+};
+
+/**
+ * Capitalize first letter of each word
+ * @param {string} text - Text to capitalize
+ * @returns {string} Capitalized text
+ */
+export const capitalizeWords = (text) => {
+  if (!text) return '';
+  
+  return text
     .toLowerCase()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -221,152 +166,30 @@ export const formatName = (name) => {
 };
 
 /**
- * Format email (lowercase)
- * @param {string} email - Email to format
+ * Get initials from name
+ * @param {string} name - Full name
+ * @returns {string} Initials (JD for John Doe)
  */
-export const formatEmail = (email) => {
-  if (!email) return '';
-  return email.toLowerCase().trim();
-};
-
-/**
- * Mask email (e.g., j***@example.com)
- * @param {string} email - Email to mask
- */
-export const maskEmail = (email) => {
-  if (!email) return '';
+export const getInitials = (name) => {
+  if (!name) return '';
   
-  const [username, domain] = email.split('@');
-  if (!username || !domain) return email;
+  const parts = name.trim().split(' ');
   
-  const masked = username.charAt(0) + '***';
-  return `${masked}@${domain}`;
-};
-
-/**
- * Mask phone (e.g., +91 XXXXX XX123)
- * @param {string} phone - Phone to mask
- */
-export const maskPhone = (phone) => {
-  if (!phone) return '';
-  
-  const cleaned = phone.replace(/\D/g, '');
-  let number = cleaned;
-  
-  if (cleaned.startsWith('91') && cleaned.length === 12) {
-    number = cleaned.slice(2);
+  if (parts.length === 1) {
+    return parts[0].charAt(0).toUpperCase();
   }
   
-  if (number.length === 10) {
-    const masked = 'XXXXX' + number.slice(5);
-    return `+91 ${masked.slice(0, 5)} ${masked.slice(5)}`;
-  }
-  
-  return phone;
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
 /**
- * Format credit card number (mask middle digits)
- * @param {string} cardNumber - Card number
+ * Format countdown timer (MM:SS)
+ * @param {number} seconds - Seconds remaining
+ * @returns {string} Formatted time (01:30)
  */
-export const maskCardNumber = (cardNumber) => {
-  if (!cardNumber) return '';
+export const formatCountdown = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
   
-  const cleaned = cardNumber.replace(/\s/g, '');
-  if (cleaned.length < 12) return cardNumber;
-  
-  const first4 = cleaned.slice(0, 4);
-  const last4 = cleaned.slice(-4);
-  
-  return `${first4} **** **** ${last4}`;
-};
-
-/**
- * Format rating (e.g., "4.5/5")
- * @param {number} rating - Rating value
- * @param {number} maxRating - Maximum rating
- */
-export const formatRating = (rating, maxRating = 5) => {
-  if (!rating || rating < 0) return '0.0';
-  return `${rating.toFixed(1)}/${maxRating}`;
-};
-
-/**
- * Format Indian number (with lakhs and crores)
- * @param {number} num - Number to format
- */
-export const formatIndianNumber = (num) => {
-  if (!num) return '0';
-  
-  return new Intl.NumberFormat('en-IN').format(num);
-};
-
-/**
- * Parse date from DD/MM/YYYY format
- * @param {string} dateStr - Date string
- */
-export const parseDate = (dateStr) => {
-  if (!dateStr) return null;
-  
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return null;
-  
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-  const year = parseInt(parts[2], 10);
-  
-  return new Date(year, month, day);
-};
-
-/**
- * Get day name from date
- * @param {Date|string} date - Date
- */
-export const getDayName = (date) => {
-  if (!date) return '';
-  
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-  
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  return days[d.getDay()];
-};
-
-/**
- * Get month name from date
- * @param {Date|string} date - Date
- */
-export const getMonthName = (date) => {
-  if (!date) return '';
-  
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-  
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  return months[d.getMonth()];
-};
-
-export default {
-  formatCurrency,
-  formatDate,
-  formatDateTime,
-  formatTime,
-  formatRelativeTime,
-  formatPhone,
-  formatDuration,
-  formatCapacity,
-  formatDistance,
-  formatBookingId,
-  formatFileSize,
-  formatPercentage,
-  formatName,
-  formatEmail,
-  maskEmail,
-  maskPhone,
-  maskCardNumber,
-  formatRating,
-  formatIndianNumber,
-  parseDate,
-  getDayName,
-  getMonthName,
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };

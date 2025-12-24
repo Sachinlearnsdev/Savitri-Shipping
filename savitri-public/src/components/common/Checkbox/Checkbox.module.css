@@ -1,9 +1,7 @@
-/**
- * Checkbox Styles
- */
-
-.checkboxWrapper {
-  margin-bottom: var(--spacing-3);
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
 }
 
 .label {
@@ -14,72 +12,73 @@
   user-select: none;
 }
 
-.checkbox {
+.input {
   position: absolute;
   opacity: 0;
-  width: 0;
+  cursor: pointer;
   height: 0;
+  width: 0;
 }
 
-.customCheckbox {
+.checkmark {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 20px;
+  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
   flex-shrink: 0;
 }
 
-.checkbox:hover + .customCheckbox {
-  border-color: var(--color-primary);
-}
-
-.checkbox:focus + .customCheckbox {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-50);
-}
-
-.checkbox:checked + .customCheckbox {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.checkIcon {
-  width: 14px;
-  height: 14px;
+.checkmark svg {
   color: white;
 }
 
+.input:checked ~ .checkmark {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.input:focus-visible ~ .checkmark {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.input:disabled ~ .checkmark {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.label:hover .input:not(:disabled) ~ .checkmark {
+  border-color: var(--color-primary);
+}
+
 .labelText {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   line-height: var(--line-height-normal);
 }
 
-/* Disabled state */
-.disabled .label {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.disabled .customCheckbox {
-  background: var(--bg-secondary);
+.input:disabled ~ .labelText {
+  opacity: 0.5;
 }
 
 /* Error state */
-.hasError .customCheckbox {
+.container.hasError .checkmark {
   border-color: var(--color-error);
 }
 
 .error {
-  display: block;
   font-size: var(--font-size-sm);
   color: var(--color-error);
-  margin-top: var(--spacing-2);
-  margin-left: 32px;
+  margin-left: calc(20px + var(--spacing-3));
+}
+
+/* Disabled state */
+.container.disabled .label {
+  cursor: not-allowed;
 }

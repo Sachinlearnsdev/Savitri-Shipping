@@ -1,11 +1,21 @@
-/**
- * Button Component
- * Reusable button with variants and sizes
- */
-
-'use client';
+import React from 'react';
 import styles from './Button.module.css';
 
+/**
+ * Button Component
+ * @param {object} props
+ * @param {React.ReactNode} props.children - Button content
+ * @param {string} props.variant - Button variant (primary, secondary, outline, ghost, danger)
+ * @param {string} props.size - Button size (sm, md, lg)
+ * @param {string} props.type - Button type (button, submit, reset)
+ * @param {boolean} props.fullWidth - Full width button
+ * @param {boolean} props.disabled - Disabled state
+ * @param {boolean} props.loading - Loading state
+ * @param {React.ReactNode} props.leftIcon - Left icon
+ * @param {React.ReactNode} props.rightIcon - Right icon
+ * @param {Function} props.onClick - Click handler
+ * @param {string} props.className - Additional CSS classes
+ */
 const Button = ({
   children,
   variant = 'primary',
@@ -20,7 +30,7 @@ const Button = ({
   className = '',
   ...props
 }) => {
-  const buttonClass = [
+  const buttonClasses = [
     styles.button,
     styles[variant],
     styles[size],
@@ -34,23 +44,14 @@ const Button = ({
   return (
     <button
       type={type}
-      className={buttonClass}
+      className={buttonClasses}
       disabled={disabled || loading}
       onClick={onClick}
       {...props}
     >
       {loading && (
         <span className={styles.spinner}>
-          <svg className={styles.spinnerIcon} viewBox="0 0 24 24">
-            <circle
-              className={styles.spinnerCircle}
-              cx="12"
-              cy="12"
-              r="10"
-              fill="none"
-              strokeWidth="3"
-            />
-          </svg>
+          <span className={styles.spinnerCircle}></span>
         </span>
       )}
       

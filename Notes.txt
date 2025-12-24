@@ -1,0 +1,8 @@
+1. Public website
+
+changes need to be made for rest password
+
+1. OTP code should be validated and the new pass and old pass field should be allowed to udpated.
+also if the password is used in last 3 pass then it should not allow to save that password
+
+

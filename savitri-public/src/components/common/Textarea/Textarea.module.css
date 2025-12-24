@@ -1,17 +1,8 @@
-/**
- * Textarea Styles
- */
-
-.textareaWrapper {
-  width: 100%;
-  margin-bottom: var(--spacing-4);
-}
-
-.labelRow {
+.container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-2);
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
 }
 
 .label {
@@ -26,72 +17,56 @@
   margin-left: var(--spacing-1);
 }
 
-.count {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
 .textarea {
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
   font-size: var(--font-size-base);
-  font-family: var(--font-primary);
+  font-family: inherit;
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   transition: all var(--transition-fast);
-  outline: none;
   resize: vertical;
-  min-height: 100px;
 }
 
 .textarea::placeholder {
   color: var(--text-tertiary);
 }
 
-.textarea:hover:not(:disabled) {
-  border-color: var(--border-color-dark);
-}
-
 .textarea:focus {
+  outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .textarea:disabled {
-  background: var(--bg-secondary);
+  background-color: var(--bg-secondary);
   cursor: not-allowed;
-  opacity: 0.7;
-  resize: none;
+  opacity: 0.6;
 }
 
 /* Error state */
-.hasError .textarea {
+.container.hasError .textarea {
   border-color: var(--color-error);
 }
 
-.hasError .textarea:focus {
-  border-color: var(--color-error);
-  box-shadow: 0 0 0 3px var(--color-error-bg);
+.container.hasError .textarea:focus {
+  box-shadow: 0 0 0 3px var(--color-error-light);
 }
 
 .error {
-  display: block;
   font-size: var(--font-size-sm);
   color: var(--color-error);
-  margin-top: var(--spacing-2);
 }
 
-/* Hint */
+/* Hint text */
 .hint {
-  display: block;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-top: var(--spacing-2);
 }
 
 /* Disabled state */
-.disabled .label {
-  opacity: 0.7;
+.container.disabled .label {
+  opacity: 0.6;
 }

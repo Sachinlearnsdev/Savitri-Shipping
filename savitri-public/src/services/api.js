@@ -1,173 +1,183 @@
+import { API_BASE_URL } from "@/utils/constants";
+import { STORAGE_KEYS, COOKIE_NAMES } from "@/utils/constants";
+import {
+  getFromStorage,
+  saveToStorage,
+  removeFromStorage,
+  getCookie,
+} from "@/utils/helpers";
+
 /**
- * API Service with Codespaces Auto-Detection
- * Handles all HTTP requests to the backend
+ * API Service Class
+ * Handles all HTTP requests with auth token management
  */
-
-"use client";
-import axios from "axios";
-
-/**
- * Get the API base URL
- * Auto-detects Codespaces environment
- */
-const getApiBaseUrl = () => {
-  // Server-side: Use environment variable
-  if (typeof window === "undefined") {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+class ApiService {
+  constructor() {
+    this.baseURL = API_BASE_URL;
   }
 
-  // Client-side: Check if explicitly set
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
+  /**
+   * Get auth token from localStorage or cookie
+   * @returns {string|null}
+   */
+  getAuthToken() {
+    // Try localStorage first
+    const token = getFromStorage(STORAGE_KEYS.AUTH_TOKEN);
+    if (token) return token;
+
+    // Fallback to cookie
+    return getCookie(COOKIE_NAMES.AUTH_TOKEN);
   }
 
-  // Auto-detect Codespaces
-  const currentHost = window.location.hostname;
+  /**
+   * Make HTTP request
+   * @param {string} endpoint - API endpoint
+   * @param {object} options - Fetch options
+   * @returns {Promise}
+   */
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
 
-  if (currentHost.includes(".app.github.dev")) {
-    // We're in Codespaces
-    // Current URL: https://username-projectname-abc123-3000.app.github.dev
-    // Backend URL: https://username-projectname-abc123-5000.app.github.dev
+    const config = {
+      ...options,
+      credentials: "include", // Important for cookies
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    };
 
-    // FIXED: Properly replace port in Codespaces URL
-    const backendHost = currentHost.replace(
-      /-(\d+)\.app\.github\.dev$/,
-      "-5000.app.github.dev"
-    );
+    // Add auth token if available
+    const token = this.getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-    return `https://${backendHost}/api`;
+    // Remove Content-Type for FormData
+    if (options.body instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+
+    try {
+      const response = await fetch(url, config);
+
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        // Clear auth data
+        removeFromStorage(STORAGE_KEYS.AUTH_TOKEN);
+        removeFromStorage(STORAGE_KEYS.USER);
+
+        // Redirect to login if in browser
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+
+        throw {
+          status: 401,
+          message: "Session expired. Please login again.",
+        };
+      }
+
+      // Parse JSON response
+      const data = await response.json();
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        throw {
+          status: response.status,
+          message: data.message || "Something went wrong",
+          errors: data.errors || [],
+        };
+      }
+
+      return data;
+    } catch (error) {
+      // Network error or JSON parse error
+      if (!error.status) {
+        throw {
+          status: 0,
+          message: "Network error. Please check your internet connection.",
+        };
+      }
+
+      throw error;
+    }
   }
 
-  // Default to localhost
-  return "http://localhost:5000/api";
-};
+  /**
+   * GET request
+   * @param {string} endpoint - API endpoint
+   * @param {object} options - Additional options
+   * @returns {Promise}
+   */
+  get(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "GET",
+    });
+  }
 
-// Create axios instance with dynamic base URL
-const api = axios.create({
-  baseURL: getApiBaseUrl(),
-  withCredentials: true, // CRITICAL: This sends HTTP-only cookies
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 30000, // 30 seconds
-});
+  /**
+   * POST request
+   * @param {string} endpoint - API endpoint
+   * @param {any} body - Request body
+   * @param {object} options - Additional options
+   * @returns {Promise}
+   */
+  post(endpoint, body, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  }
 
-// Log the API URL in development (client-side only)
-if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  console.log("🔗 API Base URL:", getApiBaseUrl());
+  /**
+   * PUT request
+   * @param {string} endpoint - API endpoint
+   * @param {any} body - Request body
+   * @param {object} options - Additional options
+   * @returns {Promise}
+   */
+  put(endpoint, body, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "PUT",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  }
+
+  /**
+   * PATCH request
+   * @param {string} endpoint - API endpoint
+   * @param {any} body - Request body
+   * @param {object} options - Additional options
+   * @returns {Promise}
+   */
+  patch(endpoint, body, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  }
+
+  /**
+   * DELETE request
+   * @param {string} endpoint - API endpoint
+   * @param {object} options - Additional options
+   * @returns {Promise}
+   */
+  delete(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "DELETE",
+    });
+  }
 }
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    // NOTE: Token is sent via HTTP-only cookie (savitri_token)
-    // No need to manually add Authorization header
-    // Backend handles cookie-based auth automatically
+// Export singleton instance
+export const api = new ApiService();
 
-    // Log request in development
-    if (process.env.NODE_ENV === "development") {
-      console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor
-api.interceptors.response.use(
-  (response) => {
-    // Log response in development
-    if (process.env.NODE_ENV === "development") {
-      console.log(`📥 ${response.status} ${response.config.url}`);
-    }
-    return response;
-  },
-  (error) => {
-    // Handle 401 Unauthorized (client-side only)
-    if (typeof window !== "undefined" && error.response?.status === 401) {
-      // Clear any stored user data
-      if (typeof localStorage !== "undefined") {
-        localStorage.removeItem("customerUser");
-      }
-
-      // Redirect to login if not already there
-      const loginPaths = [
-        "/login",
-        "/register",
-        "/forgot-password",
-        "/reset-password",
-      ];
-      const currentPath = window.location.pathname;
-
-      if (!loginPaths.some((path) => currentPath.includes(path))) {
-        window.location.href =
-          "/login?redirect=" + encodeURIComponent(currentPath);
-      }
-    }
-
-    // Log error in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("❌ API Error:", error.response?.data || error.message);
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-/**
- * Generic request handlers with error handling
- */
-export const apiRequest = {
-  get: async (url, config = {}) => {
-    try {
-      const response = await api.get(url, config);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { data: null, error: error.response?.data || error.message };
-    }
-  },
-
-  post: async (url, data = {}, config = {}) => {
-    try {
-      const response = await api.post(url, data, config);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { data: null, error: error.response?.data || error.message };
-    }
-  },
-
-  put: async (url, data = {}, config = {}) => {
-    try {
-      const response = await api.put(url, data, config);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { data: null, error: error.response?.data || error.message };
-    }
-  },
-
-  patch: async (url, data = {}, config = {}) => {
-    try {
-      const response = await api.patch(url, data, config);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { data: null, error: error.response?.data || error.message };
-    }
-  },
-
-  delete: async (url, config = {}) => {
-    try {
-      const response = await api.delete(url, config);
-      return { data: response.data, error: null };
-    } catch (error) {
-      return { data: null, error: error.response?.data || error.message };
-    }
-  },
-};
-
-export default api;
-
-// Export the URL getter for other uses
-export { getApiBaseUrl };
+// Export class for testing
+export default ApiService;

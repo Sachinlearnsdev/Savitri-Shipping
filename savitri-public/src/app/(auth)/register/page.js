@@ -1,31 +1,17 @@
-/**
- * Register Page
- * FIXED: Added confirmPassword to API call, template literals
- */
-
 'use client';
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import useAuth from '@/hooks/useAuth';
-import useToast from '@/hooks/useToast';
-import { 
-  validateEmail, 
-  validatePassword, 
-  validateConfirmPassword,
-  validateName, 
-  validatePhone 
-} from '@/utils/validators';
-import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
-import Checkbox from '@/components/common/Checkbox';
-import styles from '../login/page.module.css';
-import styles from '../shared-auth.module.css';
+import Input from '@/components/common/Input';
+import { useAuth } from '@/hooks/useAuth';
+import { validateEmail, validatePhone, validatePassword, validateName } from '@/utils/validators';
+import styles from './register.module.css';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth({ requireGuest: true });
-  const { success, error: showError } = useToast();
+  const { register } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,50 +19,41 @@ export default function RegisterPage() {
     phone: '',
     password: '',
     confirmPassword: '',
-    agreeToTerms: false,
   });
-  
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (field) => (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setFormData({ ...formData, [field]: value });
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
     if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
   const validate = () => {
     const newErrors = {};
 
-    const nameValidation = validateName(formData.name);
-    if (!nameValidation.valid) {
-      newErrors.name = nameValidation.message;
+    if (!validateName(formData.name)) {
+      newErrors.name = 'Please enter a valid name (at least 2 characters)';
     }
 
-    const emailValidation = validateEmail(formData.email);
-    if (!emailValidation.valid) {
-      newErrors.email = emailValidation.message;
+    if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
-    const phoneValidation = validatePhone(formData.phone);
-    if (!phoneValidation.valid) {
-      newErrors.phone = phoneValidation.message;
+    if (formData.phone && !validatePhone(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
     }
 
     const passwordValidation = validatePassword(formData.password);
-    if (!passwordValidation.valid) {
-      newErrors.password = passwordValidation.message;
+    if (!passwordValidation.isValid) {
+      newErrors.password = 'Password must be at least 8 characters with 1 uppercase, 1 number, and 1 special character';
     }
 
-    const confirmValidation = validateConfirmPassword(formData.password, formData.confirmPassword);
-    if (!confirmValidation.valid) {
-      newErrors.confirmPassword = confirmValidation.message;
-    }
-
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     setErrors(newErrors);
@@ -85,135 +62,99 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
 
-    setLoading(true);
-    
-    // Backend expects: { name, email, phone, password, confirmPassword }
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-      confirmPassword: formData.confirmPassword, // FIXED: Added this
-    });
-    
-    if (result.success) {
-      success('Registration successful! Please verify your email.');
-      // Redirect to email verification page
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-    } else {
-      showError(result.error || 'Registration failed');
+    try {
+      setLoading(true);
+      await register(formData);
+      router.push('/verify-email?email=' + encodeURIComponent(formData.email));
+    } catch (error) {
+      // Error handled by hook
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
-    <div className={styles.authPage}>
-      <div className={styles.authCard}>
-        <div className={styles.authHeader}>
-          <h1 className={styles.authTitle}>Create Account</h1>
-          <p className={styles.authDescription}>
-            Sign up to start booking
+    <div className={styles.registerPage}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Create Account</h1>
+          <p className={styles.subtitle}>
+            Join Savitri Shipping for seamless booking
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.authForm}>
+        <form onSubmit={handleSubmit} className={styles.form}>
           <Input
             label="Full Name"
             type="text"
             placeholder="John Doe"
             value={formData.name}
-            onChange={handleChange('name')}
+            onChange={(e) => handleChange('name', e.target.value)}
             error={errors.name}
             required
           />
 
           <Input
-            label="Email"
+            label="Email Address"
             type="email"
-            placeholder="your@email.com"
+            placeholder="john@example.com"
             value={formData.email}
-            onChange={handleChange('email')}
+            onChange={(e) => handleChange('email', e.target.value)}
             error={errors.email}
             required
           />
 
           <Input
-            label="Phone Number"
+            label="Phone Number (Optional)"
             type="tel"
             placeholder="9876543210"
             value={formData.phone}
-            onChange={handleChange('phone')}
+            onChange={(e) => handleChange('phone', e.target.value)}
             error={errors.phone}
-            hint="Indian mobile number (10 digits)"
-            required
+            hint="10-digit Indian mobile number"
           />
 
           <Input
             label="Password"
             type="password"
-            placeholder="Create a strong password"
+            placeholder="••••••••"
             value={formData.password}
-            onChange={handleChange('password')}
+            onChange={(e) => handleChange('password', e.target.value)}
             error={errors.password}
-            hint="Min 8 characters, 1 uppercase, 1 number, 1 special character"
             required
           />
 
           <Input
             label="Confirm Password"
             type="password"
-            placeholder="Re-enter your password"
+            placeholder="••••••••"
             value={formData.confirmPassword}
-            onChange={handleChange('confirmPassword')}
+            onChange={(e) => handleChange('confirmPassword', e.target.value)}
             error={errors.confirmPassword}
             required
           />
 
-          <Checkbox
-            label={
-              <>
-                I agree to the{' '}
-                <Link href="/terms" style={{ color: 'var(--color-primary)' }}>
-                  Terms & Conditions
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" style={{ color: 'var(--color-primary)' }}>
-                  Privacy Policy
-                </Link>
-              </>
-            }
-            checked={formData.agreeToTerms}
-            onChange={handleChange('agreeToTerms')}
-            error={errors.agreeToTerms}
-          />
-
           <Button
             type="submit"
+            variant="primary"
+            size="lg"
             fullWidth
             loading={loading}
-            disabled={loading}
           >
-            Sign Up
+            Register
           </Button>
         </form>
 
-        <div className={styles.authDivider}>
-          <span>OR</span>
-        </div>
-
-        <div className={styles.authFooter}>
-          <p>
+        <div className={styles.footer}>
+          <p className={styles.footerText}>
             Already have an account?{' '}
-            <Link href="/login">Login</Link>
+            <Link href="/login" className={styles.link}>
+              Login here
+            </Link>
           </p>
-        </div>
-
-        <div className={styles.homeLink}>
-          <Link href="/">← Back to Home</Link>
         </div>
       </div>
     </div>

@@ -1,13 +1,17 @@
-/**
- * Checkbox Component
- * Reusable checkbox with label
- */
-
-'use client';
-import { forwardRef } from 'react';
+import React from 'react';
 import styles from './Checkbox.module.css';
 
-const Checkbox = forwardRef(({
+/**
+ * Checkbox Component
+ * @param {object} props
+ * @param {string} props.label - Checkbox label
+ * @param {boolean} props.checked - Checked state
+ * @param {Function} props.onChange - Change handler
+ * @param {boolean} props.disabled - Disabled state
+ * @param {string} props.error - Error message
+ * @param {string} props.className - Additional CSS classes
+ */
+const Checkbox = ({
   label,
   checked = false,
   onChange,
@@ -15,39 +19,33 @@ const Checkbox = forwardRef(({
   error,
   className = '',
   ...props
-}, ref) => {
-  const checkboxClass = [
-    styles.checkboxWrapper,
-    disabled && styles.disabled,
+}) => {
+  const containerClasses = [
+    styles.container,
     error && styles.hasError,
+    disabled && styles.disabled,
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <div className={checkboxClass}>
+    <div className={containerClasses}>
       <label className={styles.label}>
         <input
-          ref={ref}
           type="checkbox"
-          className={styles.checkbox}
+          className={styles.input}
           checked={checked}
-          onChange={onChange}
+          onChange={(e) => onChange && onChange(e.target.checked)}
           disabled={disabled}
           {...props}
         />
         
-        <span className={styles.customCheckbox}>
+        <span className={styles.checkmark}>
           {checked && (
-            <svg
-              className={styles.checkIcon}
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path
-                d="M13 4L6 11L3 8"
+                d="M11.6667 3.5L5.25 9.91667L2.33333 7"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -63,8 +61,6 @@ const Checkbox = forwardRef(({
       {error && <span className={styles.error}>{error}</span>}
     </div>
   );
-});
-
-Checkbox.displayName = 'Checkbox';
+};
 
 export default Checkbox;

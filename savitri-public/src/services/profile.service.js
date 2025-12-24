@@ -1,186 +1,135 @@
+import { api } from './api';
+import { API_ENDPOINTS } from '@/utils/constants';
+
 /**
  * Profile Service
  * Handles all profile-related API calls
- * SYNCED WITH BACKEND API DOCUMENTATION
  */
-
-import { apiRequest } from './api';
-
-const profileService = {
-  // ==================== PROFILE ====================
-
+export const profileService = {
   /**
    * Get current customer profile
-   * GET /api/profile
+   * @returns {Promise}
    */
   getProfile: async () => {
-    return await apiRequest.get('/profile');
+    return api.get(API_ENDPOINTS.PROFILE.GET);
   },
 
   /**
    * Update profile (name only)
-   * PUT /api/profile
-   * @param {Object} data - { name }
+   * @param {object} data - Profile data
+   * @returns {Promise}
    */
   updateProfile: async (data) => {
-    return await apiRequest.put('/profile', data);
+    return api.put(API_ENDPOINTS.PROFILE.UPDATE, data);
   },
 
   /**
    * Upload profile avatar
-   * POST /api/profile/avatar
-   * @param {FormData} formData - Form data with 'avatar' file
+   * @param {File} file - Image file
+   * @returns {Promise}
    */
-  uploadAvatar: async (formData) => {
-    return await apiRequest.post('/profile/avatar', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+  uploadAvatar: async (file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    return api.post(API_ENDPOINTS.PROFILE.AVATAR, formData);
   },
 
   /**
    * Change password
-   * POST /api/profile/change-password
-   * @param {Object} data - { currentPassword, newPassword, confirmPassword }
+   * @param {object} data - Password data (currentPassword, newPassword, confirmPassword)
+   * @returns {Promise}
    */
   changePassword: async (data) => {
-    return await apiRequest.post('/profile/change-password', data);
+    return api.post(API_ENDPOINTS.PROFILE.CHANGE_PASSWORD, data);
   },
 
   /**
-   * Update email - Step 1 (sends OTP to new email)
-   * POST /api/profile/update-email
-   * @param {Object} data - { email }
+   * Update email - Step 1 (sends OTP)
+   * @param {string} email - New email address
+   * @returns {Promise}
    */
-  updateEmail: async (data) => {
-    return await apiRequest.post('/profile/update-email', data);
+  updateEmail: async (email) => {
+    return api.post(API_ENDPOINTS.PROFILE.UPDATE_EMAIL, { email });
   },
 
   /**
    * Update email - Step 2 (verify OTP)
-   * POST /api/profile/verify-email-change
-   * @param {Object} data - { email, otp }
+   * @param {string} email - New email address
+   * @param {string} otp - OTP code
+   * @returns {Promise}
    */
-  verifyEmailChange: async (data) => {
-    return await apiRequest.post('/profile/verify-email-change', data);
+  verifyEmailChange: async (email, otp) => {
+    return api.post(API_ENDPOINTS.PROFILE.VERIFY_EMAIL_CHANGE, { email, otp });
   },
 
   /**
-   * Update phone - Step 1 (sends OTP to new phone)
-   * POST /api/profile/update-phone
-   * @param {Object} data - { phone }
+   * Update phone - Step 1 (sends OTP)
+   * @param {string} phone - New phone number
+   * @returns {Promise}
    */
-  updatePhone: async (data) => {
-    return await apiRequest.post('/profile/update-phone', data);
+  updatePhone: async (phone) => {
+    return api.post(API_ENDPOINTS.PROFILE.UPDATE_PHONE, { phone });
   },
 
   /**
    * Update phone - Step 2 (verify OTP)
-   * POST /api/profile/verify-phone-change
-   * @param {Object} data - { phone, otp }
+   * @param {string} phone - New phone number
+   * @param {string} otp - OTP code
+   * @returns {Promise}
    */
-  verifyPhoneChange: async (data) => {
-    return await apiRequest.post('/profile/verify-phone-change', data);
+  verifyPhoneChange: async (phone, otp) => {
+    return api.post(API_ENDPOINTS.PROFILE.VERIFY_PHONE_CHANGE, { phone, otp });
   },
 
   /**
    * Update notification preferences
-   * PATCH /api/profile/notifications
-   * @param {Object} data - { emailNotifications, smsNotifications, promotionalEmails }
+   * @param {object} preferences - Notification settings
+   * @returns {Promise}
    */
-  updateNotifications: async (data) => {
-    return await apiRequest.patch('/profile/notifications', data);
+  updateNotifications: async (preferences) => {
+    return api.patch(API_ENDPOINTS.PROFILE.NOTIFICATIONS, preferences);
   },
 
-  // ==================== SESSIONS ====================
-
   /**
-   * Get active sessions
-   * GET /api/profile/sessions
+   * Get all active sessions
+   * @returns {Promise}
    */
   getSessions: async () => {
-    return await apiRequest.get('/profile/sessions');
+    return api.get(API_ENDPOINTS.PROFILE.SESSIONS);
   },
 
   /**
-   * Delete specific session
-   * DELETE /api/profile/sessions/:sessionId
-   * @param {string} sessionId
+   * Delete specific session (logout from device)
+   * @param {string} sessionId - Session ID
+   * @returns {Promise}
    */
   deleteSession: async (sessionId) => {
-    return await apiRequest.delete(`/profile/sessions/${sessionId}`);
+    return api.delete(`${API_ENDPOINTS.PROFILE.SESSIONS}/${sessionId}`);
   },
 
   /**
    * Logout from all devices
-   * DELETE /api/profile/sessions
+   * @returns {Promise}
    */
   logoutAllDevices: async () => {
-    return await apiRequest.delete('/profile/sessions');
+    return api.delete(API_ENDPOINTS.PROFILE.SESSIONS);
   },
 
   /**
-   * Get login history (last 10 logins)
-   * GET /api/profile/login-history
+   * Get login history
+   * @returns {Promise}
    */
   getLoginHistory: async () => {
-    return await apiRequest.get('/profile/login-history');
+    return api.get(API_ENDPOINTS.PROFILE.LOGIN_HISTORY);
   },
-
-  // ==================== SAVED VEHICLES ====================
-
-  /**
-   * Get all saved vehicles
-   * GET /api/profile/vehicles
-   */
-  getVehicles: async () => {
-    return await apiRequest.get('/profile/vehicles');
-  },
-
-  /**
-   * Get vehicle by ID
-   * GET /api/profile/vehicles/:id
-   * @param {string} id
-   */
-  getVehicle: async (id) => {
-    return await apiRequest.get(`/profile/vehicles/${id}`);
-  },
-
-  /**
-   * Add saved vehicle
-   * POST /api/profile/vehicles
-   * @param {Object} data - { type, brand, model, registrationNo, nickname, isDefault }
-   */
-  addVehicle: async (data) => {
-    return await apiRequest.post('/profile/vehicles', data);
-  },
-
-  /**
-   * Update saved vehicle
-   * PUT /api/profile/vehicles/:id
-   * @param {string} id
-   * @param {Object} data - { type, brand, model, registrationNo, nickname, isDefault }
-   */
-  updateVehicle: async (id, data) => {
-    return await apiRequest.put(`/profile/vehicles/${id}`, data);
-  },
-
-  /**
-   * Delete saved vehicle
-   * DELETE /api/profile/vehicles/:id
-   * @param {string} id
-   */
-  deleteVehicle: async (id) => {
-    return await apiRequest.delete(`/profile/vehicles/${id}`);
-  },
-
-  // ==================== ACCOUNT ====================
 
   /**
    * Delete account (soft delete)
-   * DELETE /api/profile
+   * @returns {Promise}
    */
   deleteAccount: async () => {
-    return await apiRequest.delete('/profile');
+    return api.delete(API_ENDPOINTS.PROFILE.DELETE_ACCOUNT);
   },
 };
 

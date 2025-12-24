@@ -1,78 +1,101 @@
-/**
- * Account Settings Page
- */
-
 'use client';
-import { useState } from 'react';
-import useAuth from '@/hooks/useAuth';
-import useToast from '@/hooks/useToast';
-import profileService from '@/services/profile.service';
-import Checkbox from '@/components/common/Checkbox';
+
+import React, { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 import Button from '@/components/common/Button';
-import Modal from '@/components/common/Modal';
-import Input from '@/components/common/Input';
-import styles from './page.module.css';
+import Checkbox from '@/components/common/Checkbox';
+import { profileService } from '@/services/profile.service';
+import { getErrorMessage } from '@/utils/helpers';
+import styles from './settings.module.css';
 
 export default function SettingsPage() {
-  const { user, updateUser } = useAuth();
-  const { success, error: showError } = useToast();
+  const { user, updateUser, logout } = useAuthStore();
+  const { showSuccess, showError } = useUIStore();
 
   const [notifications, setNotifications] = useState({
     emailNotifications: user?.emailNotifications ?? true,
     smsNotifications: user?.smsNotifications ?? true,
     promotionalEmails: user?.promotionalEmails ?? false,
   });
-  const [loading, setLoading] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleNotificationChange = (field) => (e) => {
-    setNotifications({
-      ...notifications,
-      [field]: e.target.checked,
-    });
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleNotificationChange = (field, value) => {
+    setNotifications((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSaveNotifications = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
+      await profileService.updateNotifications(notifications);
+      updateUser(notifications);
+      showSuccess('Notification preferences updated!');
+    } catch (error) {
+      showError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const { data, error } = await profileService.updateNotificationPreferences(notifications);
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    );
 
-    if (error) {
-      showError('Failed to update preferences');
-    } else {
-      updateUser(data.user);
-      success('Preferences updated successfully');
+    if (!confirmed) return;
+
+    const doubleConfirm = prompt(
+      'Type "DELETE" to confirm account deletion:'
+    );
+
+    if (doubleConfirm !== 'DELETE') {
+      showError('Account deletion cancelled');
+      return;
     }
 
-    setLoading(false);
+    try {
+      setDeleteLoading(true);
+      await profileService.deleteAccount();
+      showSuccess('Account deleted successfully');
+      logout();
+    } catch (error) {
+      showError(getErrorMessage(error));
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
     <div className={styles.settingsPage}>
       <div className={styles.header}>
         <h1 className={styles.title}>Settings</h1>
-        <p className={styles.description}>
-          Manage your account preferences
-        </p>
+        <p className={styles.subtitle}>Manage your account preferences</p>
       </div>
 
       {/* Notification Preferences */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Notification Preferences</h2>
-        <div className={styles.settingsForm}>
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Notification Preferences</h2>
+
+        <div className={styles.notificationList}>
           <Checkbox
             label="Email Notifications"
             checked={notifications.emailNotifications}
-            onChange={handleNotificationChange('emailNotifications')}
+            onChange={(checked) =>
+              handleNotificationChange('emailNotifications', checked)
+            }
           />
           <p className={styles.checkboxHint}>
-            Receive booking confirmations and important updates via email
+            Receive booking confirmations and updates via email
           </p>
 
           <Checkbox
             label="SMS Notifications"
             checked={notifications.smsNotifications}
-            onChange={handleNotificationChange('smsNotifications')}
+            onChange={(checked) =>
+              handleNotificationChange('smsNotifications', checked)
+            }
           />
           <p className={styles.checkboxHint}>
             Receive booking reminders and updates via SMS
@@ -81,133 +104,47 @@ export default function SettingsPage() {
           <Checkbox
             label="Promotional Emails"
             checked={notifications.promotionalEmails}
-            onChange={handleNotificationChange('promotionalEmails')}
+            onChange={(checked) =>
+              handleNotificationChange('promotionalEmails', checked)
+            }
           />
           <p className={styles.checkboxHint}>
             Receive special offers and promotional content
           </p>
-
-          <Button
-            onClick={handleSaveNotifications}
-            loading={loading}
-            disabled={loading}
-          >
-            Save Preferences
-          </Button>
         </div>
+
+        <Button
+          variant="primary"
+          onClick={handleSaveNotifications}
+          loading={loading}
+        >
+          Save Preferences
+        </Button>
       </div>
 
       {/* Danger Zone */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle} style={{ color: 'var(--color-error)' }}>
-          Danger Zone
-        </h2>
-        <div className={styles.dangerZone}>
-          <div>
+      <div className={`${styles.card} ${styles.dangerZone}`}>
+        <h2 className={styles.cardTitle}>Danger Zone</h2>
+
+        <div className={styles.dangerContent}>
+          <div className={styles.dangerInfo}>
             <h3 className={styles.dangerTitle}>Delete Account</h3>
-            <p className={styles.dangerDescription}>
-              Once you delete your account, there is no going back. Please be certain.
+            <p className={styles.dangerText}>
+              Once you delete your account, there is no going back. All your
+              data including bookings, vehicles, and reviews will be permanently
+              deleted.
             </p>
           </div>
+
           <Button
             variant="danger"
-            onClick={() => setShowDeleteModal(true)}
+            onClick={handleDeleteAccount}
+            loading={deleteLoading}
           >
             Delete Account
           </Button>
         </div>
       </div>
-
-      {/* Delete Account Modal */}
-      <DeleteAccountModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-      />
     </div>
-  );
-}
-
-// Delete Account Modal
-function DeleteAccountModal({ isOpen, onClose }) {
-  const { logout } = useAuth();
-  const { success, error: showError } = useToast();
-  const [password, setPassword] = useState('');
-  const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleDelete = async (e) => {
-    e.preventDefault();
-
-    if (!confirm('Are you absolutely sure? This action cannot be undone.')) {
-      return;
-    }
-
-    setLoading(true);
-
-    const { error } = await profileService.deleteAccount({
-      password,
-      reason,
-    });
-
-    if (error) {
-      showError(error.message || 'Failed to delete account');
-      setLoading(false);
-    } else {
-      success('Account deleted successfully');
-      setTimeout(() => {
-        logout();
-      }, 2000);
-    }
-  };
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Delete Account"
-      size="md"
-    >
-      <form onSubmit={handleDelete}>
-        <div style={{ marginBottom: 'var(--spacing-6)' }}>
-          <p style={{ color: 'var(--color-error)', marginBottom: 'var(--spacing-4)' }}>
-            <strong>Warning:</strong> This action is permanent and cannot be undone.
-          </p>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            All your data, including bookings and reviews, will be permanently deleted.
-          </p>
-        </div>
-
-        <Input
-          label="Password"
-          type="password"
-          placeholder="Enter your password to confirm"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <Input
-          label="Reason for Leaving (Optional)"
-          type="text"
-          placeholder="Help us improve"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-
-        <div style={{ display: 'flex', gap: 'var(--spacing-3)', marginTop: 'var(--spacing-6)' }}>
-          <Button
-            type="submit"
-            variant="danger"
-            loading={loading}
-            disabled={loading}
-          >
-            Delete My Account
-          </Button>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Modal>
   );
 }

@@ -1,29 +1,35 @@
-/**
- * Modal Component
- * Reusable modal/dialog
- */
-
 'use client';
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+
+import React, { useEffect } from 'react';
 import styles from './Modal.module.css';
 
+/**
+ * Modal Component
+ * @param {object} props
+ * @param {boolean} props.isOpen - Modal open state
+ * @param {Function} props.onClose - Close handler
+ * @param {string} props.title - Modal title
+ * @param {string} props.size - Modal size (sm, md, lg, xl, full)
+ * @param {React.ReactNode} props.children - Modal content
+ * @param {React.ReactNode} props.footer - Modal footer
+ * @param {boolean} props.closeOnOverlayClick - Close on overlay click
+ * @param {boolean} props.showCloseButton - Show close button
+ */
 const Modal = ({
-  isOpen = false,
+  isOpen,
   onClose,
   title,
+  size = 'md',
   children,
   footer,
-  size = 'md',
   closeOnOverlayClick = true,
   showCloseButton = true,
-  className = '',
 }) => {
-  // Close on Escape key
+  // Handle ESC key press
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose?.();
+        onClose();
       }
     };
 
@@ -40,28 +46,19 @@ const Modal = ({
 
   if (!isOpen) return null;
 
-  const modalClass = [
-    styles.modal,
-    styles[size],
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   const handleOverlayClick = (e) => {
     if (closeOnOverlayClick && e.target === e.currentTarget) {
-      onClose?.();
+      onClose();
     }
   };
 
-  const modalContent = (
-    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
-      <div className={modalClass} role="dialog" aria-modal="true">
+  return (
+    <div className={styles.overlay} onClick={handleOverlayClick}>
+      <div className={`${styles.modal} ${styles[size]}`}>
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className={styles.modalHeader}>
-            {title && <h2 className={styles.modalTitle}>{title}</h2>}
-            
+          <div className={styles.header}>
+            {title && <h2 className={styles.title}>{title}</h2>}
             {showCloseButton && (
               <button
                 type="button"
@@ -69,13 +66,7 @@ const Modal = ({
                 onClick={onClose}
                 aria-label="Close modal"
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M18 6L6 18M6 6L18 18"
                     stroke="currentColor"
@@ -90,26 +81,13 @@ const Modal = ({
         )}
 
         {/* Body */}
-        <div className={styles.modalBody}>
-          {children}
-        </div>
+        <div className={styles.body}>{children}</div>
 
         {/* Footer */}
-        {footer && (
-          <div className={styles.modalFooter}>
-            {footer}
-          </div>
-        )}
+        {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </div>
   );
-
-  // Render in portal
-  if (typeof document !== 'undefined') {
-    return createPortal(modalContent, document.body);
-  }
-
-  return null;
 };
 
 export default Modal;

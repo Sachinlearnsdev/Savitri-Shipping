@@ -1,31 +1,35 @@
-/**
- * Textarea Component
- * Reusable textarea field
- */
-
-'use client';
-import { forwardRef } from 'react';
+import React from 'react';
 import styles from './Textarea.module.css';
 
-const Textarea = forwardRef(({
+/**
+ * Textarea Component
+ * @param {object} props
+ * @param {string} props.label - Textarea label
+ * @param {string} props.value - Textarea value
+ * @param {Function} props.onChange - Change handler
+ * @param {string} props.placeholder - Placeholder text
+ * @param {string} props.error - Error message
+ * @param {string} props.hint - Hint text
+ * @param {boolean} props.disabled - Disabled state
+ * @param {boolean} props.required - Required field
+ * @param {number} props.rows - Number of rows
+ * @param {string} props.className - Additional CSS classes
+ */
+const Textarea = ({
   label,
-  placeholder,
   value,
   onChange,
-  onBlur,
-  onFocus,
+  placeholder,
   error,
   hint,
   disabled = false,
   required = false,
   rows = 4,
-  maxLength,
-  showCount = false,
   className = '',
   ...props
-}, ref) => {
-  const textareaWrapperClass = [
-    styles.textareaWrapper,
+}) => {
+  const containerClasses = [
+    styles.container,
     error && styles.hasError,
     disabled && styles.disabled,
     className,
@@ -33,45 +37,30 @@ const Textarea = forwardRef(({
     .filter(Boolean)
     .join(' ');
 
-  const currentLength = value?.length || 0;
-
   return (
-    <div className={textareaWrapperClass}>
+    <div className={containerClasses}>
       {label && (
-        <div className={styles.labelRow}>
-          <label className={styles.label}>
-            {label}
-            {required && <span className={styles.required}>*</span>}
-          </label>
-          {showCount && maxLength && (
-            <span className={styles.count}>
-              {currentLength}/{maxLength}
-            </span>
-          )}
-        </div>
+        <label className={styles.label}>
+          {label}
+          {required && <span className={styles.required}>*</span>}
+        </label>
       )}
 
       <textarea
-        ref={ref}
         className={styles.textarea}
-        placeholder={placeholder}
         value={value}
         onChange={onChange}
-        onBlur={onBlur}
-        onFocus={onFocus}
+        placeholder={placeholder}
         disabled={disabled}
         required={required}
         rows={rows}
-        maxLength={maxLength}
         {...props}
       />
 
       {error && <span className={styles.error}>{error}</span>}
-      {!error && hint && <span className={styles.hint}>{hint}</span>}
+      {hint && !error && <span className={styles.hint}>{hint}</span>}
     </div>
   );
-});
-
-Textarea.displayName = 'Textarea';
+};
 
 export default Textarea;

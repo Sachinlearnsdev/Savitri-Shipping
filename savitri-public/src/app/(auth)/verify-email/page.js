@@ -1,178 +1,133 @@
-/**
- * Verify Email Page
- * FIXED: Uses correct resendOTP endpoint and response structure
- */
-
 'use client';
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import authService from '@/services/auth.service';
-import useToast from '@/hooks/useToast';
-import { validateOTP } from '@/utils/validators';
-import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
-import styles from './page.module.css';
-import styles from '../shared-auth.module.css';
+import Input from '@/components/common/Input';
+import { useAuth } from '@/hooks/useAuth';
+import { validateOTP } from '@/utils/validators';
+import { OTP_RESEND_TIMEOUT } from '@/utils/constants';
+import styles from './verify-email.module.css';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { success, error: showError, info } = useToast();
-
   const email = searchParams.get('email');
+  const { verifyEmail, resendOTP } = useAuth();
 
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [countdown, setCountdown] = useState(OTP_RESEND_TIMEOUT);
+  const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
     if (!email) {
-      showError('Email parameter is missing');
       router.push('/register');
+      return;
     }
-  }, [email, router, showError]);
 
-  // Countdown timer for resend
-  useEffect(() => {
+    // Countdown timer
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
     }
-  }, [countdown]);
+  }, [countdown, email, router]);
 
-  const handleChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+  const handleOtpChange = (value) => {
     setOtp(value);
     if (error) setError('');
   };
 
-  const handleVerify = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const otpValidation = validateOTP(otp);
-    if (!otpValidation.valid) {
-      setError(otpValidation.message);
+    if (!validateOTP(otp)) {
+      setError('Please enter a valid 6-digit OTP');
       return;
     }
 
-    setLoading(true);
-
-    const { data, error: apiError } = await authService.verifyEmail({
-      email,
-      otp,
-    });
-
-    if (apiError) {
-      const errorMsg = apiError.message || apiError.error?.message || 'Verification failed';
-      showError(errorMsg);
-      setLoading(false);
-      return;
-    }
-
-    success('Email verified successfully!');
-
-    // Backend returns: { success, message }
-    // After email verification, check if phone needs verification
-    // For now, redirect to login (phone verification is optional during registration)
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      await verifyEmail(email, otp);
       router.push('/login');
-    }, 1000);
-
-    setLoading(false);
+    } catch (error) {
+      setError('Invalid or expired OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResend = async () => {
-    if (countdown > 0) return;
-
-    setResending(true);
-
-    // FIXED: Use resendOTP with type parameter
-    const { data, error: apiError } = await authService.resendOTP({
-      identifier: email,
-      type: 'email',
-    });
-
-    if (apiError) {
-      const errorMsg = apiError.message || apiError.error?.message || 'Failed to resend OTP';
-      showError(errorMsg);
-    } else {
-      info('OTP has been resent to your email');
-      setCountdown(60); // 60 second cooldown
+    try {
+      setResendLoading(true);
+      await resendOTP(email, 'email');
+      setCountdown(OTP_RESEND_TIMEOUT);
+      setCanResend(false);
+      setOtp('');
+      setError('');
+    } catch (error) {
+      // Error handled by hook
+    } finally {
+      setResendLoading(false);
     }
-
-    setResending(false);
   };
 
-  if (!email) {
-    return null;
-  }
-
   return (
-    <div className={styles.authPage}>
-      <div className={styles.authCard}>
-        <div className={styles.authHeader}>
-          <div className={styles.authIcon}>📧</div>
-          <h1 className={styles.authTitle}>Verify Your Email</h1>
-          <p className={styles.authDescription}>
+    <div className={styles.verifyEmailPage}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.icon}>📧</div>
+          <h1 className={styles.title}>Verify Your Email</h1>
+          <p className={styles.subtitle}>
             We've sent a 6-digit code to
             <br />
             <strong>{email}</strong>
           </p>
         </div>
 
-        <form onSubmit={handleVerify} className={styles.authForm}>
+        <form onSubmit={handleSubmit} className={styles.form}>
           <Input
             label="Enter OTP"
             type="text"
-            placeholder="000000"
+            placeholder="123456"
             value={otp}
-            onChange={handleChange}
+            onChange={(e) => handleOtpChange(e.target.value)}
             error={error}
             maxLength={6}
-            required
             autoFocus
-            hint="Check your email inbox and spam folder"
           />
 
-          <Button 
-            type="submit" 
-            fullWidth 
-            loading={loading} 
-            disabled={loading || otp.length !== 6}
+          <div className={styles.resendSection}>
+            {canResend ? (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                className={styles.resendButton}
+              >
+                {resendLoading ? 'Sending...' : 'Resend OTP'}
+              </button>
+            ) : (
+              <p className={styles.countdown}>
+                Resend OTP in {countdown}s
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
           >
             Verify Email
           </Button>
         </form>
-
-        <div className={styles.authDivider}>
-          <span>OR</span>
-        </div>
-
-        <div className={styles.authFooter}>
-          <p>
-            Didn't receive the code?{' '}
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending || countdown > 0}
-              className={styles.resendButton}
-            >
-              {resending 
-                ? 'Resending...' 
-                : countdown > 0 
-                  ? `Resend in ${countdown}s`
-                  : 'Resend OTP'
-              }
-            </button>
-          </p>
-        </div>
-
-        <div className={styles.homeLink}>
-          <Link href="/login">← Back to Login</Link>
-        </div>
       </div>
     </div>
   );

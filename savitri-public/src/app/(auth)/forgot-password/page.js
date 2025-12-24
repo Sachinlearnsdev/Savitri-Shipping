@@ -1,132 +1,84 @@
-/**
- * Forgot Password Page
- * Step 1: Request OTP to email
- */
-
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import authService from '@/services/auth.service';
-import useToast from '@/hooks/useToast';
-import { validateEmail } from '@/utils/validators';
-import Input from '@/components/common/Input';
-import Button from '@/components/common/Button';
-import styles from './page.module.css';
-import styles from '../shared-auth.module.css';
 
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
+import { useAuth } from '@/hooks/useAuth';
+import { validateEmail } from '@/utils/validators';
+import styles from './forgot-password.module.css';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const { success, error: showError, info } = useToast();
+  const { forgotPassword } = useAuth();
 
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
 
-  const handleChange = (e) => {
-    setEmail(e.target.value);
+  const handleEmailChange = (value) => {
+    setEmail(value);
     if (error) setError('');
-  };
-
-  const validate = () => {
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.valid) {
-      setError(emailValidation.message);
-      return false;
-    }
-    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) return;
-
-    setLoading(true);
-
-    const { data, error: apiError } = await authService.forgotPassword({ email });
-
-    if (apiError) {
-      const errorMsg = apiError.message || apiError.error?.message || 'Failed to send OTP';
-      showError(errorMsg);
-      setLoading(false);
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
-    success('Password reset OTP sent to your email!');
-    setOtpSent(true);
-
-    // Redirect to reset password page after 1 second
-    setTimeout(() => {
-      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-    }, 1000);
-
-    setLoading(false);
+    try {
+      setLoading(true);
+      await forgotPassword(email);
+      router.push('/reset-password?email=' + encodeURIComponent(email));
+    } catch (error) {
+      // Error handled by hook
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className={styles.authPage}>
-      <div className={styles.authCard}>
-        <div className={styles.authHeader}>
-          <div className={styles.authIcon}>🔑</div>
-          <h1 className={styles.authTitle}>Forgot Password?</h1>
-          <p className={styles.authDescription}>
-            {otpSent 
-              ? 'OTP sent! Redirecting...'
-              : 'Enter your email and we\'ll send you a code to reset your password'
-            }
+    <div className={styles.forgotPasswordPage}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.icon}>🔒</div>
+          <h1 className={styles.title}>Forgot Password?</h1>
+          <p className={styles.subtitle}>
+            No worries! Enter your email and we'll send you a reset code.
           </p>
         </div>
 
-        {!otpSent && (
-          <form onSubmit={handleSubmit} className={styles.authForm}>
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={handleChange}
-              error={error}
-              required
-              autoFocus
-              hint="Enter the email you used to register"
-            />
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="john@example.com"
+            value={email}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            error={error}
+            autoFocus
+            required
+          />
 
-            <Button 
-              type="submit" 
-              fullWidth 
-              loading={loading} 
-              disabled={loading}
-            >
-              Send Reset Code
-            </Button>
-          </form>
-        )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+          >
+            Send Reset Code
+          </Button>
+        </form>
 
-        {otpSent && (
-          <div className={styles.successMessage}>
-            <div className={styles.successIcon}>✓</div>
-            <p>Check your email for the reset code</p>
-          </div>
-        )}
-
-        <div className={styles.authDivider}>
-          <span>OR</span>
-        </div>
-
-        <div className={styles.authFooter}>
-          <p>
-            Remember your password? <Link href="/login">Login</Link>
-          </p>
-          <p style={{ marginTop: 'var(--spacing-2)' }}>
-            Don't have an account? <Link href="/register">Sign Up</Link>
-          </p>
-        </div>
-
-        <div className={styles.homeLink}>
-          <Link href="/">← Back to Home</Link>
+        <div className={styles.footer}>
+          <Link href="/login" className={styles.backLink}>
+            ← Back to Login
+          </Link>
         </div>
       </div>
     </div>

@@ -1,149 +1,228 @@
-/**
- * Login Page
- * FIXED: Template literals, removed OTP flow (not in current backend API)
- */
+"use client";
 
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import useAuth from '@/hooks/useAuth';
-import useToast from '@/hooks/useToast';
-import { validateEmail, validatePassword } from '@/utils/validators';
-import Input from '@/components/common/Input';
-import Button from '@/components/common/Button';
-import styles from './page.module.css';
-import styles from '../shared-auth.module.css';
-
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import Button from "@/components/common/Button";
+import Input from "@/components/common/Input";
+import { useAuth } from "@/hooks/useAuth";
+import { validateEmail, validatePhone } from "@/utils/validators";
+import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth({ requireGuest: true });
-  const { success, error: showError } = useToast();
+  const redirect = searchParams.get("redirect") || "/account/dashboard";
+  const { loginWithEmail, loginWithPhoneSendOTP } = useAuth();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+  const [loginMethod, setLoginMethod] = useState("email");
+
+  const [emailData, setEmailData] = useState({
+    email: "",
+    password: "",
   });
-  
+
+  const [phoneData, setPhoneData] = useState({
+    phone: "",
+  });
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (field) => (e) => {
-    setFormData({ ...formData, [field]: e.target.value });
+  const handleEmailChange = (field, value) => {
+    setEmailData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
-  const validate = () => {
+  const handlePhoneChange = (value) => {
+    setPhoneData({ phone: value });
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: "" }));
+    }
+  };
+
+  const validateEmailLogin = () => {
     const newErrors = {};
 
-    const emailValidation = validateEmail(formData.email);
-    if (!emailValidation.valid) {
-      newErrors.email = emailValidation.message;
+    if (!validateEmail(emailData.email)) {
+      newErrors.email = "Please enter a valid email address";
     }
 
-    const passwordValidation = validatePassword(formData.password);
-    if (!passwordValidation.valid) {
-      newErrors.password = passwordValidation.message;
+    if (!emailData.password) {
+      newErrors.password = "Password is required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validate()) return;
+  const validatePhoneLogin = () => {
+    const newErrors = {};
 
-    setLoading(true);
-    
-    const result = await login(formData.email, formData.password);
-    
-    if (result.success) {
-      success('Login successful!');
-      
-      // Redirect to intended page or account dashboard
-      const redirect = searchParams.get('redirect') || '/account';
-      router.push(redirect);
-    } else {
-      showError(result.error || 'Login failed');
+    if (!validatePhone(phoneData.phone)) {
+      newErrors.phone = "Please enter a valid 10-digit phone number";
     }
-    
-    setLoading(false);
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateEmailLogin()) return;
+
+    try {
+      setLoading(true);
+      console.log("📝 Login Page: Submitting email login", {
+        email: emailData.email,
+        redirect,
+      });
+
+      // The redirect happens inside the hook now
+      await loginWithEmail(emailData.email, emailData.password, redirect);
+
+      // No need for router.push here - it's handled in the hook with window.location.href
+      console.log("✅ Login Page: Login function completed");
+    } catch (error) {
+      console.error("❌ Login Page: Login failed", error);
+      // Error is already shown by the hook
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validatePhoneLogin()) return;
+
+    try {
+      setLoading(true);
+      await loginWithPhoneSendOTP(phoneData.phone);
+      // Manually navigate to verify page with redirect param
+      router.push(
+        `/verify-phone?phone=${encodeURIComponent(
+          phoneData.phone
+        )}&type=login&redirect=${encodeURIComponent(redirect)}`
+      );
+    } catch (error) {
+      // Error handled by hook
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className={styles.authPage}>
-      <div className={styles.authCard}>
-        <div className={styles.authHeader}>
-          <h1 className={styles.authTitle}>Welcome Back</h1>
-          <p className={styles.authDescription}>
-            Login to access your account
+    <div className={styles.loginPage}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Welcome Back</h1>
+          <p className={styles.subtitle}>
+            Login to your Savitri Shipping account
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.authForm}>
-          <Input
-            label="Email"
-            type="email"
-            placeholder="your@email.com"
-            value={formData.email}
-            onChange={handleChange('email')}
-            error={errors.email}
-            required
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange('password')}
-            error={errors.password}
-            required
-          />
-
-          <div className={styles.formFooter}>
-            <Link href="/forgot-password" className={styles.forgotLink}>
-              Forgot Password?
-            </Link>
-          </div>
-
-          <Button
-            type="submit"
-            fullWidth
-            loading={loading}
-            disabled={loading}
+        {/* Login Method Tabs */}
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            className={`${styles.tab} ${
+              loginMethod === "email" ? styles.active : ""
+            }`}
+            onClick={() => setLoginMethod("email")}
           >
-            Login
-          </Button>
-        </form>
-
-        <div className={styles.authDivider}>
-          <span>OR</span>
+            Email + Password
+          </button>
+          <button
+            type="button"
+            className={`${styles.tab} ${
+              loginMethod === "phone" ? styles.active : ""
+            }`}
+            onClick={() => setLoginMethod("phone")}
+          >
+            Phone + OTP
+          </button>
         </div>
 
-        <div className={styles.alternativeLogin}>
-          <Link href="/login-phone">
-            <Button variant="outline" fullWidth>
-              Login with Phone OTP
+        {/* Email Login Form */}
+        {loginMethod === "email" && (
+          <form onSubmit={handleEmailSubmit} className={styles.form}>
+            <Input
+              label="Email Address"
+              type="email"
+              placeholder="john@example.com"
+              value={emailData.email}
+              onChange={(e) => handleEmailChange("email", e.target.value)}
+              error={errors.email}
+              required
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              value={emailData.password}
+              onChange={(e) => handleEmailChange("password", e.target.value)}
+              error={errors.password}
+              required
+            />
+
+            <Link href="/forgot-password" className={styles.forgotLink}>
+              Forgot password?
+            </Link>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
             </Button>
-          </Link>
-        </div>
+          </form>
+        )}
 
-        <div className={styles.authFooter}>
-          <p>
-            Don't have an account?{' '}
-            <Link href="/register">Sign Up</Link>
+        {/* Phone Login Form */}
+        {loginMethod === "phone" && (
+          <form onSubmit={handlePhoneSubmit} className={styles.form}>
+            <Input
+              label="Phone Number"
+              type="tel"
+              placeholder="9876543210"
+              value={phoneData.phone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              error={errors.phone}
+              hint="10-digit Indian mobile number"
+              required
+            />
+
+            <div className={styles.otpInfo}>
+              <p>We'll send you an OTP to verify your number</p>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+            >
+              Send OTP
+            </Button>
+          </form>
+        )}
+
+        <div className={styles.footer}>
+          <p className={styles.footerText}>
+            Don't have an account?{" "}
+            <Link href="/register" className={styles.link}>
+              Register here
+            </Link>
           </p>
-        </div>
-
-        <div className={styles.homeLink}>
-          <Link href="/">← Back to Home</Link>
         </div>
       </div>
     </div>

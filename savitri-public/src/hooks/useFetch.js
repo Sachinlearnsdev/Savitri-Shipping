@@ -1,89 +1,46 @@
+import { useState, useEffect } from 'react';
+import { getErrorMessage } from '@/utils/helpers';
+
 /**
  * useFetch Hook
- * Custom hook for data fetching with loading and error states
+ * Generic data fetching hook with loading and error states
+ * 
+ * @param {Function} fetchFunction - Async function to fetch data
+ * @param {boolean} immediate - Whether to fetch immediately on mount
+ * @returns {object} { data, loading, error, refetch }
  */
-
-'use client';
-import { useState, useEffect, useCallback } from 'react';
-import api from '@/services/api';
-
-const useFetch = (url, options = {}) => {
-  const {
-    method = 'GET',
-    body = null,
-    dependencies = [],
-    immediate = true,
-    onSuccess = null,
-    onError = null,
-  } = options;
-
+export const useFetch = (fetchFunction, immediate = true) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(immediate);
   const [error, setError] = useState(null);
 
-  const fetchData = useCallback(async (fetchOptions = {}) => {
-    setLoading(true);
-    setError(null);
-
+  const fetchData = async () => {
     try {
-      const config = {
-        method: fetchOptions.method || method,
-        ...fetchOptions.config,
-      };
-
-      if (fetchOptions.body || body) {
-        config.data = fetchOptions.body || body;
-      }
-
-      const response = await api.request({
-        url: fetchOptions.url || url,
-        ...config,
-      });
-
-      setData(response.data);
-      setLoading(false);
-
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
-
-      return { data: response.data, error: null };
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetchFunction();
+      
+      setData(response.data || response);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-      setError(errorMessage);
+      const message = getErrorMessage(err);
+      setError(message);
+    } finally {
       setLoading(false);
-
-      if (onError) {
-        onError(errorMessage);
-      }
-
-      return { data: null, error: errorMessage };
     }
-  }, [url, method, body, onSuccess, onError]);
+  };
 
-  // Auto-fetch on mount if immediate is true
   useEffect(() => {
-    if (immediate && url) {
+    if (immediate) {
       fetchData();
     }
-  }, [immediate, ...dependencies]);
-
-  const refetch = useCallback((fetchOptions) => {
-    return fetchData(fetchOptions);
-  }, [fetchData]);
-
-  const reset = useCallback(() => {
-    setData(null);
-    setLoading(false);
-    setError(null);
   }, []);
 
   return {
     data,
     loading,
     error,
-    refetch,
-    reset,
+    refetch: fetchData,
   };
 };
 

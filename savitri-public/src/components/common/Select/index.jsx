@@ -1,27 +1,39 @@
-/**
- * Select Component
- * Reusable select dropdown
- */
-
-'use client';
-import { forwardRef } from 'react';
+import React from 'react';
 import styles from './Select.module.css';
 
-const Select = forwardRef(({
+/**
+ * Select Component
+ * @param {object} props
+ * @param {string} props.label - Select label
+ * @param {array} props.options - Array of {value, label} options
+ * @param {string} props.value - Selected value
+ * @param {Function} props.onChange - Change handler
+ * @param {string} props.placeholder - Placeholder text
+ * @param {string} props.error - Error message
+ * @param {boolean} props.disabled - Disabled state
+ * @param {boolean} props.required - Required field
+ * @param {string} props.className - Additional CSS classes
+ */
+const Select = ({
   label,
   options = [],
   value,
   onChange,
   placeholder = 'Select an option',
   error,
-  hint,
   disabled = false,
   required = false,
   className = '',
   ...props
-}, ref) => {
-  const selectWrapperClass = [
-    styles.selectWrapper,
+}) => {
+  const handleChange = (e) => {
+    if (onChange) {
+      onChange(e.target.value);
+    }
+  };
+
+  const containerClasses = [
+    styles.container,
     error && styles.hasError,
     disabled && styles.disabled,
     className,
@@ -29,14 +41,8 @@ const Select = forwardRef(({
     .filter(Boolean)
     .join(' ');
 
-  const handleChange = (e) => {
-    if (onChange) {
-      onChange(e.target.value);
-    }
-  };
-
   return (
-    <div className={selectWrapperClass}>
+    <div className={containerClasses}>
       {label && (
         <label className={styles.label}>
           {label}
@@ -44,9 +50,8 @@ const Select = forwardRef(({
         </label>
       )}
 
-      <div className={styles.selectContainer}>
+      <div className={styles.selectWrapper}>
         <select
-          ref={ref}
           className={styles.select}
           value={value}
           onChange={handleChange}
@@ -54,12 +59,9 @@ const Select = forwardRef(({
           required={required}
           {...props}
         >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
-          
+          <option value="" disabled>
+            {placeholder}
+          </option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -67,31 +69,22 @@ const Select = forwardRef(({
           ))}
         </select>
 
-        <span className={styles.icon}>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+        <div className={styles.arrow}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path
               d="M5 7.5L10 12.5L15 7.5"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-        </span>
+        </div>
       </div>
 
       {error && <span className={styles.error}>{error}</span>}
-      {!error && hint && <span className={styles.hint}>{hint}</span>}
     </div>
   );
-});
-
-Select.displayName = 'Select';
+};
 
 export default Select;

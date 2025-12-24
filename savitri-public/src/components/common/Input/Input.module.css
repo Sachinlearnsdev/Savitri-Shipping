@@ -1,10 +1,8 @@
-/**
- * Input Styles
- */
-
-.inputWrapper {
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
   width: 100%;
-  margin-bottom: var(--spacing-4);
 }
 
 .label {
@@ -12,7 +10,6 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
 }
 
 .required {
@@ -20,7 +17,7 @@
   margin-left: var(--spacing-1);
 }
 
-.inputContainer {
+.inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
@@ -30,41 +27,37 @@
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
   font-size: var(--font-size-base);
-  font-family: var(--font-primary);
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   transition: all var(--transition-fast);
-  outline: none;
 }
 
 .input::placeholder {
   color: var(--text-tertiary);
 }
 
-.input:hover:not(:disabled) {
-  border-color: var(--border-color-dark);
-}
-
 .input:focus {
+  outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .input:disabled {
-  background: var(--bg-secondary);
+  background-color: var(--bg-secondary);
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* With icons */
-.hasLeftIcon {
-  padding-left: var(--spacing-12);
+.inputWrapper .leftIcon + .input {
+  padding-left: calc(var(--spacing-4) + 24px + var(--spacing-2));
 }
 
-.hasRightIcon {
-  padding-right: var(--spacing-12);
+.inputWrapper .input:has(+ .rightIcon),
+.inputWrapper .input:has(+ .passwordToggle) {
+  padding-right: calc(var(--spacing-4) + 24px + var(--spacing-2));
 }
 
 .leftIcon,
@@ -85,49 +78,46 @@
   right: var(--spacing-4);
 }
 
-.leftIcon svg,
-.rightIcon svg {
-  width: 18px;
-  height: 18px;
+/* Password toggle */
+.passwordToggle {
+  position: absolute;
+  right: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.passwordToggle:hover {
+  color: var(--text-secondary);
 }
 
 /* Error state */
-.hasError .input {
+.container.hasError .input {
   border-color: var(--color-error);
 }
 
-.hasError .input:focus {
-  border-color: var(--color-error);
-  box-shadow: 0 0 0 3px var(--color-error-bg);
+.container.hasError .input:focus {
+  box-shadow: 0 0 0 3px var(--color-error-light);
 }
 
 .error {
-  display: block;
   font-size: var(--font-size-sm);
   color: var(--color-error);
-  margin-top: var(--spacing-2);
 }
 
-/* Hint */
+/* Hint text */
 .hint {
-  display: block;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-top: var(--spacing-2);
 }
 
 /* Disabled state */
-.disabled .label {
-  opacity: 0.7;
-}
-
-/* Number input - remove arrows */
-.input[type='number']::-webkit-inner-spin-button,
-.input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.input[type='number'] {
-  -moz-appearance: textfield;
+.container.disabled .label {
+  opacity: 0.6;
 }
