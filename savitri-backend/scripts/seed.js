@@ -62,6 +62,7 @@ async function seed() {
         ports: { view: true, create: true, edit: true },
         routes: { view: true, create: true, edit: true },
         trips: { view: true, create: true, edit: true, cancel: true },
+        speedBoats: { view: true, create: true, edit: true },
         inquiries: { view: true, respond: true, convert: true },
         bookings: { view: true, create: true, edit: true, cancel: true, refund: true, cashPayment: true },
         reviews: { view: true, moderate: true },

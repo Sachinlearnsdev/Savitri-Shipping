@@ -1,3 +1,5 @@
+// src/config/env.js
+
 /**
  * Get Codespace URL for a specific port
  * @param {number} port 
@@ -71,6 +73,13 @@ const config = {
   // File Upload
   uploadPath: process.env.UPLOAD_PATH || './uploads',
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880'), // 5MB default
+  
+  // ⭐ NEW: Cloudinary Configuration
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
   
   // Company Defaults
   companyName: process.env.COMPANY_NAME || 'Savitri Shipping',

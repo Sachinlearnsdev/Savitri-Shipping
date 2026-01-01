@@ -5,7 +5,6 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const path = require("path");
-
 const config = require("./config/env");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -31,7 +30,6 @@ app.use(
 
       // Check against allowed origins
       const allowedOrigins = config.corsOrigins;
-
       for (const allowed of allowedOrigins) {
         if (allowed instanceof RegExp) {
           if (allowed.test(origin)) {
@@ -97,21 +95,35 @@ app.get("/api/info", (req, res) => {
   });
 });
 
-// API Routes
+// ==================== API ROUTES ====================
+
+// Authentication Routes
 app.use("/api/auth/admin", require("./modules/adminAuth/adminAuth.routes"));
 app.use("/api/auth", require("./modules/auth/auth.routes"));
+
+// Admin Routes
 app.use("/api/admin/users", require("./modules/adminUsers/adminUsers.routes"));
 app.use("/api/admin/roles", require("./modules/roles/roles.routes"));
-app.use(
-  "/api/admin/customers",
-  require("./modules/customers/customers.routes")
-);
+app.use("/api/admin/customers", require("./modules/customers/customers.routes"));
 app.use("/api/admin/settings", require("./modules/settings/settings.routes"));
+
+// Phase 2A: Speed Boat Admin Routes
+app.use("/api/admin/speed-boats", require("./modules/speedBoatsAdmin/speedBoatsAdmin.routes"));
+app.use("/api/admin/speed-boat-bookings", require("./modules/speedBoatBookingsAdmin/speedBoatBookingsAdmin.routes"));
+
+// Customer Routes
 app.use("/api/profile", require("./modules/profile/profile.routes"));
-app.use(
-  "/api/profile/vehicles",
-  require("./modules/savedVehicles/savedVehicles.routes")
-);
+app.use("/api/profile/vehicles", require("./modules/savedVehicles/savedVehicles.routes"));
+
+// Phase 2A: Speed Boat Public Routes
+app.use("/api/speed-boats", require("./modules/speedBoats/speedBoats.routes"));
+
+// Phase 2A: Speed Boat Booking Routes (Customer)
+app.use("/api", require("./modules/speedBoatBookings/speedBoatBookings.routes"));
+
+// Upload 
+app.use('/api/upload', require('./modules/upload/upload.routes'));
+
 
 // Root / welcome endpoint
 app.get("/", (req, res) => {
