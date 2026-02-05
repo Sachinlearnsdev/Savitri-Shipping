@@ -1,8 +1,28 @@
-1. Public website
+Once you pull from GitHub:
 
-changes need to be made for rest password
+Backend:
 
-1. OTP code should be validated and the new pass and old pass field should be allowed to udpated.
-also if the password is used in last 3 pass then it should not allow to save that password
 
+cd savitri-backend
+npm install
+npm start
+Should start without errors
+Test: http://localhost:5000/health
+Admin App:
+
+
+cd savitri-admin
+npm install
+npm run dev
+Login: admin@savitrishipping.in / Admin@123
+Test forgot password flow
+Verify PrivateRoute security
+Public App:
+
+
+cd savitri-public
+npm install
+npm run dev
+Test customer registration
+Test customer login/profile
 

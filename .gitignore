@@ -1,0 +1,211 @@
+# ==================== DEPENDENCIES ====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==================== ENVIRONMENT VARIABLES ====================
+# IMPORTANT: Never commit .env files with sensitive data
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+
+# ==================== BUILD OUTPUTS ====================
+# Backend
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Next.js (Public Frontend)
+.next/
+out/
+
+# React/Vite (Admin Frontend)
+dist/
+dist-ssr/
+*.local
+
+# ==================== LOGS ====================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ==================== UPLOADS & MEDIA ====================
+uploads/
+public/uploads/
+temp/
+tmp/
+
+# ==================== TESTING ====================
+coverage/
+.nyc_output/
+*.coverage
+*.lcov
+.jest/
+
+# ==================== IDEs & EDITORS ====================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ==================== OS FILES ====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ==================== CLOUDINARY & KEYS ====================
+cloudinary.config.js
+
+# ==================== DATABASE ====================
+*.sqlite
+*.sqlite3
+*.db
+
+# ==================== CERTIFICATES & KEYS ====================
+*.pem
+*.key
+*.cert
+*.crt
+ssl/
+
+# ==================== MISC ====================
+.cache/
+.temp/
+.tmp/
+
+# Editor backup files
+*.bak
+*.backup
+*.old
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.parcel-cache
+
+# Next.js cache
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# ==================== KEEP THESE FILES ====================
+# Keep .env.example files for reference
+!.env.example
+!.env.local.example
+
+# Keep README and documentation
+!README.md
+!DOCS.md
+
+# ==================== PROJECT SPECIFIC ====================
+# Keep memory and plan files (important for Claude Code context)
+!memory.md
+!.claude/

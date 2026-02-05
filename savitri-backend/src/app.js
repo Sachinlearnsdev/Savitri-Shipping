@@ -107,22 +107,8 @@ app.use("/api/admin/roles", require("./modules/roles/roles.routes"));
 app.use("/api/admin/customers", require("./modules/customers/customers.routes"));
 app.use("/api/admin/settings", require("./modules/settings/settings.routes"));
 
-// Phase 2A: Speed Boat Admin Routes
-app.use("/api/admin/speed-boats", require("./modules/speedBoatsAdmin/speedBoatsAdmin.routes"));
-app.use("/api/admin/speed-boat-bookings", require("./modules/speedBoatBookingsAdmin/speedBoatBookingsAdmin.routes"));
-
 // Customer Routes
 app.use("/api/profile", require("./modules/profile/profile.routes"));
-app.use("/api/profile/vehicles", require("./modules/savedVehicles/savedVehicles.routes"));
-
-// Phase 2A: Speed Boat Public Routes
-app.use("/api/speed-boats", require("./modules/speedBoats/speedBoats.routes"));
-
-// Phase 2A: Speed Boat Booking Routes (Customer)
-app.use("/api", require("./modules/speedBoatBookings/speedBoatBookings.routes"));
-
-// Upload 
-app.use('/api/upload', require('./modules/upload/upload.routes'));
 
 
 // Root / welcome endpoint

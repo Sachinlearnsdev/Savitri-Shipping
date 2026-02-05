@@ -11,8 +11,9 @@ const {
   verifyEmailSchema,
   verifyPhoneSchema,
   loginSchema,
-  loginPhoneSchema,
-  verifyLoginOTPSchema,
+  // PHASE 2: Phone Login validators
+  // loginPhoneSchema,
+  // verifyLoginOTPSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   resendOTPSchema,
@@ -23,8 +24,9 @@ router.post('/register', authLimiter, validate(registerSchema), authController.r
 router.post('/verify-email', otpLimiter, validate(verifyEmailSchema), authController.verifyEmail);
 router.post('/verify-phone', otpLimiter, validate(verifyPhoneSchema), authController.verifyPhone);
 router.post('/login', authLimiter, validate(loginSchema), authController.login);
-router.post('/login-phone', authLimiter, validate(loginPhoneSchema), authController.loginWithPhone);
-router.post('/verify-login-otp', authLimiter, validate(verifyLoginOTPSchema), authController.verifyLoginOTP);
+// PHASE 2: Phone Login - Requires SMS Integration
+// router.post('/login-phone', authLimiter, validate(loginPhoneSchema), authController.loginWithPhone);
+// router.post('/verify-login-otp', authLimiter, validate(verifyLoginOTPSchema), authController.verifyLoginOTP);
 router.post('/forgot-password', passwordResetLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchema), authController.resetPassword);
 router.post('/resend-otp', otpLimiter, validate(resendOTPSchema), authController.resendOTP);

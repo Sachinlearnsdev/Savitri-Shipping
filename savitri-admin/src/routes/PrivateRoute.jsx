@@ -13,9 +13,9 @@ const PrivateRoute = () => {
     return <Loader fullScreen text="Loading..." />;
   }
 
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <Outlet />;
 };

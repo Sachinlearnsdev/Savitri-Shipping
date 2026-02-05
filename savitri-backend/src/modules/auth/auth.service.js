@@ -1,5 +1,5 @@
 // src/modules/auth/auth.service.js
-const { Customer, CustomerSession, LoginHistory } = require("../../models");
+const { Customer, CustomerSession } = require("../../models");
 const ApiError = require("../../utils/ApiError");
 const {
   hashPassword,
@@ -191,14 +191,6 @@ class AuthService {
       lastLogin: new Date(),
     });
 
-    // Add to login history
-    await LoginHistory.create({
-      customerId: customer._id,
-      ipAddress: getClientIP(req),
-      userAgent: getUserAgent(req),
-      success: true,
-    });
-
     return {
       token,
       customer: {
@@ -212,6 +204,8 @@ class AuthService {
       },
     };
   }
+
+  /* PHASE 2: Phone Login - Requires SMS Integration
 
   /**
    * Login with phone - Step 1: Send OTP
@@ -278,14 +272,6 @@ class AuthService {
       lastLogin: new Date(),
     });
 
-    // Add to login history
-    await LoginHistory.create({
-      customerId: customer._id,
-      ipAddress: getClientIP(req),
-      userAgent: getUserAgent(req),
-      success: true,
-    });
-
     return {
       token,
       customer: {
@@ -299,6 +285,8 @@ class AuthService {
       },
     };
   }
+
+  */
 
   /**
    * Logout

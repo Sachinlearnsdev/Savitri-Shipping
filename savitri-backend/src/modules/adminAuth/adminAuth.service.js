@@ -1,5 +1,5 @@
 // src/modules/adminAuth/adminAuth.service.js
-const { AdminUser, Role, AdminSession, ActivityLog } = require('../../models');
+const { AdminUser, Role, AdminSession } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { hashPassword, comparePassword, getClientIP, getUserAgent, addHours } = require('../../utils/helpers');
 const { generateAccessToken } = require('../../utils/jwt');
@@ -52,15 +52,6 @@ class AdminAuthService {
     const otp = await createOTP(email, OTP_TYPE.LOGIN);
     await sendLoginOTP(email, adminUser.name, otp);
 
-    await ActivityLog.create({
-      adminUserId: adminUser._id,
-      action: 'LOGIN_ATTEMPT',
-      module: 'auth',
-      description: 'Login OTP sent',
-      ipAddress: getClientIP(req),
-      userAgent: getUserAgent(req),
-    });
-
     return {
       message: 'OTP sent to your email',
       email: adminUser.email,
@@ -101,15 +92,6 @@ class AdminAuthService {
       lastLogin: new Date(),
     });
 
-    await ActivityLog.create({
-      adminUserId: adminUser._id,
-      action: 'LOGIN',
-      module: 'auth',
-      description: 'Successful login',
-      ipAddress: getClientIP(req),
-      userAgent: getUserAgent(req),
-    });
-
     return {
       token,
       user: formatDocument({
@@ -134,15 +116,6 @@ class AdminAuthService {
     await AdminSession.deleteMany({
       adminUserId,
       token,
-    });
-
-    await ActivityLog.create({
-      adminUserId,
-      action: 'LOGOUT',
-      module: 'auth',
-      description: 'User logged out',
-      ipAddress: getClientIP(req),
-      userAgent: getUserAgent(req),
     });
 
     return { message: 'Logged out successfully' };
@@ -191,13 +164,6 @@ class AdminAuthService {
     await AdminSession.deleteMany({ adminUserId: adminUser._id });
 
     await sendPasswordChangedEmail(email, adminUser.name);
-
-    await ActivityLog.create({
-      adminUserId: adminUser._id,
-      action: 'PASSWORD_RESET',
-      module: 'auth',
-      description: 'Password reset successfully',
-    });
 
     return { message: 'Password reset successfully. Please login with your new password' };
   }

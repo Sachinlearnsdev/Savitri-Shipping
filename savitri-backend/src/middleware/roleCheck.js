@@ -1,73 +1,35 @@
 // src/middleware/roleCheck.js
+// PHASE 1: Simplified role checking (no complex permission system)
+
 const ApiError = require("../utils/ApiError");
 
 /**
- * Check if admin has permission for a specific module and action
- * @param {string} module - The module name (e.g., 'adminUsers', 'bookings')
- * @param {string} action - The action name (e.g., 'view', 'create', 'edit', 'delete')
+ * Check if user is any authenticated admin
+ * Use this for most admin routes
  */
-const roleCheck = (module, action) => {
-  return (req, res, next) => {
-    try {
-      // Check if admin user is attached to request
-      if (!req.adminUser) {
-        throw ApiError.unauthorized("Authentication required");
-      }
-
-      const permissions = req.adminUser.permissions;
-
-      // Check if permissions exist for the module
-      if (!permissions || !permissions[module]) {
-        throw ApiError.forbidden(
-          "Access denied: No permissions for this module"
-        );
-      }
-
-      // Check if the specific action is allowed
-      if (!permissions[module][action]) {
-        throw ApiError.forbidden(`Access denied: Cannot ${action} ${module}`);
-      }
-
-      next();
-    } catch (error) {
-      next(error);
+const requireAdmin = (req, res, next) => {
+  try {
+    if (!req.adminUser) {
+      throw ApiError.unauthorized("Authentication required");
     }
-  };
+    next();
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
- * Check if admin has any of the specified roles
- * @param {string[]} allowedRoles - Array of role names
+ * Check if user has Admin role specifically
+ * Use this for admin management routes (creating/editing admin users, roles)
  */
-const hasRole = (allowedRoles) => {
-  return (req, res, next) => {
-    try {
-      if (!req.adminUser) {
-        throw ApiError.unauthorized("Authentication required");
-      }
-
-      if (!allowedRoles.includes(req.adminUser.roleName)) {
-        throw ApiError.forbidden("Access denied: Insufficient role privileges");
-      }
-
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-/**
- * Check if admin is Super Admin
- */
-const isSuperAdmin = (req, res, next) => {
+const requireAdminRole = (req, res, next) => {
   try {
     if (!req.adminUser) {
       throw ApiError.unauthorized("Authentication required");
     }
 
-    if (req.adminUser.roleName !== "Super Admin") {
-      throw ApiError.forbidden("Access denied: Super Admin only");
+    if (req.adminUser.roleName !== "Admin") {
+      throw ApiError.forbidden("Admin role required for this action");
     }
 
     next();
@@ -76,8 +38,13 @@ const isSuperAdmin = (req, res, next) => {
   }
 };
 
+// PHASE 2: Complex permission-based checking will be added here
+
 module.exports = {
-  roleCheck,
-  hasRole,
-  isSuperAdmin,
+  requireAdmin,
+  requireAdminRole,
+  // Legacy exports for backward compatibility (can be removed if not used)
+  roleCheck: requireAdmin, // Maps old roleCheck to requireAdmin
+  hasRole: (allowedRoles) => requireAdmin, // Simplified - just check if admin
+  isSuperAdmin: requireAdminRole, // Maps to requireAdminRole
 };

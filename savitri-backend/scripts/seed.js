@@ -17,145 +17,57 @@ async function seed() {
     await AdminUser.deleteMany({});
     await Setting.deleteMany({});
 
-    // ==================== ROLES ====================
+    // ==================== ROLES (PHASE 1 - SIMPLIFIED) ====================
     console.log('Creating roles...');
 
-    const superAdminRole = await Role.create({
-      name: 'Super Admin',
+    // 1. Admin Role (Full Access)
+    const adminRole = await Role.create({
+      name: 'Admin',
       description: 'Full system access',
       isSystem: true,
       permissions: {
         dashboard: { view: true },
         adminUsers: { view: true, create: true, edit: true, delete: true },
-        roles: { view: true, create: true, edit: true, delete: true },
         customers: { view: true, edit: true, delete: true },
-        ports: { view: true, create: true, edit: true, delete: true },
-        passengerTypes: { view: true, create: true, edit: true, delete: true },
-        vehicleBrands: { view: true, create: true, edit: true, delete: true },
-        vehicleModels: { view: true, create: true, edit: true, delete: true },
-        categories: { view: true, create: true, edit: true, delete: true },
-        operators: { view: true, create: true, edit: true, delete: true },
-        ferries: { view: true, create: true, edit: true, delete: true },
-        routes: { view: true, create: true, edit: true, delete: true },
-        trips: { view: true, create: true, edit: true, delete: true, cancel: true },
-        speedBoats: { view: true, create: true, edit: true, delete: true },
-        partyBoats: { view: true, create: true, edit: true, delete: true },
-        packages: { view: true, create: true, edit: true, delete: true },
-        addons: { view: true, create: true, edit: true, delete: true },
-        inquiries: { view: true, respond: true, convert: true },
-        bookings: { view: true, create: true, edit: true, cancel: true, refund: true, cashPayment: true },
-        reviews: { view: true, moderate: true, delete: true },
-        faqs: { view: true, create: true, edit: true, delete: true },
-        pages: { view: true, create: true, edit: true, delete: true },
         settings: { view: true, edit: true },
-        reports: { view: true, export: true },
       },
     });
 
+    // 2. Staff Role (Limited Access)
     await Role.create({
-      name: 'Operations Manager',
-      description: 'Manage operations and bookings',
+      name: 'Staff',
+      description: 'Limited access for staff members',
       isSystem: true,
       permissions: {
         dashboard: { view: true },
         customers: { view: true },
-        ports: { view: true, create: true, edit: true },
-        routes: { view: true, create: true, edit: true },
-        trips: { view: true, create: true, edit: true, cancel: true },
-        speedBoats: { view: true, create: true, edit: true },
-        inquiries: { view: true, respond: true, convert: true },
-        bookings: { view: true, create: true, edit: true, cancel: true, refund: true, cashPayment: true },
-        reviews: { view: true, moderate: true },
         settings: { view: true },
-        reports: { view: true, export: true },
       },
     });
 
-    await Role.create({
-      name: 'Fleet Manager',
-      description: 'Manage fleet and vessels',
-      isSystem: true,
-      permissions: {
-        dashboard: { view: true },
-        customers: { view: true },
-        ports: { view: true },
-        ferries: { view: true, create: true, edit: true },
-        speedBoats: { view: true, create: true, edit: true },
-        partyBoats: { view: true, create: true, edit: true },
-        categories: { view: true, edit: true },
-        packages: { view: true, create: true, edit: true },
-        bookings: { view: true },
-        reports: { view: true },
-      },
-    });
+    console.log('✅ Created 2 roles (Admin, Staff)');
 
-    await Role.create({
-      name: 'Booking Agent',
-      description: 'Handle customer bookings',
-      isSystem: true,
-      permissions: {
-        dashboard: { view: true },
-        customers: { view: true },
-        trips: { view: true },
-        speedBoats: { view: true },
-        partyBoats: { view: true },
-        inquiries: { view: true, respond: true, convert: true },
-        bookings: { view: true, create: true, edit: true, cancel: true },
-        reviews: { view: true },
-      },
-    });
-
-    await Role.create({
-      name: 'Content Manager',
-      description: 'Manage website content',
-      isSystem: true,
-      permissions: {
-        dashboard: { view: true },
-        categories: { view: true, edit: true },
-        ferries: { view: true, edit: true },
-        speedBoats: { view: true, edit: true },
-        partyBoats: { view: true, edit: true },
-        faqs: { view: true, create: true, edit: true, delete: true },
-        pages: { view: true, create: true, edit: true, delete: true },
-        reviews: { view: true, moderate: true },
-      },
-    });
-
-    await Role.create({
-      name: 'Support Staff',
-      description: 'Customer support',
-      isSystem: true,
-      permissions: {
-        dashboard: { view: true },
-        customers: { view: true },
-        bookings: { view: true },
-        inquiries: { view: true },
-        reviews: { view: true },
-        faqs: { view: true },
-      },
-    });
-
-    console.log('✅ Roles created');
-
-    // ==================== SUPER ADMIN ====================
-    console.log('Creating Super Admin user...');
+    // ==================== DEFAULT ADMIN USER ====================
+    console.log('Creating default admin user...');
 
     const hashedPassword = await bcrypt.hash('Admin@123', 10);
 
     await AdminUser.create({
       email: 'admin@savitrishipping.in',
       password: hashedPassword,
-      name: 'Super Administrator',
+      name: 'Admin',
       phone: '9876543210',
-      roleId: superAdminRole._id,
+      roleId: adminRole._id,
       status: 'ACTIVE',
+      emailVerified: true,
     });
 
-    console.log('✅ Super Admin created');
+    console.log('✅ Default admin user created');
     console.log('   Email: admin@savitrishipping.in');
     console.log('   Password: Admin@123');
+    console.log('   ⚠️  CHANGE PASSWORD IN PRODUCTION!');
 
-    // ==================== SETTINGS ====================
+    // ==================== SETTINGS (PHASE 1 - SIMPLIFIED) ====================
     console.log('Creating default settings...');
 
     // General Settings
@@ -181,87 +93,20 @@ async function seed() {
       },
     });
 
-    // Billing Settings
-    await Setting.create({
-      group: 'billing',
-      key: 'config',
-      value: {
-        companyLegalName: 'Savitri Shipping Pvt Ltd',
-        gstin: '',
-        pan: '',
-        bankDetails: {
-          accountName: '',
-          accountNumber: '',
-          bankName: '',
-          ifscCode: '',
-          branch: '',
-        },
-        gstEnabled: false,
-        gstPercentage: 18,
-        gstType: 'exclusive',
-        hsnSacCode: '996722',
-        invoicePrefix: 'SAV-',
-        invoiceStartNumber: 1001,
-        invoiceFooter: 'Thank you for choosing Savitri Shipping!',
-      },
-    });
-
-    // Booking Settings
-    await Setting.create({
-      group: 'booking',
-      key: 'config',
-      value: {
-        speedBoatOperatingHours: { from: '06:00', to: '18:00' },
-        partyBoatOperatingHours: { from: '06:00', to: '00:00' },
-        ferryOperatingHours: { from: '06:00', to: '18:00' },
-        defaultAdvanceBookingDays: 30,
-        cancellationPolicy: {
-          speedBoat: {
-            freeHours: 24,
-            partialRefundHours: 12,
-            partialRefundPercent: 50,
-          },
-          partyBoat: {
-            freeDays: 7,
-            partialRefundDays: 3,
-            partialRefundPercent: 50,
-          },
-          ferry: {
-            freeHours: 24,
-            partialRefundHours: 6,
-            partialRefundPercent: 50,
-          },
-        },
-        refundProcessingDays: 7,
-      },
-    });
-
     // Notification Settings
     await Setting.create({
       group: 'notification',
       key: 'config',
       value: {
         emailEnabled: true,
-        smsEnabled: true,
+        smsEnabled: false, // SMS integration in Phase 2
         adminAlertEmail: 'admin@savitrishipping.in',
-        reminderHoursBeforeTrip: 24,
-        smsReminderHoursBeforeTrip: 2,
       },
     });
 
-    // Content Settings
-    await Setting.create({
-      group: 'content',
-      key: 'pages',
-      value: {
-        termsAndConditions: '<p>Terms and conditions content will be added here...</p>',
-        privacyPolicy: '<p>Privacy policy content will be added here...</p>',
-        refundPolicy: '<p>Refund policy content will be added here...</p>',
-        aboutUs: '<p>About us content will be added here...</p>',
-      },
-    });
+    // PHASE 2: Billing, Booking, and Content settings will be added later
 
-    console.log('✅ Settings created');
+    console.log('✅ Settings created (general + notification only)');
 
     console.log('\n🎉 Database seed completed successfully!');
     process.exit(0);

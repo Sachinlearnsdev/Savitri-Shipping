@@ -9,21 +9,11 @@ module.exports = {
     DELETED: 'DELETED',
   },
 
-  // OTP Types
+  // OTP Types (Phase 1 Only)
   OTP_TYPE: {
     EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
-    PHONE_VERIFICATION: 'PHONE_VERIFICATION',
-    LOGIN: 'LOGIN',
     PASSWORD_RESET: 'PASSWORD_RESET',
-    EMAIL_CHANGE: 'EMAIL_CHANGE',
-    PHONE_CHANGE: 'PHONE_CHANGE',
-  },
-
-  // Vehicle Types
-  VEHICLE_TYPE: {
-    CAR: 'CAR',
-    BIKE: 'BIKE',
-    CYCLE: 'CYCLE',
+    // PHASE 2: Phone verification and login OTP types
   },
 
   // OTP Configuration
@@ -53,12 +43,10 @@ module.exports = {
     MAX_LIMIT: 100,
   },
 
-  // File Upload
+  // File Upload (Images Only for Phase 1)
   FILE_UPLOAD: {
     ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    ALLOWED_DOCUMENT_TYPES: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
     MAX_IMAGE_SIZE: 5 * 1024 * 1024, // 5MB
-    MAX_DOCUMENT_SIZE: 10 * 1024 * 1024, // 10MB
   },
 
   // Indian Formats
@@ -71,43 +59,18 @@ module.exports = {
     PHONE_REGEX: /^[6-9]\d{9}$/,
   },
 
-  // GST Configuration
-  GST: {
-    DEFAULT_PERCENTAGE: 18,
-    HSN_SAC_CODE: '996722', // Water transport service
-  },
-
-  // Default Roles
+  // Roles (Phase 1 - Simplified)
   ROLES: {
-    SUPER_ADMIN: 'Super Admin',
-    OPERATIONS_MANAGER: 'Operations Manager',
-    FLEET_MANAGER: 'Fleet Manager',
-    BOOKING_AGENT: 'Booking Agent',
-    CONTENT_MANAGER: 'Content Manager',
-    SUPPORT_STAFF: 'Support Staff',
+    ADMIN: 'Admin',
+    STAFF: 'Staff',
+    // PHASE 2: Additional roles (Operations Manager, Fleet Manager, etc.)
   },
 
-  // Activity Log Actions
-  ACTIVITY_ACTIONS: {
-    LOGIN: 'LOGIN',
-    LOGOUT: 'LOGOUT',
-    CREATE: 'CREATE',
-    UPDATE: 'UPDATE',
-    DELETE: 'DELETE',
-    VIEW: 'VIEW',
-    EXPORT: 'EXPORT',
-    APPROVE: 'APPROVE',
-    REJECT: 'REJECT',
-    CANCEL: 'CANCEL',
-  },
-
-  // Settings Groups
+  // Settings Groups (Phase 1)
   SETTINGS_GROUPS: {
     GENERAL: 'general',
-    BILLING: 'billing',
-    BOOKING: 'booking',
     NOTIFICATION: 'notification',
-    CONTENT: 'content',
+    // PHASE 2: BILLING, BOOKING, CONTENT
   },
 
   // Email Templates
@@ -118,32 +81,6 @@ module.exports = {
     LOGIN_OTP: 'login-otp',
     PASSWORD_RESET: 'password-reset',
     PASSWORD_CHANGED: 'password-changed',
-  },
-
-  // Default Operating Hours
-  OPERATING_HOURS: {
-    SPEED_BOAT: { from: '06:00', to: '18:00' },
-    PARTY_BOAT: { from: '06:00', to: '00:00' },
-    FERRY: { from: '06:00', to: '18:00' },
-  },
-
-  // Cancellation Policy Defaults
-  CANCELLATION_POLICY: {
-    SPEED_BOAT: {
-      freeHours: 24,
-      partialRefundHours: 12,
-      partialRefundPercent: 50,
-    },
-    PARTY_BOAT: {
-      freeDays: 7,
-      partialRefundDays: 3,
-      partialRefundPercent: 50,
-    },
-    FERRY: {
-      freeHours: 24,
-      partialRefundHours: 6,
-      partialRefundPercent: 50,
-    },
   },
 
   // HTTP Status Codes
