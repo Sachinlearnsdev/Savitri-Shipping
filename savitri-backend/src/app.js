@@ -41,7 +41,7 @@ app.use(
       }
 
       // In development, log blocked origins for debugging
-      if (config.nodeEnv === "development") {
+      if (config.nodeEnv === "development" && config.enableLogs) {
         console.warn(`⚠️  CORS blocked origin: ${origin}`);
       }
 
@@ -61,11 +61,13 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Logging middleware
-if (config.nodeEnv === "development") {
-  app.use(morgan("dev"));
-} else {
-  app.use(morgan("combined"));
+// Logging middleware (controlled by ENABLE_LOGS env variable)
+if (config.enableLogs) {
+  if (config.nodeEnv === "development") {
+    app.use(morgan("dev"));
+  } else {
+    app.use(morgan("combined"));
+  }
 }
 
 // Static files for uploads

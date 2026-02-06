@@ -8,7 +8,7 @@ const sendSMS = async (phone, message) => {
   try {
     if (config.smsService === 'master') {
       // Master OTP mode - just log it
-      if (config.nodeEnv === 'development') {
+      if (config.nodeEnv === 'development' && config.enableLogs) {
         console.log('📱 SMS (Master Mode):');
         console.log(`   To: ${phone}`);
         console.log(`   Message: ${message}`);

@@ -55,21 +55,15 @@ export const useAuth = () => {
   const loginWithEmail = async (
     email,
     password,
-    redirectTo = "/account/dashboard"
+    redirectTo = "/"
   ) => {
     try {
-      console.log('🔐 useAuth: Starting email login', { email, redirectTo });
       setLoading(true);
       
       const response = await authService.login(email, password);
-      console.log('📨 useAuth: Login response received', response);
 
       if (response.data?.token && response.data?.customer) {
-        // CRITICAL: Await login to ensure cookie is written
         await login(response.data.customer, response.data.token);
-        
-        console.log('✅ useAuth: User logged in, cookie written');
-        console.log('🔄 useAuth: Redirecting to:', redirectTo);
         
         showSuccess("Login successful! Redirecting...");
 
@@ -82,7 +76,6 @@ export const useAuth = () => {
         throw new Error('Invalid response from server');
       }
     } catch (error) {
-      console.error('❌ useAuth: Login error', error);
       const message = getErrorMessage(error);
       showError(message);
       throw error;
@@ -121,19 +114,15 @@ export const useAuth = () => {
   const loginWithPhoneVerifyOTP = async (
     phone,
     otp,
-    redirectTo = "/account/dashboard"
+    redirectTo = "/"
   ) => {
     try {
-      console.log('🔐 useAuth: Verifying phone OTP', { phone, redirectTo });
       setLoading(true);
-      
+
       const response = await authService.verifyLoginOTP(phone, otp);
-      console.log('📨 useAuth: OTP verification response', response);
 
       if (response.data?.token && response.data?.customer) {
         await login(response.data.customer, response.data.token);
-        
-        console.log('✅ useAuth: Phone login successful, cookie written');
         showSuccess("Login successful! Redirecting...");
 
         window.location.assign(redirectTo);
@@ -143,7 +132,6 @@ export const useAuth = () => {
         throw new Error('Invalid response from server');
       }
     } catch (error) {
-      console.error('❌ useAuth: Phone OTP error', error);
       const message = getErrorMessage(error);
       showError(message);
       throw error;
@@ -158,20 +146,17 @@ export const useAuth = () => {
    */
   const handleLogout = async () => {
     try {
-      console.log('🚪 useAuth: Starting logout');
       setLoading(true);
-      
+
       await authService.logout();
       logout();
-      
-      console.log('✅ useAuth: Logout successful');
+
       showSuccess("Logged out successfully");
 
       setTimeout(() => {
         window.location.href = "/";
       }, 500);
     } catch (error) {
-      console.error('❌ useAuth: Logout error', error);
       // Logout locally even if API fails
       logout();
       const message = getErrorMessage(error);

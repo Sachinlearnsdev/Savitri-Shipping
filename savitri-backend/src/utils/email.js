@@ -87,7 +87,7 @@ const sendEmail = async ({ to, subject, templateName, variables = {} }) => {
 
     // If no transporter (SMTP not configured), log and return
     if (!transporter) {
-      if (config.nodeEnv === "development") {
+      if (config.nodeEnv === "development" && config.enableLogs) {
         console.log("📧 Email would be sent (SMTP not configured):");
         console.log(`   To: ${to}`);
         console.log(`   Subject: ${subject}`);
@@ -105,7 +105,7 @@ const sendEmail = async ({ to, subject, templateName, variables = {} }) => {
       html,
     });
 
-    if (config.nodeEnv === "development") {
+    if (config.nodeEnv === "development" && config.enableLogs) {
       console.log("✅ Email sent:", info.messageId);
     }
 

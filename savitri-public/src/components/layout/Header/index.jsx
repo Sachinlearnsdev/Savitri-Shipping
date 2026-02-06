@@ -110,20 +110,12 @@ const Header = () => {
               {isDropdownOpen && (
                 <div className={styles.dropdown}>
                   <Link
-                    href="/account/dashboard"
-                    className={styles.dropdownItem}
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    <span className={styles.dropdownIcon}>📊</span>
-                    Dashboard
-                  </Link>
-                  <Link
                     href="/account/profile"
                     className={styles.dropdownItem}
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <span className={styles.dropdownIcon}>👤</span>
-                    Profile
+                    My Account
                   </Link>
                   <Link
                     href="/account/vehicles"

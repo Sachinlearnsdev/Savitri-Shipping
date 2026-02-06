@@ -205,7 +205,12 @@ public
 !README.md
 !DOCS.md
 
-# ==================== PROJECT SPECIFIC ====================
-# Keep memory and plan files (important for Claude Code context)
-!memory.md
-!.claude/
+# ==================== AI / CLAUDE CODE ====================
+.claude/
+memory.md
+DEV-GUIDE.md
+OPTIONAL-FIXES.md
+.clinerules
+CLAUDE.md
+Notes.txt
+nul

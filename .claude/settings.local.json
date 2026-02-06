@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(find \"Code/Savitri-Shipping/savitri-admin/src/pages/auth\" -type f -name \"*.jsx\" -exec sh -c 'echo \"\"=== {} ===\"\" && head -30 \"\"$1\"\"' _ {} ;)",
-      "Bash(npm run seed:*)",
-      "Bash(npm install:*)"
-    ]
-  }
-}

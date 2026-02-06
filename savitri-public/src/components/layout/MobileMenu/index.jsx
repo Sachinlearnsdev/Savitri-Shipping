@@ -94,11 +94,8 @@ const MobileMenu = () => {
           {isAuthenticated ? (
             <>
               <div className={styles.divider} />
-              <Link href="/account/dashboard" className={styles.navLink}>
-                Dashboard
-              </Link>
               <Link href="/account/profile" className={styles.navLink}>
-                Profile
+                My Account
               </Link>
               <Link href="/account/vehicles" className={styles.navLink}>
                 My Vehicles

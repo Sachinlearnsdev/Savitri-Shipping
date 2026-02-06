@@ -110,7 +110,7 @@ export const PUBLIC_ONLY_ROUTES = [
 /**
  * Default redirect after successful login
  */
-export const DEFAULT_LOGIN_REDIRECT = ACCOUNT_ROUTES.DASHBOARD;
+export const DEFAULT_LOGIN_REDIRECT = PUBLIC_ROUTES.HOME;
 
 /**
  * Default redirect after logout
@@ -125,7 +125,7 @@ export const DEFAULT_UNAUTHORIZED_REDIRECT = AUTH_ROUTES.LOGIN;
 /**
  * Default redirect when already authenticated
  */
-export const DEFAULT_AUTHENTICATED_REDIRECT = ACCOUNT_ROUTES.DASHBOARD;
+export const DEFAULT_AUTHENTICATED_REDIRECT = PUBLIC_ROUTES.HOME;
 
 // ==================== ROUTE HELPERS ====================
 

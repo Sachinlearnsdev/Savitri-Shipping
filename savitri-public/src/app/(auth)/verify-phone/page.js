@@ -15,7 +15,7 @@ export default function VerifyPhonePage() {
   const searchParams = useSearchParams();
   const phone = searchParams.get('phone');
   const type = searchParams.get('type'); // 'register' or 'login'
-  const redirect = searchParams.get('redirect') || '/account/dashboard';
+  const redirect = searchParams.get('redirect') || '/';
   const { verifyPhone, loginWithPhoneVerifyOTP } = useAuth();
 
   const [otp, setOtp] = useState('');

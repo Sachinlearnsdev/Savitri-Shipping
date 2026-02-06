@@ -12,7 +12,7 @@ import styles from "./login.module.css";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/account/dashboard";
+  const redirect = searchParams.get("redirect") || "/";
   const { loginWithEmail, loginWithPhoneSendOTP } = useAuth();
 
   const [loginMethod, setLoginMethod] = useState("email");

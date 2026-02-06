@@ -9,11 +9,12 @@ module.exports = {
     DELETED: 'DELETED',
   },
 
-  // OTP Types (Phase 1 Only)
+  // OTP Types
   OTP_TYPE: {
     EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
+    PHONE_VERIFICATION: 'PHONE_VERIFICATION',
+    LOGIN: 'LOGIN',
     PASSWORD_RESET: 'PASSWORD_RESET',
-    // PHASE 2: Phone verification and login OTP types
   },
 
   // OTP Configuration

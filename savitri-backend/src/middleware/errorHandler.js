@@ -13,8 +13,8 @@ const errorHandler = (err, req, res, next) => {
     error = new ApiError(statusCode, message);
   }
 
-  // Log error in development
-  if (config.nodeEnv === 'development') {
+  // Log error in development (only when ENABLE_LOGS=true)
+  if (config.nodeEnv === 'development' && config.enableLogs) {
     console.error('❌ Error:', {
       message: error.message,
       statusCode: error.statusCode,

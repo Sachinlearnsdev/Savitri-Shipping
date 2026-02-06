@@ -14,17 +14,19 @@ const startServer = async () => {
 
     // Start server
     const server = app.listen(PORT, () => {
-      console.log("=".repeat(60));
-      console.log("🚢 Savitri Shipping Backend API");
-      console.log("=".repeat(60));
-      console.log(`🌍 Environment: ${config.nodeEnv}`);
-      console.log(`🚀 Server running on: ${config.backendUrl}`);
-      console.log(`📱 Admin Panel URL: ${config.adminUrl}`);
-      console.log(`🌐 Public Website URL: ${config.frontendUrl}`);
-      if (config.isCodespaces) {
-        console.log(`☁️  Running in GitHub Codespaces`);
+      if (config.enableLogs) {
+        console.log("=".repeat(60));
+        console.log("🚢 Savitri Shipping Backend API");
+        console.log("=".repeat(60));
+        console.log(`🌍 Environment: ${config.nodeEnv}`);
+        console.log(`🚀 Server running on: ${config.backendUrl}`);
+        console.log(`📱 Admin Panel URL: ${config.adminUrl}`);
+        console.log(`🌐 Public Website URL: ${config.frontendUrl}`);
+        if (config.isCodespaces) {
+          console.log(`☁️  Running in GitHub Codespaces`);
+        }
+        console.log("=".repeat(60));
       }
-      console.log("=".repeat(60));
     });
 
     // Graceful shutdown

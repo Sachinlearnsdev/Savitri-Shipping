@@ -46,7 +46,7 @@ class AdminAuthService {
       await AdminUser.findByIdAndUpdate(adminUser._id, {
         failedAttempts: 0,
         lockedUntil: null,
-      });f
+      });
     }
 
     const otp = await createOTP(email, OTP_TYPE.LOGIN);

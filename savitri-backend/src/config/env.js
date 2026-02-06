@@ -88,6 +88,9 @@ const config = {
   // Rate Limiting
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
   rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100'), // 100 requests per window
+
+  // Logging - set ENABLE_LOGS=true in .env to turn on
+  enableLogs: process.env.ENABLE_LOGS === 'true',
 };
 
 // Validate required environment variables in production
@@ -109,8 +112,8 @@ if (config.nodeEnv === 'production') {
   }
 }
 
-// Log configuration in development
-if (config.nodeEnv === 'development') {
+// Log configuration in development (only when ENABLE_LOGS=true)
+if (config.nodeEnv === 'development' && config.enableLogs) {
   console.log('🔧 Environment Configuration:');
   console.log(`   Running in Codespaces: ${config.isCodespaces}`);
   console.log(`   Backend URL: ${config.backendUrl}`);

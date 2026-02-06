@@ -50,21 +50,20 @@ async function seed() {
     // ==================== DEFAULT ADMIN USER ====================
     console.log('Creating default admin user...');
 
-    const hashedPassword = await bcrypt.hash('Admin@123', 10);
+    const hashedPassword = await bcrypt.hash('Test@1234', 10);
 
     await AdminUser.create({
-      email: 'admin@savitrishipping.in',
+      email: 'singhsachin09820@gmail.com',
       password: hashedPassword,
-      name: 'Admin',
+      name: 'Sachin Singh',
       phone: '9876543210',
       roleId: adminRole._id,
       status: 'ACTIVE',
-      emailVerified: true,
     });
 
     console.log('✅ Default admin user created');
-    console.log('   Email: admin@savitrishipping.in');
-    console.log('   Password: Admin@123');
+    console.log('   Email: singhsachin09820@gmail.com');
+    console.log('   Password: Test@1234');
     console.log('   ⚠️  CHANGE PASSWORD IN PRODUCTION!');
 
     // ==================== SETTINGS (PHASE 1 - SIMPLIFIED) ====================
@@ -100,7 +99,7 @@ async function seed() {
       value: {
         emailEnabled: true,
         smsEnabled: false, // SMS integration in Phase 2
-        adminAlertEmail: 'admin@savitrishipping.in',
+        adminAlertEmail: 'singhsachin09820@gmail.com',
       },
     });
 

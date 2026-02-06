@@ -137,10 +137,10 @@ class AuthService {
     // Check if account is locked
     if (customer.lockedUntil && new Date() < customer.lockedUntil) {
       const remainingMinutes = Math.ceil(
-        (customer.lockedUntil - new Date()) / (1000 * 60)
+        (customer.lockedUntil - new Date()) / (1000 * 60),
       );
       throw ApiError.forbidden(
-        `Account is locked. Try again in ${remainingMinutes} minutes`
+        `Account is locked. Try again in ${remainingMinutes} minutes`,
       );
     }
 
@@ -155,7 +155,7 @@ class AuthService {
       if (failedAttempts >= ACCOUNT_LOCK.MAX_FAILED_ATTEMPTS) {
         updateData.lockedUntil = addHours(
           new Date(),
-          ACCOUNT_LOCK.LOCK_DURATION_MINUTES / 60
+          ACCOUNT_LOCK.LOCK_DURATION_MINUTES / 60,
         );
       }
 
@@ -205,11 +205,10 @@ class AuthService {
     };
   }
 
-  /* PHASE 2: Phone Login - Requires SMS Integration
+  /* 
+  PHASE 2: Phone Login - Requires SMS Integration
 
-  /**
-   * Login with phone - Step 1: Send OTP
-   */
+  // Login with phone - Step 1: Send OTP
   async loginWithPhone(phone, req) {
     // Find customer
     const customer = await Customer.findOne({ phone });
@@ -235,9 +234,7 @@ class AuthService {
     return { message: "OTP sent to your phone", phone };
   }
 
-  /**
-   * Login with phone - Step 2: Verify OTP
-   */
+  // Login with phone - Step 2: Verify OTP
   async verifyLoginOTP(phone, otp, req) {
     const otpResult = await verifyOTP(phone, otp, OTP_TYPE.LOGIN);
 
@@ -286,7 +283,7 @@ class AuthService {
     };
   }
 
-  */
+*/
 
   /**
    * Logout

@@ -44,7 +44,8 @@ module.exports = {
   requireAdmin,
   requireAdminRole,
   // Legacy exports for backward compatibility (can be removed if not used)
-  roleCheck: requireAdmin, // Maps old roleCheck to requireAdmin
-  hasRole: (allowedRoles) => requireAdmin, // Simplified - just check if admin
-  isSuperAdmin: requireAdminRole, // Maps to requireAdminRole
+  // These functions return middleware, ignoring the old permission-based parameters
+  roleCheck: (resource, action) => requireAdmin, // Called like: roleCheck('adminUsers', 'view')
+  hasRole: (allowedRoles) => requireAdmin, // Called like: hasRole(['Admin', 'Staff'])
+  isSuperAdmin: requireAdminRole, // Used directly as middleware
 };

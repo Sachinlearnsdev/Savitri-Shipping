@@ -1,0 +1,44 @@
+{
+  "name": "savitri-shipping",
+  "version": "1.0.0",
+  "description": "Savitri Shipping - Complete Application Suite",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,ADMIN,PUBLIC\" -c \"bgBlue.bold,bgMagenta.bold,bgGreen.bold\" \"npm run dev:backend\" \"npm run dev:admin\" \"npm run dev:public\"",
+    "dev:backend": "cd savitri-backend && npm start",
+    "dev:admin": "cd savitri-admin && npm run dev",
+    "dev:public": "cd savitri-public && npm run dev",
+    "install:all": "npm install && cd savitri-backend && npm install && cd ../savitri-admin && npm install && cd ../savitri-public && npm install",
+    "clean": "concurrently \"cd savitri-backend && rm -rf node_modules\" \"cd savitri-admin && rm -rf node_modules\" \"cd savitri-public && rm -rf node_modules\"",
+    "clean:install": "npm run clean && npm run install:all",
+    "backend": "cd savitri-backend && npm start",
+    "admin": "cd savitri-admin && npm run dev",
+    "public": "cd savitri-public && npm run dev",
+    "seed": "cd savitri-backend && npm run seed",
+    "test:backend": "cd savitri-backend && npm test",
+    "test:admin": "cd savitri-admin && npm test",
+    "test:public": "cd savitri-public && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/savitri-shipping.git"
+  },
+  "keywords": [
+    "shipping",
+    "boat-rental",
+    "ferry-booking",
+    "react",
+    "nextjs",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Savitri Shipping",
+  "license": "UNLICENSED"
+}
