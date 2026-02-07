@@ -15,9 +15,8 @@ const Footer = () => {
       { href: '/refund', label: 'Refund Policy' },
     ],
     services: [
-      { href: '/', label: 'Speed Boats' },
-      { href: '/', label: 'Party Boats' },
-      { href: '/', label: 'Ferry Services' },
+      { href: '/speed-boats', label: 'Speed Boats' },
+      { href: '/party-boats', label: 'Party Boats' },
     ],
   };
 

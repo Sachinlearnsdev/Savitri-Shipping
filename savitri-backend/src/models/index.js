@@ -8,4 +8,10 @@ module.exports = {
   CustomerSession: require("./CustomerSession"),
   OTP: require("./OTP"),
   Setting: require("./Setting"),
+  SpeedBoat: require("./SpeedBoat"),
+  PartyBoat: require("./PartyBoat"),
+  OperatingCalendar: require("./OperatingCalendar"),
+  PricingRule: require("./PricingRule"),
+  SpeedBoatBooking: require("./SpeedBoatBooking"),
+  PartyBoatBooking: require("./PartyBoatBooking"),
 };

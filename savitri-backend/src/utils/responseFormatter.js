@@ -1,25 +1,75 @@
-const formatDocument = (doc) => {
-  if (!doc) return null;
-  
-  const formatted = doc.toObject ? doc.toObject() : doc;
-  
-  if (formatted._id) {
-    formatted.id = formatted._id.toString();
-    delete formatted._id;
+const mongoose = require('mongoose');
+
+/**
+ * Check if a value is a Mongoose/BSON ObjectId
+ */
+const isObjectId = (val) => {
+  try {
+    return (
+      val instanceof mongoose.Types.ObjectId ||
+      (val && val._bsontype === 'ObjectID') ||
+      (val && val._bsontype === 'ObjectId')
+    );
+  } catch {
+    return false;
   }
-  
-  delete formatted.__v;
-  
-  Object.keys(formatted).forEach(key => {
-    if (formatted[key] && typeof formatted[key] === 'object') {
-      if (formatted[key]._id) {
-        formatted[key].id = formatted[key]._id.toString();
-        delete formatted[key]._id;
+};
+
+/**
+ * Check if a value is a plain object (not Date, Buffer, ObjectId, etc.)
+ */
+const isPlainObject = (val) => {
+  if (!val || typeof val !== 'object') return false;
+  try {
+    const proto = Object.getPrototypeOf(val);
+    return proto === Object.prototype || proto === null;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Recursively sanitize a value, converting ObjectIds to strings
+ * and cleaning _id → id, removing __v
+ */
+const sanitizeValue = (val) => {
+  if (val == null) return val;
+  if (isObjectId(val)) return val.toString();
+  if (val instanceof Date) return val;
+  if (Buffer.isBuffer(val)) return val;
+  if (Array.isArray(val)) return val.map(sanitizeValue);
+  if (isPlainObject(val)) {
+    const result = {};
+    for (const key of Object.keys(val)) {
+      if (key === '__v') continue;
+      if (key === '_id') {
+        try {
+          result.id = val._id.toString();
+        } catch {
+          result.id = String(val._id);
+        }
+      } else {
+        result[key] = sanitizeValue(val[key]);
       }
     }
-  });
-  
-  return formatted;
+    return result;
+  }
+  return val;
+};
+
+const formatDocument = (doc) => {
+  if (!doc) return null;
+  try {
+    const obj = doc.toObject ? doc.toObject() : doc;
+    return sanitizeValue(obj);
+  } catch {
+    // Fallback: try JSON round-trip to get a clean plain object
+    try {
+      return JSON.parse(JSON.stringify(doc));
+    } catch {
+      return doc;
+    }
+  }
 };
 
 const formatDocuments = (docs) => {

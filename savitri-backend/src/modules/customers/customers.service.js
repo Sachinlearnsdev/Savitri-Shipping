@@ -1,9 +1,8 @@
 // src/modules/customers/customers.service.js
 const {
   Customer,
-  SavedVehicle,
-  LoginHistory,
   CustomerSession,
+  SpeedBoatBooking,
 } = require("../../models");
 const ApiError = require("../../utils/ApiError");
 const { paginate } = require("../../utils/helpers");
@@ -59,21 +58,8 @@ class CustomersService {
       Customer.countDocuments(filter),
     ]);
 
-    // Get saved vehicles count for each customer
-    const customersWithCounts = await Promise.all(
-      customers.map(async (customer) => {
-        const vehicleCount = await SavedVehicle.countDocuments({
-          customerId: customer._id,
-        });
-        return {
-          ...customer,
-          savedVehiclesCount: vehicleCount,
-        };
-      })
-    );
-
     return {
-      customers: formatDocuments(customersWithCounts),
+      customers: formatDocuments(customers),
       pagination: {
         page: currentPage,
         limit: currentLimit,
@@ -92,20 +78,22 @@ class CustomersService {
       throw ApiError.notFound("Customer not found");
     }
 
-    // Get saved vehicles
-    const savedVehicles = await SavedVehicle.find({ customerId: id })
-      .sort({ createdAt: -1 })
-      .lean();
+    // Get booking stats
+    const [totalBookings, completedBookings] = await Promise.all([
+      SpeedBoatBooking.countDocuments({ customerId: id, isDeleted: { $ne: true } }),
+      SpeedBoatBooking.countDocuments({ customerId: id, status: 'COMPLETED', isDeleted: { $ne: true } }),
+    ]);
 
-    // Get login history
-    const loginHistory = await LoginHistory.find({ customerId: id })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .lean();
+    // Get total spent
+    const spentResult = await SpeedBoatBooking.aggregate([
+      { $match: { customerId: customer._id, paymentStatus: 'PAID', isDeleted: { $ne: true } } },
+      { $group: { _id: null, total: { $sum: '$pricing.finalAmount' } } },
+    ]);
 
     const formatted = formatDocument(customer);
-    formatted.savedVehicles = formatDocuments(savedVehicles);
-    formatted.loginHistory = formatDocuments(loginHistory);
+    formatted.totalBookings = totalBookings;
+    formatted.completedBookings = completedBookings;
+    formatted.totalSpent = spentResult[0]?.total || 0;
 
     return formatted;
   }
@@ -129,14 +117,23 @@ class CustomersService {
       throw ApiError.notFound("Customer not found");
     }
 
-    // Note: Booking model will be created in Phase 2
-    // For now, return empty array
+    const filter = { customerId: id, isDeleted: { $ne: true } };
+
+    const [bookings, total] = await Promise.all([
+      SpeedBoatBooking.find(filter)
+        .skip(skip)
+        .limit(take)
+        .sort({ createdAt: -1 })
+        .lean(),
+      SpeedBoatBooking.countDocuments(filter),
+    ]);
+
     return {
-      bookings: [],
+      bookings: formatDocuments(bookings),
       pagination: {
         page: currentPage,
         limit: currentLimit,
-        total: 0,
+        total,
       },
     };
   }

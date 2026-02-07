@@ -1,0 +1,398 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { api } from '@/services/api';
+import { API_ENDPOINTS } from '@/utils/constants';
+import styles from './page.module.css';
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+const LOCATION_LABELS = {
+  HARBOR: 'Harbor',
+  CRUISE: 'Cruise',
+};
+
+const EVENT_TYPE_LABELS = {
+  WEDDING: 'Wedding',
+  BIRTHDAY: 'Birthday',
+  CORPORATE: 'Corporate',
+  COLLEGE_FAREWELL: 'College Farewell',
+  OTHER: 'Other',
+};
+
+const MAX_VISIBLE_EVENTS = 3;
+
+// Gradient colors for boats without images (cycled by index)
+const BOAT_GRADIENTS = [
+  'linear-gradient(135deg, #dc2626, #991b1b)',
+  'linear-gradient(135deg, #7c3aed, #5b21b6)',
+  'linear-gradient(135deg, #0891b2, #155e75)',
+  'linear-gradient(135deg, #d97706, #92400e)',
+];
+
+const generateCalendarDays = (calendarStatuses) => {
+  const days = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const statusMap = {};
+  if (calendarStatuses && calendarStatuses.length > 0) {
+    calendarStatuses.forEach(s => {
+      const d = new Date(s.date);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      statusMap[key] = s.isOpen;
+    });
+  }
+
+  for (let i = 0; i < 46; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const isOpen = statusMap[key] !== undefined ? statusMap[key] : true;
+
+    days.push({
+      date,
+      dayName: date.toLocaleDateString('en-IN', { weekday: 'short' }),
+      dateNum: date.getDate(),
+      month: date.toLocaleDateString('en-IN', { month: 'short' }),
+      isClosed: !isOpen,
+      isToday: i === 0,
+    });
+  }
+  return days;
+};
+
+const getInquiryUrl = (boat) => {
+  const subject = `Inquiry for ${boat.name} - Party Boat Booking`;
+  const locations = (boat.locationOptions || []).map(l => LOCATION_LABELS[l] || l).join(' / ');
+  const message = `Hi,\n\nI would like to inquire about booking the ${boat.name} party boat.\n\nEvent Details:\n- Event Type: [Please specify]\n- Preferred Date: [Please specify]\n- Estimated Guests: ${boat.capacityMin}-${boat.capacityMax}\n- Preferred Location: ${locations}\n\nPlease share available dates, pricing details, and any current packages or offers.\n\nThank you!`;
+  return `/contact?subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`;
+};
+
+export default function PartyBoatsPage() {
+  const router = useRouter();
+  const [boats, setBoats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedDateIndex, setSelectedDateIndex] = useState(0);
+  const [calendarDays, setCalendarDays] = useState([]);
+  const scrollContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const today = new Date();
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + 45);
+
+        const startDateStr = today.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+
+        const [boatsResponse, calendarResponse] = await Promise.all([
+          api.get(API_ENDPOINTS.BOOKINGS.PARTY_BOATS),
+          api.get(`${API_ENDPOINTS.BOOKINGS.CALENDAR_STATUS}?startDate=${startDateStr}&endDate=${endDateStr}`),
+        ]);
+
+        setBoats(boatsResponse.data || []);
+        setCalendarDays(generateCalendarDays(calendarResponse.data || []));
+      } catch (err) {
+        console.error('Failed to load party boats:', err);
+        setError(err.message || 'Failed to load party boats');
+        setCalendarDays(generateCalendarDays([]));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const checkScrollability = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+  };
+
+  useEffect(() => {
+    checkScrollability();
+    const el = scrollContainerRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScrollability);
+      return () => el.removeEventListener('scroll', checkScrollability);
+    }
+  }, [calendarDays]);
+
+  const scrollCalendar = (direction) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const scrollAmount = 280;
+    el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  };
+
+  const handleDateSelect = (index) => {
+    if (!calendarDays[index].isClosed) {
+      setSelectedDateIndex(index);
+    }
+  };
+
+  return (
+    <div className={styles.page}>
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>Party Boats</h1>
+          <p className={styles.heroSubtitle}>
+            Celebrate in style on the water. From intimate gatherings to grand celebrations,
+            find the perfect party boat for your next event.
+          </p>
+          <div className={styles.heroActions}>
+            <a href="#boats" className={styles.heroButton}>
+              Explore Our Fleet
+            </a>
+            <Link href="/contact?subject=Custom%20Party%20Boat%20Quote%20Request&message=Hi%2C%0A%0AI%20would%20like%20to%20get%20a%20custom%20quote%20for%20a%20party%20boat%20booking.%0A%0AEvent%20Details%3A%0A-%20Event%20Type%3A%20%5BPlease%20specify%5D%0A-%20Preferred%20Date%3A%20%5BPlease%20specify%5D%0A-%20Estimated%20Guests%3A%20%5BPlease%20specify%5D%0A-%20Preferred%20Location%3A%20Harbor%20%2F%20Cruise%0A%0APlease%20share%20pricing%20details%20and%20available%20packages.%0A%0AThank%20you!" className={styles.heroButtonOutline}>
+              Get Custom Quote
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Date Calendar Strip */}
+      <section className={styles.calendarSection}>
+        <div className={styles.container}>
+          <h2 className={styles.calendarTitle}>Check Availability</h2>
+          <p className={styles.calendarSubtitle}>Select a date to see available party boats</p>
+
+          <div className={styles.calendarWrapper}>
+            {canScrollLeft && (
+              <button
+                className={`${styles.calendarArrow} ${styles.calendarArrowLeft}`}
+                onClick={() => scrollCalendar('left')}
+                aria-label="Scroll left"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+
+            <div className={styles.calendarStrip} ref={scrollContainerRef}>
+              {calendarDays.map((day, index) => (
+                <button
+                  key={index}
+                  className={`${styles.calendarDay} ${selectedDateIndex === index ? styles.calendarDaySelected : ''} ${day.isClosed ? styles.calendarDayClosed : ''} ${day.isToday ? styles.calendarDayToday : ''}`}
+                  onClick={() => handleDateSelect(index)}
+                  disabled={day.isClosed}
+                >
+                  <span className={styles.dayName}>{day.dayName}</span>
+                  <span className={styles.dateNum}>{day.dateNum}</span>
+                  <span className={styles.monthName}>{day.month}</span>
+                  {day.isClosed && <span className={styles.closedLabel}>Closed</span>}
+                </button>
+              ))}
+            </div>
+
+            {canScrollRight && (
+              <button
+                className={`${styles.calendarArrow} ${styles.calendarArrowRight}`}
+                onClick={() => scrollCalendar('right')}
+                aria-label="Scroll right"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Boats Grid */}
+      <section id="boats" className={styles.listing}>
+        <div className={styles.container}>
+          <h2 className={styles.sectionTitle}>Our Party Boat Fleet</h2>
+          <p className={styles.sectionSubtitle}>
+            Choose from our premium collection of party boats, each designed for an unforgettable celebration.
+          </p>
+
+          {loading && (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner} />
+              <p>Loading party boats...</p>
+            </div>
+          )}
+
+          {error && !loading && (
+            <div className={styles.errorContainer}>
+              <p>{error}</p>
+              <button onClick={() => window.location.reload()} className={styles.retryButton}>
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && boats.length === 0 && (
+            <div className={styles.emptyContainer}>
+              <p>No party boats available at the moment. Please check back later.</p>
+            </div>
+          )}
+
+          {!loading && boats.length > 0 && (
+            <div className={styles.boatsGrid}>
+              {boats.map((boat, index) => {
+                const gradient = BOAT_GRADIENTS[index % BOAT_GRADIENTS.length];
+                const eventLabels = (boat.eventTypes || []).map(t => EVENT_TYPE_LABELS[t] || t);
+
+                return (
+                  <div
+                    key={boat.id}
+                    className={styles.boatCard}
+                    onClick={() => router.push(`/party-boats/${boat.id}`)}
+                  >
+                    {/* Image */}
+                    <div
+                      className={styles.boatImage}
+                      style={{
+                        background: boat.images && boat.images.length > 0
+                          ? `url(${boat.images[0]}) center/cover no-repeat`
+                          : gradient,
+                      }}
+                    >
+                      {(!boat.images || boat.images.length === 0) && (
+                        <div className={styles.boatImageOverlay}>
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" opacity="0.5">
+                            <path d="M3 17L6 14L9 17L15 11L21 17" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <rect x="2" y="4" width="20" height="16" rx="2" stroke="white" strokeWidth="1.5" />
+                          </svg>
+                        </div>
+                      )}
+                      {boat.djIncluded && (
+                        <span className={styles.djBadge}>DJ Included</span>
+                      )}
+                    </div>
+
+                    {/* Boat Info */}
+                    <div className={styles.boatInfo}>
+                      <div className={styles.boatHeader}>
+                        <h3 className={styles.boatName}>{boat.name}</h3>
+                        <div className={styles.locationBadges}>
+                          {(boat.locationOptions || []).map((loc) => (
+                            <span key={loc} className={styles.locationBadge}>
+                              {LOCATION_LABELS[loc] || loc}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <p className={styles.boatCapacity}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={styles.capacityIcon}>
+                          <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                          <path d="M23 21V19C22.9986 17.1771 21.765 15.5857 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M16 3.13C17.7699 3.58317 19.0078 5.17799 19.0078 7.005C19.0078 8.83201 17.7699 10.4268 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        {boat.capacityMin}-{boat.capacityMax} Guests
+                      </p>
+
+                      <p className={styles.boatDescription}>{boat.description}</p>
+
+                      {/* Event Types */}
+                      <div className={styles.eventTypes}>
+                        {eventLabels.slice(0, MAX_VISIBLE_EVENTS).map((type) => (
+                          <span key={type} className={styles.eventPill}>{type}</span>
+                        ))}
+                        {eventLabels.length > MAX_VISIBLE_EVENTS && (
+                          <span className={styles.eventPillMore}>
+                            +{eventLabels.length - MAX_VISIBLE_EVENTS} more
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Price */}
+                      <div className={styles.priceRow}>
+                        <div className={styles.priceInfo}>
+                          <span className={styles.priceLabel}>From</span>
+                          <span className={styles.priceValue}>{formatCurrency(boat.basePrice)}</span>
+                        </div>
+                        <span className={styles.priceTax}>+ 18% GST</span>
+                      </div>
+
+                      {/* Actions */}
+                      <div className={styles.cardActions}>
+                        <span className={styles.viewDetailsBtn}>
+                          View Details
+                        </span>
+                        <Link
+                          href={getInquiryUrl(boat)}
+                          className={styles.enquireBtn}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Enquire Now
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className={styles.howItWorks}>
+        <div className={styles.container}>
+          <h2 className={styles.sectionTitle}>How It Works</h2>
+          <div className={styles.stepsGrid}>
+            <div className={styles.stepCard}>
+              <div className={styles.stepNumber}>1</div>
+              <h3 className={styles.stepTitle}>Choose Your Boat</h3>
+              <p className={styles.stepDescription}>
+                Browse our fleet and pick the perfect party boat for your event size and style.
+              </p>
+            </div>
+            <div className={styles.stepCard}>
+              <div className={styles.stepNumber}>2</div>
+              <h3 className={styles.stepTitle}>Select Date & Add-ons</h3>
+              <p className={styles.stepDescription}>
+                Pick your date, time slot, and customize with catering, decorations, and entertainment.
+              </p>
+            </div>
+            <div className={styles.stepCard}>
+              <div className={styles.stepNumber}>3</div>
+              <h3 className={styles.stepTitle}>Confirm & Celebrate</h3>
+              <p className={styles.stepDescription}>
+                Pay 50% advance to secure your booking. We handle the rest for an unforgettable event.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className={styles.cta}>
+        <div className={styles.container}>
+          <h2 className={styles.ctaTitle}>Ready to Throw an Unforgettable Party?</h2>
+          <p className={styles.ctaDescription}>
+            Book your dream party boat today. Custom packages available for every occasion.
+          </p>
+          <Link href="/contact?subject=Custom%20Party%20Boat%20Quote%20Request&message=Hi%2C%0A%0AI%20would%20like%20to%20get%20a%20custom%20quote%20for%20a%20party%20boat%20booking.%0A%0AEvent%20Details%3A%0A-%20Event%20Type%3A%20%5BPlease%20specify%5D%0A-%20Preferred%20Date%3A%20%5BPlease%20specify%5D%0A-%20Estimated%20Guests%3A%20%5BPlease%20specify%5D%0A-%20Preferred%20Location%3A%20Harbor%20%2F%20Cruise%0A%0APlease%20share%20pricing%20details%20and%20available%20packages.%0A%0AThank%20you!" className={styles.ctaButton}>
+            Get a Custom Quote
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}

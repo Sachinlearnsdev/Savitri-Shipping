@@ -29,6 +29,24 @@ import BookingSettings from '../pages/settings/BookingSettings';
 import NotificationSettings from '../pages/settings/NotificationSettings';
 import ContentSettings from '../pages/settings/ContentSettings';
 
+// Speed Boats Pages
+import SpeedBoats from '../pages/speedBoats/SpeedBoats';
+import BoatDetail from '../pages/speedBoats/BoatDetail';
+import Calendar from '../pages/speedBoats/Calendar';
+import PricingRules from '../pages/speedBoats/PricingRules';
+
+// Party Boats Pages
+import PartyBoats from '../pages/partyBoats/PartyBoats';
+import PartyBoatDetail from '../pages/partyBoats/PartyBoatDetail';
+
+// Bookings Pages
+import Bookings from '../pages/bookings/Bookings';
+import BookingDetail from '../pages/bookings/BookingDetail';
+
+// Party Bookings Pages
+import PartyBookings from '../pages/partyBookings/PartyBookings';
+import PartyBookingDetail from '../pages/partyBookings/PartyBookingDetail';
+
 /**
  * App Routes Configuration
  */
@@ -69,6 +87,24 @@ const AppRoutes = () => {
             <Route path="/settings/booking" element={<BookingSettings />} />
             <Route path="/settings/notifications" element={<NotificationSettings />} />
             <Route path="/settings/content" element={<ContentSettings />} />
+
+            {/* Speed Boats */}
+            <Route path="/speed-boats" element={<SpeedBoats />} />
+            <Route path="/speed-boats/calendar" element={<Calendar />} />
+            <Route path="/speed-boats/pricing" element={<PricingRules />} />
+            <Route path="/speed-boats/:id" element={<BoatDetail />} />
+
+            {/* Party Boats */}
+            <Route path="/party-boats" element={<PartyBoats />} />
+            <Route path="/party-boats/:id" element={<PartyBoatDetail />} />
+
+            {/* Bookings */}
+            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/bookings/:id" element={<BookingDetail />} />
+
+            {/* Party Bookings */}
+            <Route path="/party-bookings" element={<PartyBookings />} />
+            <Route path="/party-bookings/:id" element={<PartyBookingDetail />} />
           </Route>
         </Route>
 

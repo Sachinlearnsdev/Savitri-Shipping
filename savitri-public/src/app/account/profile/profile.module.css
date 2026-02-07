@@ -2,10 +2,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
+  max-width: 700px;
+  margin: 0 auto;
 }
 
 .header {
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--spacing-2);
 }
 
 .title {
@@ -24,7 +26,8 @@
 .card {
   padding: var(--spacing-6);
   background-color: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
 }
 
 .cardTitle {
@@ -83,4 +86,18 @@
 .badge.active {
   background-color: var(--color-info-light);
   color: var(--color-info-dark);
+}
+
+@media (max-width: 768px) {
+  .profilePage {
+    gap: var(--spacing-4);
+  }
+
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+  }
 }

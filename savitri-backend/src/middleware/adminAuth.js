@@ -25,7 +25,7 @@ const adminAuth = async (req, res, next) => {
     
     // Get admin user from database with role
     const adminUser = await AdminUser.findById(decoded.adminUserId)
-      .populate('role')
+      .populate('roleId')
       .select('-password');
     
     if (!adminUser) {
@@ -50,8 +50,8 @@ const adminAuth = async (req, res, next) => {
       phone: adminUser.phone,
       avatar: adminUser.avatar,
       roleId: adminUser.roleId,
-      roleName: adminUser.role.name,
-      permissions: adminUser.role.permissions,
+      roleName: adminUser.roleId.name,
+      permissions: adminUser.roleId.permissions,
     };
     req.adminUserId = adminUser._id.toString();
     

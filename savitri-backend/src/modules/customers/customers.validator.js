@@ -12,7 +12,7 @@ const querySchema = z.object({
 });
 
 const updateStatusSchema = z.object({
-  status: z.enum(['ACTIVE', 'INACTIVE']),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'LOCKED']),
 });
 
 module.exports = {

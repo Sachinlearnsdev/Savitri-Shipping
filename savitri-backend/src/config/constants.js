@@ -60,18 +60,19 @@ module.exports = {
     PHONE_REGEX: /^[6-9]\d{9}$/,
   },
 
-  // Roles (Phase 1 - Simplified)
+  // Roles
   ROLES: {
     ADMIN: 'Admin',
     STAFF: 'Staff',
-    // PHASE 2: Additional roles (Operations Manager, Fleet Manager, etc.)
   },
 
-  // Settings Groups (Phase 1)
+  // Settings Groups
   SETTINGS_GROUPS: {
     GENERAL: 'general',
     NOTIFICATION: 'notification',
-    // PHASE 2: BILLING, BOOKING, CONTENT
+    BILLING: 'billing',
+    BOOKING: 'booking',
+    CONTENT: 'content',
   },
 
   // Email Templates
@@ -82,6 +83,148 @@ module.exports = {
     LOGIN_OTP: 'login-otp',
     PASSWORD_RESET: 'password-reset',
     PASSWORD_CHANGED: 'password-changed',
+    BOOKING_CONFIRMATION: 'booking-confirmation',
+    BOOKING_CANCELLATION: 'booking-cancellation',
+    BOOKING_REMINDER: 'booking-reminder',
+  },
+
+  // Boat Status (Speed + Party)
+  BOAT_STATUS: {
+    ACTIVE: 'ACTIVE',
+    INACTIVE: 'INACTIVE',
+    MAINTENANCE: 'MAINTENANCE',
+  },
+
+  // Party Boat - Location Types
+  LOCATION_TYPE: {
+    HARBOR: 'HARBOR',
+    CRUISE: 'CRUISE',
+  },
+
+  // Party Boat - Time Slots
+  TIME_SLOT: {
+    MORNING: 'MORNING',
+    AFTERNOON: 'AFTERNOON',
+    EVENING: 'EVENING',
+    FULL_DAY: 'FULL_DAY',
+  },
+
+  // Party Boat - Event Types
+  EVENT_TYPE: {
+    WEDDING: 'WEDDING',
+    BIRTHDAY: 'BIRTHDAY',
+    CORPORATE: 'CORPORATE',
+    COLLEGE_FAREWELL: 'COLLEGE_FAREWELL',
+    OTHER: 'OTHER',
+  },
+
+  // Party Boat - Add-on Types
+  ADD_ON_TYPE: {
+    CATERING_VEG: 'CATERING_VEG',
+    CATERING_NONVEG: 'CATERING_NONVEG',
+    LIVE_BAND: 'LIVE_BAND',
+    PHOTOGRAPHER: 'PHOTOGRAPHER',
+    DECORATION_STANDARD: 'DECORATION_STANDARD',
+  },
+
+  // Party Boat - Price Types (for add-ons)
+  PRICE_TYPE: {
+    FIXED: 'FIXED',
+    PER_PERSON: 'PER_PERSON',
+  },
+
+  // Booking Status
+  BOOKING_STATUS: {
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED',
+    NO_SHOW: 'NO_SHOW',
+  },
+
+  // Payment Status
+  PAYMENT_STATUS: {
+    PENDING: 'PENDING',
+    PAID: 'PAID',
+    PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+    REFUNDED: 'REFUNDED',
+  },
+
+  // Payment Mode
+  PAYMENT_MODE: {
+    ONLINE: 'ONLINE',
+    AT_VENUE: 'AT_VENUE',
+  },
+
+  // Operating Calendar Status
+  CALENDAR_STATUS: {
+    OPEN: 'OPEN',
+    CLOSED: 'CLOSED',
+  },
+
+  // Reasons for closing a day
+  CLOSE_REASON: {
+    TIDE: 'TIDE',
+    WEATHER: 'WEATHER',
+    MAINTENANCE: 'MAINTENANCE',
+    HOLIDAY: 'HOLIDAY',
+    OTHER: 'OTHER',
+  },
+
+  // Pricing Rule Types
+  PRICING_RULE_TYPE: {
+    PEAK_HOURS: 'PEAK_HOURS',
+    OFF_PEAK_HOURS: 'OFF_PEAK_HOURS',
+    WEEKEND: 'WEEKEND',
+    SEASONAL: 'SEASONAL',
+    HOLIDAY: 'HOLIDAY',
+    SPECIAL: 'SPECIAL',
+  },
+
+  // Booking Number Prefixes
+  SPEED_BOOKING_PREFIX: 'SB',
+  PARTY_BOOKING_PREFIX: 'PB',
+
+  // Party Boat Cancellation Policy (different from speed boats)
+  PARTY_CANCELLATION_POLICY: {
+    FULL_REFUND_DAYS: 7,        // 7d+ before = 100% refund
+    PARTIAL_REFUND_DAYS: 3,     // 3-7d before = 50% refund
+    PARTIAL_REFUND_PERCENT: 50,
+  },
+
+  // Booking Limits (defaults, configurable via settings)
+  BOOKING_LIMITS: {
+    MAX_ADVANCE_DAYS: 45,
+    MIN_NOTICE_HOURS: 2,
+    BUFFER_MINUTES: 30,
+    MIN_DURATION_HOURS: 1,
+    MAX_DURATION_HOURS: 8,
+  },
+
+  // Cancellation Policy (defaults, configurable via settings)
+  CANCELLATION_POLICY: {
+    FULL_REFUND_HOURS: 24,       // 24h+ before = 100% refund
+    PARTIAL_REFUND_HOURS: 12,    // 12-24h before = 50% refund
+    PARTIAL_REFUND_PERCENT: 50,
+    NO_REFUND_HOURS: 12,         // <12h = 0% refund
+  },
+
+  // GST
+  GST: {
+    PERCENTAGE: 18,
+    IS_INCLUSIVE: false, // GST is exclusive (added on top)
+  },
+
+  // Cancelled By
+  CANCELLED_BY: {
+    CUSTOMER: 'CUSTOMER',
+    ADMIN: 'ADMIN',
+  },
+
+  // Created By Type
+  CREATED_BY_TYPE: {
+    CUSTOMER: 'CUSTOMER',
+    ADMIN: 'ADMIN',
   },
 
   // HTTP Status Codes

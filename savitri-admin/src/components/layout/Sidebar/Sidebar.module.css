@@ -17,6 +17,11 @@
   width: var(--sidebar-collapsed-width);
 }
 
+/* Mobile Overlay */
+.overlay {
+  display: none;
+}
+
 /* Logo */
 .logo {
   display: flex;
@@ -28,8 +33,11 @@
 }
 
 .logoIcon {
-  font-size: var(--font-size-2xl);
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .logoText {
@@ -46,19 +54,17 @@
 /* Toggle Button */
 .toggleButton {
   position: absolute;
-  top: calc(var(--header-height) / 2 - 16px);
-  right: -12px;
+  top: calc(var(--header-height) / 2 - 14px);
+  right: -14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   color: var(--text-secondary);
-  font-size: var(--font-size-lg);
-  line-height: 1;
   cursor: pointer;
   transition: var(--transition-colors);
   z-index: 1;
@@ -142,8 +148,11 @@
 
 /* Menu Icon */
 .menuIcon {
-  font-size: var(--font-size-xl);
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
@@ -157,8 +166,8 @@
 
 /* Arrow */
 .arrow {
-  font-size: var(--font-size-lg);
-  line-height: 1;
+  display: flex;
+  align-items: center;
   transition: transform var(--transition-fast);
 }
 
@@ -226,14 +235,34 @@
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    width: var(--sidebar-width);
+    box-shadow: none;
+    transition: transform 0.3s ease;
   }
-  
-  .sidebar.open {
+
+  .sidebar.mobileOpen {
     transform: translateX(0);
+    box-shadow: var(--shadow-xl);
   }
-  
+
   .collapsed {
     width: var(--sidebar-width);
     transform: translateX(-100%);
+  }
+
+  .collapsed.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .toggleButton {
+    display: none;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: calc(var(--z-fixed) - 1);
   }
 }

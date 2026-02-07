@@ -8,7 +8,8 @@ import { STORAGE_KEYS, TOAST_DURATION } from '../utils/constants';
 const useUIStore = create((set, get) => ({
   // Sidebar State
   sidebarCollapsed: JSON.parse(localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED)) || false,
-  
+  mobileSidebarOpen: false,
+
   // Modal State
   modals: {},
   
@@ -41,7 +42,15 @@ const useUIStore = create((set, get) => ({
     localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, JSON.stringify(collapsed));
     set({ sidebarCollapsed: collapsed });
   },
-  
+
+  toggleMobileSidebar: () => {
+    set((state) => ({ mobileSidebarOpen: !state.mobileSidebarOpen }));
+  },
+
+  closeMobileSidebar: () => {
+    set({ mobileSidebarOpen: false });
+  },
+
   // ==================== MODAL ACTIONS ====================
   
   /**

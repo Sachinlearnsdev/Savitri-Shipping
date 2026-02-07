@@ -34,7 +34,9 @@ class SettingsController {
   async updateByGroup(req, res, next) {
     try {
       const { group } = req.params;
-      const settings = await settingsService.updateByGroup(group, req.body);
+      // Frontend sends { key: 'config', value: { ...settings } } — unwrap to get actual data
+      const data = req.body.value !== undefined ? req.body.value : req.body;
+      const settings = await settingsService.updateByGroup(group, data);
       res.status(200).json(ApiResponse.success(`${group} settings updated successfully`, settings));
     } catch (error) {
       next(error);

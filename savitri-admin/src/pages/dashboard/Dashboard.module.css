@@ -66,7 +66,7 @@
 
 .statLabel {
   margin: 0 0 var(--spacing-1) 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -80,6 +80,11 @@
   color: var(--text-primary);
 }
 
+.statSubInfo {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
 /* Section */
 .section {
   display: flex;
@@ -89,19 +94,76 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
 
-/* Placeholder */
-.placeholder {
+/* Table Card */
+.tableCard {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: var(--bg-secondary);
+}
+
+.table th {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-color);
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.bookingNumber {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-600);
+}
+
+.amount {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-600);
+}
+
+/* Empty Card */
+.emptyCard {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-3);
-  min-height: 300px;
+  min-height: 150px;
   padding: var(--spacing-8);
   background-color: var(--bg-primary);
   border-radius: var(--radius-xl);
@@ -109,15 +171,27 @@
   text-align: center;
 }
 
-.placeholderIcon {
-  font-size: 64px;
-  opacity: 0.5;
+.emptyCard p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
 }
 
-.placeholder p {
-  margin: 0;
+/* Quick Actions */
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
   font-size: var(--font-size-base);
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 /* Responsive */
@@ -125,27 +199,31 @@
   .title {
     font-size: var(--font-size-2xl);
   }
-  
+
   .subtitle {
     font-size: var(--font-size-base);
   }
-  
+
   .statsGrid {
     grid-template-columns: 1fr;
     gap: var(--spacing-4);
   }
-  
+
   .statCard {
     padding: var(--spacing-4);
   }
-  
+
   .statIcon {
     width: 48px;
     height: 48px;
     font-size: 24px;
   }
-  
+
   .statValue {
     font-size: var(--font-size-2xl);
+  }
+
+  .quickActions {
+    flex-direction: column;
   }
 }

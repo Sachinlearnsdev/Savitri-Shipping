@@ -207,10 +207,4 @@ public
 
 # ==================== AI / CLAUDE CODE ====================
 .claude/
-memory.md
-DEV-GUIDE.md
-OPTIONAL-FIXES.md
-.clinerules
 CLAUDE.md
-Notes.txt
-nul

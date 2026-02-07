@@ -1,5 +1,5 @@
 // src/modules/adminUsers/adminUsers.service.js
-const { AdminUser, Role, AdminSession, ActivityLog } = require('../../models');
+const { AdminUser, Role, AdminSession } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { hashPassword, paginate, sanitizeUser } = require('../../utils/helpers');
 const { formatDocument, formatDocuments, formatPaginatedResponse } = require('../../utils/responseFormatter');
@@ -124,13 +124,18 @@ class AdminUsersService {
    * Update admin user
    */
   async update(id, data) {
-    const { name, email, phone, roleId } = data;
+    const { name, email, phone, roleId, status } = data;
 
     // Check if admin user exists
-    const existingUser = await AdminUser.findById(id);
+    const existingUser = await AdminUser.findById(id).populate('roleId');
 
     if (!existingUser) {
       throw ApiError.notFound('Admin user not found');
+    }
+
+    // Prevent deactivating Super Admin
+    if (existingUser.roleId?.name === 'Super Admin' && status && status !== 'ACTIVE') {
+      throw ApiError.forbidden('Cannot deactivate Super Admin');
     }
 
     // If email is being updated, check if it's already taken
@@ -143,7 +148,7 @@ class AdminUsersService {
     }
 
     // If role is being updated, check if it exists
-    if (roleId && roleId !== existingUser.roleId.toString()) {
+    if (roleId && roleId !== existingUser.roleId._id.toString()) {
       const role = await Role.findById(roleId);
 
       if (!role) {
@@ -151,15 +156,26 @@ class AdminUsersService {
       }
     }
 
+    // Build update fields
+    const updateFields = { name, email, phone, roleId };
+    if (status) {
+      updateFields.status = status;
+    }
+
     // Update admin user
     const updatedUser = await AdminUser.findByIdAndUpdate(
       id,
-      { name, email, phone, roleId },
+      updateFields,
       { new: true }
     )
       .populate('roleId', 'id name')
       .select('-password')
       .lean();
+
+    // If deactivating, delete all sessions
+    if (status === 'INACTIVE') {
+      await AdminSession.deleteMany({ adminUserId: id });
+    }
 
     return formatDocument(updatedUser);
   }
@@ -222,26 +238,18 @@ class AdminUsersService {
 
   /**
    * Get admin user activity log
+   * Note: ActivityLog model not yet implemented, returns empty for now
    */
   async getActivity(id, query) {
     const { page, limit } = query;
-    const { skip, take, page: currentPage, limit: currentLimit } = paginate(page, limit);
-
-    const [activities, total] = await Promise.all([
-      ActivityLog.find({ adminUserId: id })
-        .skip(skip)
-        .limit(take)
-        .sort({ createdAt: -1 })
-        .lean(),
-      ActivityLog.countDocuments({ adminUserId: id }),
-    ]);
+    const { page: currentPage, limit: currentLimit } = paginate(page, limit);
 
     return {
-      activities: formatDocuments(activities),
+      activities: [],
       pagination: {
         page: currentPage,
         limit: currentLimit,
-        total,
+        total: 0,
       },
     };
   }

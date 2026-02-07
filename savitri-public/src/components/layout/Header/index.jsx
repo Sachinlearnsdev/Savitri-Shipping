@@ -19,6 +19,8 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Home" },
+    { href: "/speed-boats", label: "Speed Boats" },
+    { href: "/party-boats", label: "Party Boats" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
@@ -118,28 +120,12 @@ const Header = () => {
                     My Account
                   </Link>
                   <Link
-                    href="/account/vehicles"
-                    className={styles.dropdownItem}
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    <span className={styles.dropdownIcon}>🚗</span>
-                    My Vehicles
-                  </Link>
-                  <Link
                     href="/account/bookings"
                     className={styles.dropdownItem}
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <span className={styles.dropdownIcon}>📋</span>
                     My Bookings
-                  </Link>
-                  <Link
-                    href="/account/settings"
-                    className={styles.dropdownItem}
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    <span className={styles.dropdownIcon}>⚙️</span>
-                    Settings
                   </Link>
 
                   <div className={styles.dropdownDivider}></div>

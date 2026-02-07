@@ -11,6 +11,9 @@ export const PUBLIC_ROUTES = {
   TERMS: '/terms',
   PRIVACY: '/privacy',
   REFUND: '/refund',
+  BOATS: '/boats',
+  BOOK: '/book',
+  PARTY_BOATS: '/party-boats',
 };
 
 // ==================== AUTH ROUTES ====================
@@ -45,6 +48,9 @@ export const ROUTES = {
   TERMS: PUBLIC_ROUTES.TERMS,
   PRIVACY: PUBLIC_ROUTES.PRIVACY,
   REFUND: PUBLIC_ROUTES.REFUND,
+  BOATS: PUBLIC_ROUTES.BOATS,
+  BOOK: PUBLIC_ROUTES.BOOK,
+  PARTY_BOATS: PUBLIC_ROUTES.PARTY_BOATS,
   
   // Auth
   LOGIN: AUTH_ROUTES.LOGIN,
@@ -103,6 +109,9 @@ export const PUBLIC_ONLY_ROUTES = [
   PUBLIC_ROUTES.TERMS,
   PUBLIC_ROUTES.PRIVACY,
   PUBLIC_ROUTES.REFUND,
+  PUBLIC_ROUTES.BOATS,
+  PUBLIC_ROUTES.BOOK,
+  PUBLIC_ROUTES.PARTY_BOATS,
 ];
 
 // ==================== DEFAULT REDIRECTS ====================

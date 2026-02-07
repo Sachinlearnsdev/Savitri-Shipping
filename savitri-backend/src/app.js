@@ -108,9 +108,18 @@ app.use("/api/admin/users", require("./modules/adminUsers/adminUsers.routes"));
 app.use("/api/admin/roles", require("./modules/roles/roles.routes"));
 app.use("/api/admin/customers", require("./modules/customers/customers.routes"));
 app.use("/api/admin/settings", require("./modules/settings/settings.routes"));
+app.use("/api/admin/speed-boats", require("./modules/speedBoats/speedBoats.routes"));
+app.use("/api/admin/party-boats", require("./modules/partyBoats/partyBoats.routes"));
+app.use("/api/admin/calendar", require("./modules/calendar/calendar.routes"));
+app.use("/api/admin/pricing-rules", require("./modules/pricingRules/pricingRules.routes"));
+app.use("/api/admin/bookings", require("./modules/bookings/bookings.routes").adminRouter);
+app.use("/api/admin/party-bookings", require("./modules/partyBookings/partyBookings.routes"));
 
 // Customer Routes
 app.use("/api/profile", require("./modules/profile/profile.routes"));
+
+// Public Booking Routes
+app.use("/api/bookings", require("./modules/bookings/bookings.routes").publicRouter);
 
 
 // Root / welcome endpoint

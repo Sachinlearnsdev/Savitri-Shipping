@@ -16,10 +16,11 @@ const updateAdminUserSchema = z.object({
   email: emailSchema.optional(),
   phone: phoneSchema.optional(),
   roleId: z.string().optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'LOCKED']).optional(),
 });
 
 const updateStatusSchema = z.object({
-  status: z.enum(['ACTIVE', 'INACTIVE']),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'LOCKED']),
 });
 
 const querySchema = z.object({

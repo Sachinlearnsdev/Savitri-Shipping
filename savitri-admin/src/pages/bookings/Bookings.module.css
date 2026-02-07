@@ -1,0 +1,327 @@
+/* Bookings Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 200px;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: var(--transition-all);
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+}
+
+.filterSelect {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.filterDate {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+/* Table Card */
+.tableCard {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: var(--bg-secondary);
+}
+
+.table th {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-color);
+}
+
+.table tbody tr {
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.bookingNumber {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-600);
+}
+
+.customerName {
+  font-weight: var(--font-weight-medium);
+}
+
+.amount {
+  font-weight: var(--font-weight-semibold);
+}
+
+.badges {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+/* Pagination Wrapper */
+.paginationWrapper {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Empty */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  min-height: 300px;
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.empty p {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--text-tertiary);
+}
+
+/* Loading & Error */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  min-height: 300px;
+  padding: var(--spacing-8);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.error p {
+  margin: 0;
+  color: var(--color-error-600, #dc2626);
+}
+
+/* Create Booking Modal */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+}
+
+/* Boat Selection */
+.boatSelection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.boatSelectionLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.boatSelectionLabel .required {
+  color: var(--color-error-600, #dc2626);
+}
+
+.boatCount {
+  font-weight: var(--font-weight-normal);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.boatList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2);
+}
+
+.boatListLoading,
+.boatListEmpty {
+  padding: var(--spacing-4);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.boatItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-all);
+  border: 1px solid transparent;
+}
+
+.boatItem:hover {
+  background-color: var(--bg-secondary);
+}
+
+.boatItemSelected {
+  background-color: rgba(8, 145, 178, 0.06);
+  border-color: var(--color-primary-600);
+}
+
+.boatCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary-600);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.boatInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.boatName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.boatMeta {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .searchInput {
+    min-width: 100%;
+  }
+
+  .filterSelect,
+  .filterDate {
+    width: 100%;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}

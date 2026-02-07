@@ -55,6 +55,21 @@ export const API_ENDPOINTS = {
     UPDATE: (id) => `/profile/vehicles/${id}`,
     DELETE: (id) => `/profile/vehicles/${id}`,
   },
+
+  // Bookings (Public)
+  BOOKINGS: {
+    BOATS: '/bookings/boats',
+    BOAT_BY_ID: (id) => `/bookings/boats/${id}`,
+    PARTY_BOATS: '/bookings/party-boats',
+    PARTY_BOAT_BY_ID: (id) => `/bookings/party-boats/${id}`,
+    CALENDAR_STATUS: '/bookings/calendar-status',
+    CHECK_AVAILABILITY: '/bookings/check-availability',
+    CALCULATE_PRICE: '/bookings/calculate-price',
+    AVAILABLE_SLOTS: '/bookings/available-slots',
+    CREATE: '/bookings/create',
+    MY_BOOKINGS: '/bookings/my-bookings',
+    CANCEL: (id) => `/bookings/${id}/cancel`,
+  },
 };
 
 // App Config
@@ -151,6 +166,8 @@ export const ROUTES = {
   PRIVACY: "/privacy",
   REFUND: "/refund",
   CONTACT: "/contact",
+  BOATS: "/boats",
+  BOOK: "/book",
 };
 
 // Protected Routes (require authentication)

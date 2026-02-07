@@ -84,6 +84,12 @@ const MobileMenu = () => {
           <Link href="/" className={styles.navLink}>
             Home
           </Link>
+          <Link href="/speed-boats" className={styles.navLink}>
+            Speed Boats
+          </Link>
+          <Link href="/party-boats" className={styles.navLink}>
+            Party Boats
+          </Link>
           <Link href="/about" className={styles.navLink}>
             About
           </Link>
@@ -96,9 +102,6 @@ const MobileMenu = () => {
               <div className={styles.divider} />
               <Link href="/account/profile" className={styles.navLink}>
                 My Account
-              </Link>
-              <Link href="/account/vehicles" className={styles.navLink}>
-                My Vehicles
               </Link>
               <Link href="/account/bookings" className={styles.navLink}>
                 My Bookings

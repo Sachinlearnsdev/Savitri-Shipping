@@ -51,6 +51,38 @@ export const API_ENDPOINTS = {
   SETTINGS: '/admin/settings',
   SETTINGS_BY_GROUP: (group) => `/admin/settings/${group}`,
   SETTINGS_UPLOAD_LOGO: '/admin/settings/logo',
+
+  // Speed Boats
+  SPEED_BOATS: '/admin/speed-boats',
+  SPEED_BOAT_BY_ID: (id) => `/admin/speed-boats/${id}`,
+  SPEED_BOAT_IMAGES: (id) => `/admin/speed-boats/${id}/images`,
+
+  // Party Boats
+  PARTY_BOATS: '/admin/party-boats',
+  PARTY_BOAT_BY_ID: (id) => `/admin/party-boats/${id}`,
+  PARTY_BOAT_IMAGES: (id) => `/admin/party-boats/${id}/images`,
+
+  // Operating Calendar
+  CALENDAR: '/admin/calendar',
+  CALENDAR_BULK: '/admin/calendar/bulk',
+
+  // Pricing Rules
+  PRICING_RULES: '/admin/pricing-rules',
+  PRICING_RULE_BY_ID: (id) => `/admin/pricing-rules/${id}`,
+
+  // Bookings (Admin - Speed Boats)
+  BOOKINGS: '/admin/bookings',
+  BOOKING_BY_ID: (id) => `/admin/bookings/${id}`,
+  BOOKING_STATUS: (id) => `/admin/bookings/${id}/status`,
+  BOOKING_PAYMENT: (id) => `/admin/bookings/${id}/payment`,
+  BOOKING_CANCEL: (id) => `/admin/bookings/${id}/cancel`,
+
+  // Party Bookings (Admin)
+  PARTY_BOOKINGS: '/admin/party-bookings',
+  PARTY_BOOKING_BY_ID: (id) => `/admin/party-bookings/${id}`,
+  PARTY_BOOKING_STATUS: (id) => `/admin/party-bookings/${id}/status`,
+  PARTY_BOOKING_PAYMENT: (id) => `/admin/party-bookings/${id}/payment`,
+  PARTY_BOOKING_CANCEL: (id) => `/admin/party-bookings/${id}/cancel`,
 };
 
 // ==================== USER STATUS ====================
@@ -75,6 +107,52 @@ export const USER_STATUS_COLORS = {
   [USER_STATUS.LOCKED]: 'error',
   [USER_STATUS.DELETED]: 'error',
 };
+
+// ==================== BOAT STATUS ====================
+
+export const BOAT_STATUS = { ACTIVE: 'ACTIVE', INACTIVE: 'INACTIVE', MAINTENANCE: 'MAINTENANCE' };
+export const BOAT_STATUS_LABELS = { ACTIVE: 'Active', INACTIVE: 'Inactive', MAINTENANCE: 'Maintenance' };
+export const BOAT_STATUS_COLORS = { ACTIVE: 'success', INACTIVE: 'warning', MAINTENANCE: 'error' };
+
+// ==================== PARTY BOAT ENUMS ====================
+
+export const LOCATION_TYPE = { HARBOR: 'HARBOR', CRUISE: 'CRUISE' };
+export const LOCATION_TYPE_LABELS = { HARBOR: 'Harbor (Docked)', CRUISE: 'Cruise (Sailing)' };
+
+export const TIME_SLOT = { MORNING: 'MORNING', AFTERNOON: 'AFTERNOON', EVENING: 'EVENING', FULL_DAY: 'FULL_DAY' };
+export const TIME_SLOT_LABELS = { MORNING: 'Morning', AFTERNOON: 'Afternoon', EVENING: 'Evening', FULL_DAY: 'Full Day' };
+
+export const EVENT_TYPE = { WEDDING: 'WEDDING', BIRTHDAY: 'BIRTHDAY', CORPORATE: 'CORPORATE', COLLEGE_FAREWELL: 'COLLEGE_FAREWELL', OTHER: 'OTHER' };
+export const EVENT_TYPE_LABELS = { WEDDING: 'Wedding', BIRTHDAY: 'Birthday', CORPORATE: 'Corporate', COLLEGE_FAREWELL: 'College Farewell', OTHER: 'Other' };
+
+export const ADD_ON_TYPE = { CATERING_VEG: 'CATERING_VEG', CATERING_NONVEG: 'CATERING_NONVEG', LIVE_BAND: 'LIVE_BAND', PHOTOGRAPHER: 'PHOTOGRAPHER', DECORATION_STANDARD: 'DECORATION_STANDARD' };
+export const ADD_ON_TYPE_LABELS = { CATERING_VEG: 'Veg Catering', CATERING_NONVEG: 'Non-Veg Catering', LIVE_BAND: 'Live Band', PHOTOGRAPHER: 'Photographer', DECORATION_STANDARD: 'Standard Decoration' };
+
+export const PRICE_TYPE = { FIXED: 'FIXED', PER_PERSON: 'PER_PERSON' };
+export const PRICE_TYPE_LABELS = { FIXED: 'Fixed Price', PER_PERSON: 'Per Person' };
+
+// ==================== BOOKING STATUS ====================
+
+export const BOOKING_STATUS = { PENDING: 'PENDING', CONFIRMED: 'CONFIRMED', COMPLETED: 'COMPLETED', CANCELLED: 'CANCELLED', NO_SHOW: 'NO_SHOW' };
+export const BOOKING_STATUS_LABELS = { PENDING: 'Pending', CONFIRMED: 'Confirmed', COMPLETED: 'Completed', CANCELLED: 'Cancelled', NO_SHOW: 'No Show' };
+export const BOOKING_STATUS_COLORS = { PENDING: 'warning', CONFIRMED: 'success', COMPLETED: 'success', CANCELLED: 'error', NO_SHOW: 'error' };
+
+// ==================== PAYMENT STATUS ====================
+
+export const PAYMENT_STATUS = { PENDING: 'PENDING', PAID: 'PAID', PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED', REFUNDED: 'REFUNDED' };
+export const PAYMENT_STATUS_LABELS = { PENDING: 'Pending', PAID: 'Paid', PARTIALLY_REFUNDED: 'Partial Refund', REFUNDED: 'Refunded' };
+export const PAYMENT_STATUS_COLORS = { PENDING: 'warning', PAID: 'success', PARTIALLY_REFUNDED: 'warning', REFUNDED: 'error' };
+
+// ==================== PAYMENT MODE ====================
+
+export const PAYMENT_MODE = { ONLINE: 'ONLINE', AT_VENUE: 'AT_VENUE' };
+export const PAYMENT_MODE_LABELS = { ONLINE: 'Online', AT_VENUE: 'At Venue' };
+
+// ==================== CALENDAR STATUS ====================
+
+export const CALENDAR_STATUS = { OPEN: 'OPEN', CLOSED: 'CLOSED' };
+export const CALENDAR_STATUS_LABELS = { OPEN: 'Open', CLOSED: 'Closed' };
+export const CLOSE_REASONS = { TIDE: 'Tide', WEATHER: 'Weather', MAINTENANCE: 'Maintenance', HOLIDAY: 'Holiday', OTHER: 'Other' };
 
 // ==================== ROLES ====================
 
@@ -184,14 +262,14 @@ export const MENU_ITEMS = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: '📊',
+    icon: 'dashboard',
     path: '/dashboard',
     permission: 'dashboard.view',
   },
   {
     id: 'users',
     label: 'Users',
-    icon: '👥',
+    icon: 'users',
     permission: 'adminUsers.view',
     children: [
       {
@@ -215,9 +293,31 @@ export const MENU_ITEMS = [
     ],
   },
   {
+    id: 'boats',
+    label: 'Boats',
+    icon: 'boats',
+    permission: 'speedBoats.view',
+    children: [
+      { id: 'speed-boats', label: 'Speed Boats', path: '/speed-boats', permission: 'speedBoats.view' },
+      { id: 'party-boats', label: 'Party Boats', path: '/party-boats', permission: 'partyBoats.view' },
+      { id: 'boats-calendar', label: 'Calendar', path: '/speed-boats/calendar', permission: 'calendar.view' },
+      { id: 'boats-pricing', label: 'Pricing Rules', path: '/speed-boats/pricing', permission: 'pricingRules.view' },
+    ],
+  },
+  {
+    id: 'bookings',
+    label: 'Bookings',
+    icon: 'bookings',
+    permission: 'bookings.view',
+    children: [
+      { id: 'speed-bookings', label: 'Speed Boat Bookings', path: '/bookings', permission: 'bookings.view' },
+      { id: 'party-bookings', label: 'Party Boat Bookings', path: '/party-bookings', permission: 'bookings.view' },
+    ],
+  },
+  {
     id: 'settings',
     label: 'Settings',
-    icon: '⚙️',
+    icon: 'settings',
     permission: 'settings.view',
     children: [
       {
@@ -253,6 +353,45 @@ export const MENU_ITEMS = [
     ],
   },
 ];
+
+// ==================== ROUTE TITLES (for breadcrumbs) ====================
+
+export const ROUTE_TITLES = {
+  '/dashboard': 'Dashboard',
+  '/users/admins': 'Admin Users',
+  '/users/roles': 'Roles',
+  '/users/customers': 'Customers',
+  '/speed-boats': 'Speed Boats',
+  '/speed-boats/calendar': 'Calendar',
+  '/speed-boats/pricing': 'Pricing Rules',
+  '/party-boats': 'Party Boats',
+  '/bookings': 'Speed Boat Bookings',
+  '/party-bookings': 'Party Boat Bookings',
+  '/settings/general': 'General',
+  '/settings/billing': 'Billing',
+  '/settings/booking': 'Booking',
+  '/settings/notifications': 'Notifications',
+  '/settings/content': 'Content',
+  '/profile': 'Profile',
+};
+
+// Parent labels for breadcrumbs
+export const ROUTE_PARENTS = {
+  '/users/admins': { label: 'Users', path: '/users/admins' },
+  '/users/roles': { label: 'Users', path: '/users/admins' },
+  '/users/customers': { label: 'Users', path: '/users/customers' },
+  '/speed-boats': { label: 'Boats', path: '/speed-boats' },
+  '/speed-boats/calendar': { label: 'Boats', path: '/speed-boats' },
+  '/speed-boats/pricing': { label: 'Boats', path: '/speed-boats' },
+  '/party-boats': { label: 'Boats', path: '/speed-boats' },
+  '/bookings': { label: 'Bookings', path: '/bookings' },
+  '/party-bookings': { label: 'Bookings', path: '/bookings' },
+  '/settings/general': { label: 'Settings', path: '/settings/general' },
+  '/settings/billing': { label: 'Settings', path: '/settings/general' },
+  '/settings/booking': { label: 'Settings', path: '/settings/general' },
+  '/settings/notifications': { label: 'Settings', path: '/settings/general' },
+  '/settings/content': { label: 'Settings', path: '/settings/general' },
+};
 
 // ==================== LOCAL STORAGE KEYS ====================
 
