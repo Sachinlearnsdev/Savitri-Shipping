@@ -1,8 +1,9 @@
-const { PartyBoatBooking, PartyBoat, Customer } = require('../../models');
+const { PartyBoatBooking, PartyBoat, Customer, Coupon } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 const { paginate, calculateGST, hashPassword } = require('../../utils/helpers');
 const { PARTY_CANCELLATION_POLICY, GST } = require('../../config/constants');
+const { sendBookingConfirmation, sendBookingCancellation } = require('../../utils/email');
 
 class PartyBookingsService {
   /**
@@ -178,6 +179,20 @@ class PartyBookingsService {
       pricing.finalAmount = data.adminOverrideAmount;
     }
 
+    // Apply coupon if provided
+    if (data.couponCode) {
+      const bookingsService = require('../bookings/bookings.service');
+      const couponResult = await bookingsService.validateCoupon(data.couponCode, pricing.totalAmount, 'PARTY_BOAT');
+      pricing.discountAmount = couponResult.discount.discountAmount;
+      pricing.coupon = {
+        code: couponResult.coupon.code,
+        discountType: couponResult.discount.type,
+        discountValue: couponResult.discount.value,
+        discountAmount: couponResult.discount.discountAmount,
+      };
+      pricing.finalAmount = pricing.totalAmount - pricing.discountAmount;
+    }
+
     // 9. Generate booking number
     const bookingNumber = await this._generateBookingNumber();
 
@@ -201,6 +216,36 @@ class PartyBookingsService {
       createdById: adminUserId,
       createdByModel: 'AdminUser',
     });
+
+    // Increment coupon usage if coupon was applied
+    if (data.couponCode) {
+      await Coupon.updateOne({ code: data.couponCode.toUpperCase() }, { $inc: { usageCount: 1 } });
+    }
+
+    // Send booking confirmation email (fire-and-forget)
+    try {
+      const customer = await Customer.findById(customerId).lean();
+      if (customer && customer.email) {
+        const formattedDate = bookingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        sendBookingConfirmation(customer.email, {
+          name: customer.name || 'Customer',
+          bookingNumber,
+          boatName: boat.name || 'Party Boat',
+          date: formattedDate,
+          time: data.timeSlot,
+          duration: '',
+          bookingType: 'Party Boat',
+          subtotal: `\u20B9${pricing.subtotal.toLocaleString('en-IN')}`,
+          gst: `\u20B9${pricing.gstAmount.toLocaleString('en-IN')}`,
+          discount: pricing.discountAmount ? `\u20B9${pricing.discountAmount.toLocaleString('en-IN')}` : '',
+          total: `\u20B9${pricing.finalAmount.toLocaleString('en-IN')}`,
+          paymentMode: data.paymentMode,
+          cancellationPolicy: '7d+ = 100% refund, 3-7d = 50% refund, <3d = No refund',
+        }).catch(() => {});
+      }
+    } catch (emailErr) {
+      // Email failure should not fail the booking
+    }
 
     return this.getById(booking._id);
   }
@@ -362,6 +407,27 @@ class PartyBookingsService {
     }
 
     await booking.save();
+
+    // Send cancellation email (fire-and-forget)
+    try {
+      const customer = await Customer.findById(booking.customerId).lean();
+      const boat = await PartyBoat.findById(booking.boatId).lean();
+      if (customer && customer.email) {
+        const formattedDate = new Date(booking.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        sendBookingCancellation(customer.email, {
+          name: customer.name || 'Customer',
+          bookingNumber: booking.bookingNumber,
+          boatName: (boat && boat.name) || 'Party Boat',
+          date: formattedDate,
+          refundAmount: `\u20B9${Math.round(refundAmount).toLocaleString('en-IN')}`,
+          refundPercent: `${refundPercent}%`,
+          cancellationReason: reason || 'Not specified',
+        }).catch(() => {});
+      }
+    } catch (emailErr) {
+      // Email failure should not fail the cancellation
+    }
+
     return formatDocument(booking.toObject());
   }
 }

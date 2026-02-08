@@ -9,6 +9,7 @@
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import useUIStore from "../store/uiStore";
+import useNotificationStore from "../store/notificationStore";
 import api from "../services/api";
 import { API_ENDPOINTS } from "../utils/constants";
 
@@ -136,6 +137,7 @@ const useAuth = () => {
     } finally {
       // Clear auth state
       authStore.logout();
+      useNotificationStore.getState().resetCounts();
 
       showSuccess("Logged out successfully");
 

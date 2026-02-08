@@ -60,6 +60,14 @@ module.exports = {
     PHONE_REGEX: /^[6-9]\d{9}$/,
   },
 
+  // Gender
+  GENDER: {
+    MALE: 'MALE',
+    FEMALE: 'FEMALE',
+    OTHER: 'OTHER',
+    PREFER_NOT_TO_SAY: 'PREFER_NOT_TO_SAY',
+  },
+
   // Roles
   ROLES: {
     ADMIN: 'Admin',
@@ -159,6 +167,7 @@ module.exports = {
   // Operating Calendar Status
   CALENDAR_STATUS: {
     OPEN: 'OPEN',
+    PARTIAL_CLOSED: 'PARTIAL_CLOSED',
     CLOSED: 'CLOSED',
   },
 
@@ -225,6 +234,19 @@ module.exports = {
   CREATED_BY_TYPE: {
     CUSTOMER: 'CUSTOMER',
     ADMIN: 'ADMIN',
+  },
+
+  // Coupon Discount Types
+  DISCOUNT_TYPE: {
+    PERCENTAGE: 'PERCENTAGE',
+    FIXED: 'FIXED',
+  },
+
+  // Coupon Applicable To
+  COUPON_APPLICABLE_TO: {
+    ALL: 'ALL',
+    SPEED_BOAT: 'SPEED_BOAT',
+    PARTY_BOAT: 'PARTY_BOAT',
   },
 
   // HTTP Status Codes

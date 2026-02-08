@@ -1,116 +1,29 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { api } from '@/services/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 import styles from './page.module.css';
 
-const PARTY_BOATS = [
-  {
-    id: 'pb-1',
-    name: 'Royal Celebration',
-    capacityMin: 50,
-    capacityMax: 100,
-    basePrice: 50000,
-    locationOptions: ['HARBOR', 'CRUISE'],
-    djIncluded: true,
-    eventTypes: ['Wedding', 'Birthday', 'Corporate', 'College Farewell', 'Other'],
-    timeSlots: [
-      { id: 'morning', label: 'Morning', time: '6:00 AM - 12:00 PM', price: 50000 },
-      { id: 'afternoon', label: 'Afternoon', time: '12:00 PM - 6:00 PM', price: 55000 },
-      { id: 'evening', label: 'Evening', time: '6:00 PM - 12:00 AM', price: 65000 },
-      { id: 'fullday', label: 'Full Day', time: '6:00 AM - 12:00 AM', price: 120000 },
-    ],
-    addOns: [
-      { id: 'catering-veg', name: 'Vegetarian Catering', price: 400, priceType: 'PER_PERSON', description: 'Full course veg meal with starters, main course, and desserts' },
-      { id: 'catering-nonveg', name: 'Non-Vegetarian Catering', price: 600, priceType: 'PER_PERSON', description: 'Full course non-veg meal with starters, main course, and desserts' },
-      { id: 'live-band', name: 'Live Band', price: 25000, priceType: 'FIXED', description: 'Professional 5-piece band for live music performance' },
-      { id: 'photographer', name: 'Photographer', price: 20000, priceType: 'FIXED', description: 'Professional photographer with edited photos delivered in 7 days' },
-      { id: 'decoration-standard', name: 'Standard Decoration', price: 15000, priceType: 'FIXED', description: 'Balloon and ribbon decoration with theme colors' },
-      { id: 'decoration-premium', name: 'Premium Decoration', price: 35000, priceType: 'FIXED', description: 'Flower decoration with lighting, drapes, and custom theme' },
-    ],
-    cancellationPolicy: { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 },
-    paymentTerms: { advancePercent: 50, remainderDueBeforeDays: 3 },
-  },
-  {
-    id: 'pb-2',
-    name: 'Paradise Cruiser',
-    capacityMin: 80,
-    capacityMax: 150,
-    basePrice: 75000,
-    locationOptions: ['CRUISE'],
-    djIncluded: true,
-    eventTypes: ['Wedding', 'Birthday', 'Corporate', 'Other'],
-    timeSlots: [
-      { id: 'morning', label: 'Morning', time: '6:00 AM - 12:00 PM', price: 75000 },
-      { id: 'afternoon', label: 'Afternoon', time: '12:00 PM - 6:00 PM', price: 80000 },
-      { id: 'evening', label: 'Evening', time: '6:00 PM - 12:00 AM', price: 95000 },
-      { id: 'fullday', label: 'Full Day', time: '6:00 AM - 12:00 AM', price: 180000 },
-    ],
-    addOns: [
-      { id: 'catering-veg', name: 'Vegetarian Catering', price: 400, priceType: 'PER_PERSON', description: 'Full course veg meal with starters, main course, and desserts' },
-      { id: 'catering-nonveg', name: 'Non-Vegetarian Catering', price: 600, priceType: 'PER_PERSON', description: 'Full course non-veg meal with starters, main course, and desserts' },
-      { id: 'live-band', name: 'Live Band', price: 25000, priceType: 'FIXED', description: 'Professional 5-piece band for live music performance' },
-      { id: 'photographer', name: 'Photographer', price: 20000, priceType: 'FIXED', description: 'Professional photographer with edited photos delivered in 7 days' },
-      { id: 'decoration-standard', name: 'Standard Decoration', price: 15000, priceType: 'FIXED', description: 'Balloon and ribbon decoration with theme colors' },
-      { id: 'decoration-premium', name: 'Premium Decoration', price: 40000, priceType: 'FIXED', description: 'Luxury flower decoration with lighting, drapes, and custom theme' },
-    ],
-    cancellationPolicy: { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 },
-    paymentTerms: { advancePercent: 50, remainderDueBeforeDays: 3 },
-  },
-  {
-    id: 'pb-3',
-    name: 'Star Night',
-    capacityMin: 30,
-    capacityMax: 60,
-    basePrice: 35000,
-    locationOptions: ['HARBOR'],
-    djIncluded: true,
-    eventTypes: ['Birthday', 'College Farewell', 'Corporate', 'Other'],
-    timeSlots: [
-      { id: 'morning', label: 'Morning', time: '6:00 AM - 12:00 PM', price: 35000 },
-      { id: 'afternoon', label: 'Afternoon', time: '12:00 PM - 6:00 PM', price: 38000 },
-      { id: 'evening', label: 'Evening', time: '6:00 PM - 12:00 AM', price: 45000 },
-      { id: 'fullday', label: 'Full Day', time: '6:00 AM - 12:00 AM', price: 75000 },
-    ],
-    addOns: [
-      { id: 'catering-veg', name: 'Vegetarian Catering', price: 400, priceType: 'PER_PERSON', description: 'Full course veg meal with starters, main course, and desserts' },
-      { id: 'catering-nonveg', name: 'Non-Vegetarian Catering', price: 600, priceType: 'PER_PERSON', description: 'Full course non-veg meal with starters, main course, and desserts' },
-      { id: 'live-band', name: 'Live Band', price: 25000, priceType: 'FIXED', description: 'Professional 5-piece band for live music performance' },
-      { id: 'photographer', name: 'Photographer', price: 15000, priceType: 'FIXED', description: 'Professional photographer with edited photos delivered in 7 days' },
-      { id: 'decoration-standard', name: 'Standard Decoration', price: 10000, priceType: 'FIXED', description: 'Balloon and ribbon decoration with theme colors' },
-    ],
-    cancellationPolicy: { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 },
-    paymentTerms: { advancePercent: 50, remainderDueBeforeDays: 3 },
-  },
-  {
-    id: 'pb-4',
-    name: 'Grand Voyager',
-    capacityMin: 100,
-    capacityMax: 200,
-    basePrice: 100000,
-    locationOptions: ['HARBOR', 'CRUISE'],
-    djIncluded: true,
-    eventTypes: ['Wedding', 'Birthday', 'Corporate', 'College Farewell', 'Other'],
-    timeSlots: [
-      { id: 'morning', label: 'Morning', time: '6:00 AM - 12:00 PM', price: 100000 },
-      { id: 'afternoon', label: 'Afternoon', time: '12:00 PM - 6:00 PM', price: 110000 },
-      { id: 'evening', label: 'Evening', time: '6:00 PM - 12:00 AM', price: 130000 },
-      { id: 'fullday', label: 'Full Day', time: '6:00 AM - 12:00 AM', price: 250000 },
-    ],
-    addOns: [
-      { id: 'catering-veg', name: 'Vegetarian Catering', price: 400, priceType: 'PER_PERSON', description: 'Full course veg meal with starters, main course, and desserts' },
-      { id: 'catering-nonveg', name: 'Non-Vegetarian Catering', price: 600, priceType: 'PER_PERSON', description: 'Full course non-veg meal with starters, main course, and desserts' },
-      { id: 'live-band', name: 'Live Band', price: 30000, priceType: 'FIXED', description: 'Professional 7-piece band with vocalist for live music performance' },
-      { id: 'photographer', name: 'Photographer + Videographer', price: 35000, priceType: 'FIXED', description: 'Professional photo + video coverage with edited deliverables' },
-      { id: 'decoration-standard', name: 'Standard Decoration', price: 20000, priceType: 'FIXED', description: 'Balloon and ribbon decoration with theme colors' },
-      { id: 'decoration-premium', name: 'Premium Decoration', price: 50000, priceType: 'FIXED', description: 'Grand flower decoration with lighting, drapes, stage, and custom theme' },
-    ],
-    cancellationPolicy: { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 },
-    paymentTerms: { advancePercent: 50, remainderDueBeforeDays: 3 },
-  },
-];
+// ==================== CONSTANTS ====================
+
+const TIME_SLOT_CONFIG = {
+  MORNING: { label: 'Morning', time: '6:00 AM - 12:00 PM' },
+  AFTERNOON: { label: 'Afternoon', time: '12:00 PM - 6:00 PM' },
+  EVENING: { label: 'Evening', time: '6:00 PM - 12:00 AM' },
+  FULL_DAY: { label: 'Full Day', time: '6:00 AM - 12:00 AM' },
+};
+
+const EVENT_TYPE_LABELS = {
+  WEDDING: 'Wedding',
+  BIRTHDAY: 'Birthday',
+  CORPORATE: 'Corporate',
+  COLLEGE_FAREWELL: 'College Farewell',
+  OTHER: 'Other',
+};
 
 const LOCATION_DESCRIPTIONS = {
   HARBOR: 'Docked at harbor with city views',
@@ -130,6 +43,12 @@ const STEPS = [
   { id: 5, label: 'Your Details' },
   { id: 6, label: 'Review' },
 ];
+
+// Default policies (standard across all party boats)
+const DEFAULT_CANCELLATION_POLICY = { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 };
+const DEFAULT_PAYMENT_TERMS = { advancePercent: 50, remainderDueBeforeDays: 3 };
+
+// ==================== HELPERS ====================
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-IN', {
@@ -151,12 +70,18 @@ const formatDate = (dateStr) => {
   });
 };
 
+// ==================== COMPONENT ====================
+
 export default function PartyBoatBookPage() {
   const params = useParams();
-  const boat = PARTY_BOATS.find((b) => b.id === params.id);
   const { isAuthenticated, user } = useAuthStore();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // API state
+  const [boat, setBoat] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -176,7 +101,7 @@ export default function PartyBoatBookPage() {
     const addOnsParam = searchParams.get('addOns');
     if (!addOnsParam) return {};
     const obj = {};
-    addOnsParam.split(',').forEach(id => { obj[id] = true; });
+    addOnsParam.split(',').forEach(key => { obj[key] = true; });
     return obj;
   });
 
@@ -186,25 +111,103 @@ export default function PartyBoatBookPage() {
   const [customerPhone, setCustomerPhone] = useState(isAuthenticated && user?.phone ? user.phone : '');
   const [specialRequests, setSpecialRequests] = useState('');
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState(() => searchParams.get('couponCode') || '');
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
   // Date constraints
   const today = new Date();
   const minDate = today.toISOString().split('T')[0];
   const maxDate = new Date(today.getTime() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+  // Fetch boat data on mount
+  useEffect(() => {
+    const fetchBoat = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await api.get(API_ENDPOINTS.BOOKINGS.PARTY_BOAT_BY_ID(params.id));
+
+        if (response.success && response.data) {
+          setBoat(response.data);
+        } else {
+          setError('Party boat not found');
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to load boat details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchBoat();
+    }
+  }, [params.id]);
+
+  // Derive cancellation policy and payment terms from boat or use defaults
+  const cancellationPolicy = boat?.cancellationPolicy || DEFAULT_CANCELLATION_POLICY;
+  const paymentTerms = boat?.paymentTerms || DEFAULT_PAYMENT_TERMS;
+
+  // Build time slots from API data
+  const timeSlots = useMemo(() => {
+    if (!boat || !boat.timeSlots) return [];
+    return boat.timeSlots.map((slotKey) => {
+      const config = TIME_SLOT_CONFIG[slotKey];
+      if (!config) return null;
+      return {
+        id: slotKey,
+        label: config.label,
+        time: config.time,
+        price: boat.basePrice,
+      };
+    }).filter(Boolean);
+  }, [boat]);
+
+  // Build add-ons list from API data
+  const addOns = useMemo(() => {
+    if (!boat || !boat.addOns) return [];
+    return boat.addOns.map((addOn) => ({
+      id: addOn.type,
+      name: addOn.label,
+      price: addOn.price,
+      priceType: addOn.priceType,
+      description: addOn.description || '',
+    }));
+  }, [boat]);
+
+  // Build event types from API data
+  const eventTypes = useMemo(() => {
+    if (!boat || !boat.eventTypes) return [];
+    return boat.eventTypes.map((type) => ({
+      value: type,
+      label: EVENT_TYPE_LABELS[type] || type,
+    }));
+  }, [boat]);
+
+  // Build location options from API data
+  const locationOptions = useMemo(() => {
+    if (!boat || !boat.locationOptions) return [];
+    return boat.locationOptions;
+  }, [boat]);
+
   // Price calculation
   const priceBreakdown = useMemo(() => {
     if (!boat) return null;
 
-    const timeSlot = boat.timeSlots.find((s) => s.id === selectedTimeSlot);
+    const timeSlot = timeSlots.find((s) => s.id === selectedTimeSlot);
     const slotPrice = timeSlot ? timeSlot.price : 0;
     const guests = parseInt(guestCount) || 0;
 
     let addOnsTotal = 0;
     const addOnItems = [];
 
-    Object.keys(selectedAddOns).forEach((addOnId) => {
-      if (!selectedAddOns[addOnId]) return;
-      const addOn = boat.addOns.find((a) => a.id === addOnId);
+    Object.keys(selectedAddOns).forEach((addOnKey) => {
+      if (!selectedAddOns[addOnKey]) return;
+      const addOn = addOns.find((a) => a.id === addOnKey);
       if (!addOn) return;
 
       let itemTotal = 0;
@@ -227,9 +230,11 @@ export default function PartyBoatBookPage() {
     });
 
     const subtotal = slotPrice + addOnsTotal;
-    const gst = Math.round(subtotal * 0.18);
-    const total = subtotal + gst;
-    const advance = Math.round(total * (boat.paymentTerms.advancePercent / 100));
+    const discount = couponApplied ? couponApplied.discount : 0;
+    const discountedSubtotal = Math.max(0, subtotal - discount);
+    const gst = Math.round(discountedSubtotal * 0.18);
+    const total = discountedSubtotal + gst;
+    const advance = Math.round(total * (paymentTerms.advancePercent / 100));
     const remainder = total - advance;
 
     return {
@@ -237,20 +242,75 @@ export default function PartyBoatBookPage() {
       addOnItems,
       addOnsTotal,
       subtotal,
+      discount,
+      discountedSubtotal,
       gst,
       total,
       advance,
       remainder,
     };
-  }, [boat, selectedTimeSlot, selectedAddOns, guestCount]);
+  }, [boat, timeSlots, addOns, selectedTimeSlot, selectedAddOns, guestCount, paymentTerms, couponApplied]);
 
-  if (!boat) {
+  // Coupon handlers
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || couponLoading) return;
+
+    try {
+      setCouponLoading(true);
+      setCouponError('');
+      setCouponApplied(null);
+
+      const orderAmount = priceBreakdown ? priceBreakdown.subtotal : 0;
+
+      const response = await api.post(API_ENDPOINTS.BOOKINGS.APPLY_COUPON, {
+        code: couponCode.trim().toUpperCase(),
+        orderAmount,
+        bookingType: 'PARTY_BOAT',
+      });
+
+      if (response.success && response.data) {
+        setCouponApplied(response.data);
+        setCouponError('');
+      } else {
+        setCouponError(response.message || 'Invalid coupon code');
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Failed to apply coupon');
+      setCouponApplied(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.notFound}>
+            <p>Loading booking details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error / not found
+  if (error || !boat) {
     return (
       <div className={styles.page}>
         <div className={styles.container}>
           <div className={styles.notFound}>
             <h1 className={styles.notFoundTitle}>Boat Not Found</h1>
-            <p className={styles.notFoundText}>The party boat you are looking for does not exist.</p>
+            <p className={styles.notFoundText}>
+              {error || 'The party boat you are looking for does not exist.'}
+            </p>
             <Link href="/party-boats" className={styles.backLink}>Back to Party Boats</Link>
           </div>
         </div>
@@ -258,10 +318,10 @@ export default function PartyBoatBookPage() {
     );
   }
 
-  const handleAddOnToggle = (addOnId) => {
+  const handleAddOnToggle = (addOnKey) => {
     setSelectedAddOns((prev) => ({
       ...prev,
-      [addOnId]: !prev[addOnId],
+      [addOnKey]: !prev[addOnKey],
     }));
   };
 
@@ -300,6 +360,8 @@ export default function PartyBoatBookPage() {
     }
   };
 
+  const selectedSlotData = timeSlots.find((s) => s.id === selectedTimeSlot);
+
   const handleConfirmBooking = () => {
     const confirmParams = new URLSearchParams();
     confirmParams.set('boat', boat.name);
@@ -319,15 +381,16 @@ export default function PartyBoatBookPage() {
     confirmParams.set('remainder', priceBreakdown?.remainder || 0);
     confirmParams.set('addOnsTotal', priceBreakdown?.addOnsTotal || 0);
     confirmParams.set('capacity', `${boat.capacityMin}-${boat.capacityMax}`);
+    if (priceBreakdown?.discount > 0) confirmParams.set('discount', priceBreakdown.discount);
+    if (couponApplied) confirmParams.set('couponCode', couponApplied.code || couponCode);
     if (specialRequests) confirmParams.set('requests', specialRequests);
-    router.push(`/party-boats/${params.id}/book/confirmation?${confirmParams.toString()}`);
+    const boatId = boat.id || boat._id;
+    router.push(`/party-boats/${boatId}/book/confirmation?${confirmParams.toString()}`);
   };
 
   const handleRequestQuote = () => {
     alert('Your custom quote request has been submitted! Our team will contact you within 24 hours.');
   };
-
-  const selectedSlotData = boat.timeSlots.find((s) => s.id === selectedTimeSlot);
 
   return (
     <div className={styles.page}>
@@ -398,8 +461,8 @@ export default function PartyBoatBookPage() {
                       onChange={(e) => setEventType(e.target.value)}
                     >
                       <option value="">Select event type</option>
-                      {boat.eventTypes.map((type) => (
-                        <option key={type} value={type}>{type}</option>
+                      {eventTypes.map((type) => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
                       ))}
                     </select>
                   </div>
@@ -478,7 +541,7 @@ export default function PartyBoatBookPage() {
                 </div>
                 <div className={styles.stepCardContent}>
                   <div className={styles.timeSlotGrid}>
-                    {boat.timeSlots.map((slot) => (
+                    {timeSlots.map((slot) => (
                       <label
                         key={slot.id}
                         className={`${styles.timeSlotOption} ${selectedTimeSlot === slot.id ? styles.timeSlotActive : ''}`}
@@ -512,7 +575,7 @@ export default function PartyBoatBookPage() {
                 </div>
                 <div className={styles.stepCardContent}>
                   <div className={styles.locationGrid}>
-                    {boat.locationOptions.map((loc) => (
+                    {locationOptions.map((loc) => (
                       <label
                         key={loc}
                         className={`${styles.locationOption} ${selectedLocation === loc ? styles.locationActive : ''}`}
@@ -536,8 +599,8 @@ export default function PartyBoatBookPage() {
                       </label>
                     ))}
                   </div>
-                  {boat.locationOptions.length === 1 && (
-                    <p className={styles.hint}>This boat is only available at {LOCATION_LABELS[boat.locationOptions[0]]}.</p>
+                  {locationOptions.length === 1 && (
+                    <p className={styles.hint}>This boat is only available at {LOCATION_LABELS[locationOptions[0]]}.</p>
                   )}
                 </div>
               </div>
@@ -553,7 +616,7 @@ export default function PartyBoatBookPage() {
                 <div className={styles.stepCardContent}>
                   <p className={styles.addOnHint}>Enhance your event with these optional add-ons</p>
                   <div className={styles.addOnsList}>
-                    {boat.addOns.map((addOn) => {
+                    {addOns.map((addOn) => {
                       const isSelected = !!selectedAddOns[addOn.id];
                       const guests = parseInt(guestCount) || boat.capacityMin;
                       return (
@@ -579,7 +642,7 @@ export default function PartyBoatBookPage() {
                                 }
                               </span>
                             </div>
-                            <p className={styles.addOnDesc}>{addOn.description}</p>
+                            {addOn.description && <p className={styles.addOnDesc}>{addOn.description}</p>}
                             {isSelected && addOn.priceType === 'PER_PERSON' && (
                               <p className={styles.addOnCalc}>
                                 {formatCurrency(addOn.price)} x {guests} guests = {formatCurrency(addOn.price * guests)}
@@ -633,24 +696,33 @@ export default function PartyBoatBookPage() {
                       <input
                         type="email"
                         id="email"
-                        className={styles.input}
+                        className={`${styles.input} ${customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail) ? styles.inputError : ''}`}
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder="you@example.com"
                         disabled={isAuthenticated && !!user?.email}
                       />
+                      {customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail) && (
+                        <span className={styles.fieldError}>Please enter a valid email</span>
+                      )}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label} htmlFor="phone">Phone Number</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        className={styles.input}
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="98765 43210"
-                        maxLength={10}
-                      />
+                      <div className={styles.phoneInputWrapper}>
+                        <span className={styles.phonePrefix}>+91</span>
+                        <input
+                          type="tel"
+                          id="phone"
+                          className={`${styles.input} ${styles.phoneInput} ${customerPhone && !/^\d{10}$/.test(customerPhone) ? styles.inputError : ''}`}
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          placeholder="98765 43210"
+                          maxLength={10}
+                        />
+                      </div>
+                      {customerPhone && !/^\d{10}$/.test(customerPhone) && (
+                        <span className={styles.fieldError}>Enter a valid 10-digit number</span>
+                      )}
                     </div>
                   </div>
 
@@ -688,7 +760,7 @@ export default function PartyBoatBookPage() {
                       </div>
                       <div className={styles.reviewItem}>
                         <span className={styles.reviewKey}>Event Type</span>
-                        <span className={styles.reviewValue}>{eventType}</span>
+                        <span className={styles.reviewValue}>{EVENT_TYPE_LABELS[eventType] || eventType}</span>
                       </div>
                       <div className={styles.reviewItem}>
                         <span className={styles.reviewKey}>Guests</span>
@@ -798,7 +870,7 @@ export default function PartyBoatBookPage() {
                 </div>
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Event</span>
-                  <span className={styles.summaryValue}>{eventType || 'Not selected'}</span>
+                  <span className={styles.summaryValue}>{eventType ? (EVENT_TYPE_LABELS[eventType] || eventType) : 'Not selected'}</span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Date</span>
@@ -808,6 +880,43 @@ export default function PartyBoatBookPage() {
                   <span className={styles.summaryLabel}>Guests</span>
                   <span className={styles.summaryValue}>{guestCount || 'Not selected'}</span>
                 </div>
+              </div>
+
+              {/* Coupon Section */}
+              <div className={styles.couponSection}>
+                <label className={styles.couponLabel}>Coupon Code</label>
+                <div className={styles.couponInputRow}>
+                  <input
+                    type="text"
+                    className={styles.couponInput}
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Enter code"
+                    disabled={!!couponApplied || couponLoading}
+                  />
+                  {couponApplied ? (
+                    <button className={styles.couponRemoveBtn} onClick={handleRemoveCoupon}>
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.couponApplyBtn}
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode.trim() || couponLoading}
+                    >
+                      {couponLoading ? 'Applying...' : 'Apply'}
+                    </button>
+                  )}
+                </div>
+                {couponError && <p className={styles.couponError}>{couponError}</p>}
+                {couponApplied && (
+                  <p className={styles.couponSuccess}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Coupon applied! You save {formatCurrency(couponApplied.discount)}
+                  </p>
+                )}
               </div>
 
               {/* Price Breakdown */}
@@ -838,6 +947,14 @@ export default function PartyBoatBookPage() {
                     <span>Subtotal</span>
                     <span>{formatCurrency(priceBreakdown.subtotal)}</span>
                   </div>
+
+                  {priceBreakdown.discount > 0 && (
+                    <div className={styles.priceRow} style={{ color: 'var(--color-success)' }}>
+                      <span>Coupon Discount</span>
+                      <span>-{formatCurrency(priceBreakdown.discount)}</span>
+                    </div>
+                  )}
+
                   <div className={styles.priceRow}>
                     <span>GST (18%)</span>
                     <span>{formatCurrency(priceBreakdown.gst)}</span>
@@ -859,11 +976,11 @@ export default function PartyBoatBookPage() {
               {priceBreakdown && priceBreakdown.total > 0 && (
                 <div className={styles.paymentTerms}>
                   <div className={styles.paymentRow}>
-                    <span>{boat.paymentTerms.advancePercent}% advance</span>
+                    <span>{paymentTerms.advancePercent}% advance</span>
                     <span className={styles.paymentAmount}>{formatCurrency(priceBreakdown.advance)}</span>
                   </div>
                   <div className={styles.paymentRow}>
-                    <span>Remainder due {boat.paymentTerms.remainderDueBeforeDays} days before</span>
+                    <span>Remainder due {paymentTerms.remainderDueBeforeDays} days before</span>
                     <span className={styles.paymentAmount}>{formatCurrency(priceBreakdown.remainder)}</span>
                   </div>
                 </div>
@@ -873,9 +990,9 @@ export default function PartyBoatBookPage() {
               <div className={styles.summaryCancellation}>
                 <h4 className={styles.cancellationTitle}>Cancellation Policy</h4>
                 <ul className={styles.cancellationList}>
-                  <li>{boat.cancellationPolicy.fullRefundDays}+ days: 100% refund</li>
-                  <li>{boat.cancellationPolicy.partialRefundDays}-{boat.cancellationPolicy.fullRefundDays} days: {boat.cancellationPolicy.partialPercent}% refund</li>
-                  <li>Less than {boat.cancellationPolicy.partialRefundDays} days: No refund</li>
+                  <li>{cancellationPolicy.fullRefundDays}+ days: 100% refund</li>
+                  <li>{cancellationPolicy.partialRefundDays}-{cancellationPolicy.fullRefundDays} days: {cancellationPolicy.partialPercent}% refund</li>
+                  <li>Less than {cancellationPolicy.partialRefundDays} days: No refund</li>
                 </ul>
               </div>
             </div>

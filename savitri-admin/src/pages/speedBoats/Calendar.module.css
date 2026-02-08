@@ -20,6 +20,24 @@
   color: var(--text-primary);
 }
 
+/* Weather Banner */
+.weatherBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: #92400e;
+}
+
+.weatherBannerIcon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
 /* Month Navigation */
 .monthNav {
   display: flex;
@@ -64,8 +82,9 @@
 .legend {
   display: flex;
   align-items: center;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .legendItem {
@@ -86,12 +105,33 @@
   background-color: #22c55e;
 }
 
+.legendDotPartial {
+  background-color: #f59e0b;
+}
+
 .legendDotClosed {
   background-color: #ef4444;
 }
 
 .legendDotPast {
   background-color: #d1d5db;
+}
+
+.legendDotSafe {
+  background-color: #22c55e;
+}
+
+.legendDotCaution {
+  background-color: #f59e0b;
+}
+
+.legendDotDangerous {
+  background-color: #ef4444;
+}
+
+.legendSeparator {
+  color: var(--border-color);
+  font-size: var(--font-size-sm);
 }
 
 /* Calendar Grid */
@@ -124,7 +164,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 70px;
+  min-height: 80px;
   padding: var(--spacing-2);
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -155,6 +195,26 @@
   margin-top: 2px;
 }
 
+/* Weather Indicator on day cells */
+.weatherIndicator {
+  font-size: 9px;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.weatherSafe {
+  color: #16a34a;
+}
+
+.weatherCaution {
+  color: #d97706;
+}
+
+.weatherDangerous {
+  color: #dc2626;
+  font-weight: var(--font-weight-semibold);
+}
+
 .dayOpen {
   background-color: #f0fdf4;
   border-color: #bbf7d0;
@@ -162,6 +222,16 @@
 
 .dayOpen .dayStatus {
   color: #16a34a;
+}
+
+/* Partial Day styles */
+.dayPartial {
+  background-color: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.dayPartial .dayStatus {
+  color: #d97706;
 }
 
 .dayClosed {
@@ -212,6 +282,43 @@
   color: var(--text-primary);
 }
 
+/* Modal Weather Section */
+.modalWeather {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.modalWeather dt {
+  color: var(--text-secondary);
+}
+
+.modalWeather dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.recommendationSafe {
+  color: #16a34a !important;
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+.recommendationCaution {
+  color: #d97706 !important;
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+.recommendationDangerous {
+  color: #dc2626 !important;
+  font-weight: var(--font-weight-semibold) !important;
+}
+
 .statusToggle {
   display: flex;
   gap: var(--spacing-3);
@@ -249,6 +356,92 @@
   font-size: var(--font-size-sm);
   outline: none;
   width: 100%;
+}
+
+/* Closed Slots Section in modal */
+.closedSlotsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.closedSlotsLabel {
+  display: block;
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.closedSlotRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.timeInput {
+  padding: var(--spacing-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+  width: 110px;
+}
+
+.timeInput:focus {
+  border-color: var(--color-primary-600);
+}
+
+.slotReasonSelect {
+  flex: 1;
+  min-width: 120px;
+  padding: var(--spacing-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.removeSlotBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: #fef2f2;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: var(--transition-all);
+  flex-shrink: 0;
+}
+
+.removeSlotBtn:hover {
+  background-color: #fee2e2;
+}
+
+.addSlotBtn {
+  align-self: flex-start;
+  padding: var(--spacing-1) var(--spacing-3);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-primary-600);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.addSlotBtn:hover {
+  border-color: var(--color-primary-600);
+  background-color: var(--color-primary-50, #f0f9ff);
 }
 
 .dayModalActions {
@@ -300,7 +493,6 @@
   }
 
   .legend {
-    flex-wrap: wrap;
     gap: var(--spacing-3);
   }
 
@@ -319,5 +511,18 @@
 
   .dayReason {
     display: none;
+  }
+
+  .weatherIndicator {
+    display: none;
+  }
+
+  .closedSlotRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeInput {
+    width: 100%;
   }
 }

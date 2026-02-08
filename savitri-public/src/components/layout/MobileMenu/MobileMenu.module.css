@@ -122,7 +122,9 @@
 }
 
 .navLink {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
@@ -135,6 +137,26 @@
 .navLink:hover {
   background-color: var(--bg-secondary);
   color: var(--color-primary);
+}
+
+/* Active nav link in mobile menu */
+.activeLink {
+  color: var(--color-primary);
+  background-color: var(--color-primary-50);
+  font-weight: var(--font-weight-semibold);
+}
+
+.activeLink:hover {
+  background-color: var(--color-primary-100);
+}
+
+.activeIndicator {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .divider {
@@ -159,6 +181,56 @@
 
 .logoutButton:hover {
   background-color: var(--color-error-light);
+}
+
+/* ==================== MENU FOOTER ==================== */
+.menuFooter {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.menuFooterPhone {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+.menuFooterPhone:hover {
+  color: var(--color-primary);
+}
+
+.menuFooterSocial {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.socialIconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.socialIconButton:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
 }
 
 /* Responsive */

@@ -64,9 +64,16 @@ const speedBoatBookingSchema = new mongoose.Schema({
       required: true, // subtotal + gstAmount
     },
     adminOverrideAmount: Number, // if admin manually set price (null = no override)
+    discountAmount: { type: Number, default: 0 },
+    coupon: {
+      code: String,
+      discountType: String,
+      discountValue: Number,
+      discountAmount: Number,
+    },
     finalAmount: {
       type: Number,
-      required: true, // adminOverrideAmount || totalAmount
+      required: true, // adminOverrideAmount || (totalAmount - discountAmount)
     },
   },
   status: {
@@ -114,6 +121,17 @@ const speedBoatBookingSchema = new mongoose.Schema({
     type: String,
     enum: ['Customer', 'AdminUser'],
     default: 'Customer',
+  },
+  dateModifications: [{
+    previousDate: Date,
+    previousStartTime: String,
+    newDate: Date,
+    newStartTime: String,
+    modifiedAt: { type: Date, default: Date.now },
+  }],
+  dateModificationCount: {
+    type: Number,
+    default: 0,
   },
   isDeleted: {
     type: Boolean,

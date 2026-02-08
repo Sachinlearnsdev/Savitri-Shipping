@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .booking-box { background: white; border: 2px dashed #059669; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .booking-number { font-size: 28px; font-weight: bold; color: #059669; letter-spacing: 4px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 40%; }
+        .details-table td:last-child { font-weight: 500; }
+        .price-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 8px; overflow: hidden; }
+        .price-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .price-table td:first-child { color: #6b7280; font-size: 14px; }
+        .price-table td:last-child { text-align: right; font-weight: 500; }
+        .price-table tr.total td { font-weight: bold; font-size: 16px; color: #059669; border-top: 2px solid #059669; border-bottom: none; }
+        .price-table tr.discount td { color: #059669; }
+        .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+        .cta-button { display: inline-block; background: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Booking Confirmed &#10004;&#65039;</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{name}},</p>
+
+        <p>Thank you for your booking with <strong>{{companyName}}</strong>! Your reservation has been confirmed.</p>
+
+        <div class="booking-box">
+            <p style="margin: 0 0 10px 0; color: #6b7280;">Your booking number is:</p>
+            <div class="booking-number">{{bookingNumber}}</div>
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td>Boat</td>
+                <td>{{boatName}}</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>{{date}}</td>
+            </tr>
+            <tr>
+                <td>Time</td>
+                <td>{{time}}</td>
+            </tr>
+            <tr>
+                <td>Duration</td>
+                <td>{{duration}}</td>
+            </tr>
+            <tr>
+                <td>Booking Type</td>
+                <td>{{bookingType}}</td>
+            </tr>
+        </table>
+
+        <table class="price-table">
+            <tr>
+                <td>Subtotal</td>
+                <td>{{subtotal}}</td>
+            </tr>
+            <tr>
+                <td>GST (18%)</td>
+                <td>{{gst}}</td>
+            </tr>
+            <tr class="discount">
+                <td>Discount</td>
+                <td>{{discount}}</td>
+            </tr>
+            <tr class="total">
+                <td>Total</td>
+                <td>{{total}}</td>
+            </tr>
+        </table>
+
+        <p><strong>Payment Mode:</strong> {{paymentMode}}</p>
+
+        <div class="warning">
+            <strong>Cancellation Policy:</strong> {{cancellationPolicy}}
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{frontendUrl}}/account/bookings" class="cta-button">View My Bookings</a>
+        </p>
+
+        <p>If you have any questions, please contact our support team.</p>
+
+        <p>Best regards,<br><strong>Team {{companyName}}</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>

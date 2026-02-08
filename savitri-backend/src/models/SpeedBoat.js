@@ -26,7 +26,8 @@ const speedBoatSchema = new mongoose.Schema({
     trim: true,
   }],
   images: [{
-    type: String,
+    url: { type: String, required: true },
+    publicId: { type: String, required: true },
   }],
   baseRate: {
     type: Number,

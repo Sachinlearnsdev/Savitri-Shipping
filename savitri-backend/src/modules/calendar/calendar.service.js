@@ -3,6 +3,11 @@ const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 
 class CalendarService {
+  constructor() {
+    this._weatherCache = new Map();
+    this._CACHE_TTL = 60 * 60 * 1000; // 1 hour
+  }
+
   /**
    * Get calendar entries for a month or date range
    */
@@ -36,15 +41,18 @@ class CalendarService {
     const date = new Date(data.date);
     date.setHours(0, 0, 0, 0);
 
+    const updateData = {
+      date,
+      status: data.status,
+      reason: (data.status === 'CLOSED' || data.status === 'PARTIAL_CLOSED') ? (data.reason || null) : null,
+      closedSlots: data.status === 'PARTIAL_CLOSED' ? (data.closedSlots || []) : [],
+      notes: data.notes || null,
+      updatedBy: adminUserId,
+    };
+
     const entry = await OperatingCalendar.findOneAndUpdate(
       { date },
-      {
-        date,
-        status: data.status,
-        reason: data.status === 'CLOSED' ? (data.reason || null) : null,
-        notes: data.notes || null,
-        updatedBy: adminUserId,
-      },
+      updateData,
       { upsert: true, new: true }
     ).lean();
 
@@ -101,7 +109,7 @@ class CalendarService {
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
 
-    // Find all CLOSED entries in range
+    // Find all CLOSED entries in range (PARTIAL_CLOSED is still open)
     const closedEntries = await OperatingCalendar.find({
       date: { $gte: start, $lte: end },
       status: 'CLOSED',
@@ -138,7 +146,159 @@ class CalendarService {
     // If no entry exists, default to OPEN
     if (!entry) return true;
 
-    return entry.status === 'OPEN';
+    return entry.status === 'OPEN' || entry.status === 'PARTIAL_CLOSED';
+  }
+
+  /**
+   * Check if a specific time slot is available on a given date
+   * Returns false if the slot overlaps with any closed periods on a PARTIAL_CLOSED day
+   */
+  async isSlotAvailable(date, startTime, endTime) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+
+    const entry = await OperatingCalendar.findOne({ date: d }).lean();
+
+    if (!entry) return true;
+    if (entry.status === 'OPEN') return true;
+    if (entry.status === 'CLOSED') return false;
+
+    // PARTIAL_CLOSED - check slot overlap
+    if (entry.status === 'PARTIAL_CLOSED' && entry.closedSlots && entry.closedSlots.length > 0) {
+      for (const slot of entry.closedSlots) {
+        // Two ranges overlap if a1 < b2 AND b1 < a2
+        if (startTime < slot.endTime && slot.startTime < endTime) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Get weather data for a month (proxied from Open-Meteo APIs)
+   * Returns daily summaries with wave height, wind speed, gusts, and safety recommendation
+   */
+  async getWeather(month) {
+    // Check cache first
+    const cached = this._weatherCache.get(month);
+    if (cached && Date.now() - cached.timestamp < this._CACHE_TTL) {
+      return cached.data;
+    }
+
+    // Parse month to get start and end dates
+    const [year, mon] = month.split('-').map(Number);
+    const startDate = `${year}-${String(mon).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, mon, 0).getDate();
+    const endDate = `${year}-${String(mon).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+    // Mumbai coordinates
+    const lat = 18.9;
+    const lon = 72.8;
+
+    // Fetch marine and forecast data in parallel
+    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wind_wave_height,swell_wave_height&start_date=${startDate}&end_date=${endDate}&timezone=Asia/Kolkata`;
+    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=wind_speed_10m,wind_gusts_10m,weather_code&start_date=${startDate}&end_date=${endDate}&timezone=Asia/Kolkata`;
+
+    const [marineRes, forecastRes] = await Promise.all([
+      fetch(marineUrl),
+      fetch(forecastUrl),
+    ]);
+
+    if (!marineRes.ok) {
+      throw ApiError.badRequest('Failed to fetch marine weather data');
+    }
+    if (!forecastRes.ok) {
+      throw ApiError.badRequest('Failed to fetch forecast weather data');
+    }
+
+    const marineData = await marineRes.json();
+    const forecastData = await forecastRes.json();
+
+    // Process hourly data into daily summaries
+    const dailySummaries = {};
+    const marineHourly = marineData.hourly || {};
+    const forecastHourly = forecastData.hourly || {};
+    const timeEntries = marineHourly.time || [];
+
+    for (let i = 0; i < timeEntries.length; i++) {
+      const dateKey = timeEntries[i].substring(0, 10); // 'YYYY-MM-DD'
+
+      if (!dailySummaries[dateKey]) {
+        dailySummaries[dateKey] = {
+          waveHeights: [],
+          windSpeeds: [],
+          windGusts: [],
+          weatherCodes: [],
+        };
+      }
+
+      const day = dailySummaries[dateKey];
+
+      if (marineHourly.wave_height && marineHourly.wave_height[i] != null) {
+        day.waveHeights.push(marineHourly.wave_height[i]);
+      }
+      if (forecastHourly.wind_speed_10m && forecastHourly.wind_speed_10m[i] != null) {
+        day.windSpeeds.push(forecastHourly.wind_speed_10m[i]);
+      }
+      if (forecastHourly.wind_gusts_10m && forecastHourly.wind_gusts_10m[i] != null) {
+        day.windGusts.push(forecastHourly.wind_gusts_10m[i]);
+      }
+      if (forecastHourly.weather_code && forecastHourly.weather_code[i] != null) {
+        day.weatherCodes.push(forecastHourly.weather_code[i]);
+      }
+    }
+
+    // Build final result with recommendations
+    const result = {};
+    for (const [dateKey, day] of Object.entries(dailySummaries)) {
+      const maxWaveHeight = day.waveHeights.length > 0 ? Math.max(...day.waveHeights) : 0;
+      const maxWindSpeed = day.windSpeeds.length > 0 ? Math.max(...day.windSpeeds) : 0;
+      const maxWindGusts = day.windGusts.length > 0 ? Math.max(...day.windGusts) : 0;
+      const weatherCode = this._getDominantWeatherCode(day.weatherCodes);
+
+      let recommendation = 'safe';
+      if (maxWaveHeight > 2 || maxWindSpeed > 40) {
+        recommendation = 'dangerous';
+      } else if (maxWaveHeight > 1.5 || maxWindSpeed > 30) {
+        recommendation = 'caution';
+      }
+
+      result[dateKey] = {
+        waveHeight: maxWaveHeight,
+        windSpeed: maxWindSpeed,
+        windGusts: maxWindGusts,
+        weatherCode,
+        recommendation,
+      };
+    }
+
+    // Cache the result
+    this._weatherCache.set(month, { data: result, timestamp: Date.now() });
+
+    return result;
+  }
+
+  /**
+   * Find the most common weather code in an array
+   */
+  _getDominantWeatherCode(codes) {
+    if (!codes || codes.length === 0) return 0;
+
+    const frequency = {};
+    let maxCount = 0;
+    let dominant = codes[0];
+
+    for (const code of codes) {
+      frequency[code] = (frequency[code] || 0) + 1;
+      if (frequency[code] > maxCount) {
+        maxCount = frequency[code];
+        dominant = code;
+      }
+    }
+
+    return dominant;
   }
 }
 

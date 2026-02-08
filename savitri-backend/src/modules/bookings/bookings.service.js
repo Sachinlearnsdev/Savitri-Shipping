@@ -1,10 +1,11 @@
-const { SpeedBoatBooking, SpeedBoat, Customer, Setting } = require('../../models');
+const { SpeedBoatBooking, PartyBoatBooking, SpeedBoat, Customer, Setting, Coupon } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 const { paginate, calculateGST, hashPassword } = require('../../utils/helpers');
 const calendarService = require('../calendar/calendar.service');
 const pricingRulesService = require('../pricingRules/pricingRules.service');
 const { BOOKING_LIMITS, CANCELLATION_POLICY, GST } = require('../../config/constants');
+const { sendBookingConfirmation, sendBookingCancellation } = require('../../utils/email');
 
 class BookingsService {
   /**
@@ -109,6 +110,13 @@ class BookingsService {
     const dayOpen = await calendarService.isDayOpen(bookingDate);
     if (!dayOpen) {
       return { available: false, reason: 'Operations are closed on this date' };
+    }
+
+    // 6b. Check partial-day slot availability
+    const endTime2 = this._calculateEndTime(startTime, duration);
+    const slotAvailable = await calendarService.isSlotAvailable(bookingDate, startTime, endTime2);
+    if (!slotAvailable) {
+      return { available: false, reason: 'The requested time slot overlaps with a closed period' };
     }
 
     // 7. Check boat availability (how many boats are already booked at this time)
@@ -282,6 +290,19 @@ class BookingsService {
       pricing.finalAmount = data.adminOverrideAmount;
     }
 
+    // Apply coupon if provided
+    if (data.couponCode) {
+      const couponResult = await this.validateCoupon(data.couponCode, pricing.totalAmount, 'SPEED_BOAT');
+      pricing.discountAmount = couponResult.discount.discountAmount;
+      pricing.coupon = {
+        code: couponResult.coupon.code,
+        discountType: couponResult.discount.type,
+        discountValue: couponResult.discount.value,
+        discountAmount: couponResult.discount.discountAmount,
+      };
+      pricing.finalAmount = pricing.totalAmount - pricing.discountAmount;
+    }
+
     // Generate booking number
     const bookingNumber = await this._generateBookingNumber();
 
@@ -307,6 +328,36 @@ class BookingsService {
       createdByModel: 'Customer',
     });
 
+    // Increment coupon usage if coupon was applied
+    if (data.couponCode) {
+      await Coupon.updateOne({ code: data.couponCode.toUpperCase() }, { $inc: { usageCount: 1 } });
+    }
+
+    // Send booking confirmation email (fire-and-forget)
+    try {
+      const customer = await Customer.findById(resolvedCustomerId).lean();
+      if (customer && customer.email) {
+        const formattedDate = bookingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        sendBookingConfirmation(customer.email, {
+          name: customer.name || 'Customer',
+          bookingNumber,
+          boatName: 'Speed Boat',
+          date: formattedDate,
+          time: data.startTime,
+          duration: `${data.duration} hour${data.duration > 1 ? 's' : ''}`,
+          bookingType: 'Speed Boat',
+          subtotal: `\u20B9${pricing.subtotal.toLocaleString('en-IN')}`,
+          gst: `\u20B9${pricing.gstAmount.toLocaleString('en-IN')}`,
+          discount: pricing.discountAmount ? `\u20B9${pricing.discountAmount.toLocaleString('en-IN')}` : '',
+          total: `\u20B9${pricing.finalAmount.toLocaleString('en-IN')}`,
+          paymentMode: data.paymentMode,
+          cancellationPolicy: '24h+ = 100% refund, 12-24h = 50% refund, <12h = No refund',
+        }).catch((err) => console.error('📧 Booking confirmation email error:', err.message));
+      }
+    } catch (emailErr) {
+      console.error('📧 Booking email setup error:', emailErr.message);
+    }
+
     return formatDocument(booking.toObject());
   }
 
@@ -328,6 +379,35 @@ class BookingsService {
     });
 
     return this.getById(booking.id);
+  }
+
+  /**
+   * Validate and calculate coupon discount
+   */
+  async validateCoupon(code, orderAmount, bookingType) {
+    const coupon = await Coupon.findOne({ code: code.toUpperCase(), isActive: true, isDeleted: false });
+    if (!coupon) throw ApiError.badRequest('Invalid coupon code');
+
+    const now = new Date();
+    if (now < coupon.validFrom || now > coupon.validTo) throw ApiError.badRequest('This coupon has expired');
+    if (coupon.usageLimit > 0 && coupon.usageCount >= coupon.usageLimit) throw ApiError.badRequest('This coupon has reached its usage limit');
+    if (coupon.applicableTo !== 'ALL' && coupon.applicableTo !== bookingType) throw ApiError.badRequest('This coupon is not applicable for this booking type');
+    if (orderAmount < coupon.minOrderAmount) throw ApiError.badRequest(`Minimum order amount of \u20B9${coupon.minOrderAmount} required for this coupon`);
+
+    let discountAmount;
+    if (coupon.discountType === 'PERCENTAGE') {
+      discountAmount = Math.round((orderAmount * coupon.discountValue) / 100);
+      if (coupon.maxDiscountAmount > 0 && discountAmount > coupon.maxDiscountAmount) discountAmount = coupon.maxDiscountAmount;
+    } else {
+      discountAmount = coupon.discountValue;
+    }
+    discountAmount = Math.min(discountAmount, orderAmount);
+
+    return {
+      valid: true,
+      discount: { type: coupon.discountType, value: coupon.discountValue, discountAmount, finalAmount: orderAmount - discountAmount },
+      coupon: { code: coupon.code, description: coupon.description },
+    };
   }
 
   /**
@@ -393,23 +473,53 @@ class BookingsService {
    * Get bookings for a customer
    */
   async getCustomerBookings(customerId, query) {
-    const { page, limit } = query;
+    const { page, limit, type } = query;
     const { skip, take, page: currentPage, limit: currentLimit } = paginate(page, limit);
 
     const filter = { customerId, isDeleted: false };
 
-    const [bookings, total] = await Promise.all([
-      SpeedBoatBooking.find(filter)
-        .skip(skip)
-        .limit(take)
-        .sort({ date: -1 })
-        .lean(),
+    if (type === 'speed') {
+      const [bookings, total] = await Promise.all([
+        SpeedBoatBooking.find(filter).skip(skip).limit(take).sort({ date: -1 }).lean(),
+        SpeedBoatBooking.countDocuments(filter),
+      ]);
+      return {
+        bookings: formatDocuments(bookings).map(b => ({ ...b, bookingType: 'SPEED_BOAT' })),
+        pagination: { page: currentPage, limit: currentLimit, total },
+      };
+    }
+
+    if (type === 'party') {
+      const [bookings, total] = await Promise.all([
+        PartyBoatBooking.find(filter).skip(skip).limit(take).sort({ date: -1 }).lean(),
+        PartyBoatBooking.countDocuments(filter),
+      ]);
+      return {
+        bookings: formatDocuments(bookings).map(b => ({ ...b, bookingType: 'PARTY_BOAT' })),
+        pagination: { page: currentPage, limit: currentLimit, total },
+      };
+    }
+
+    // All bookings - fetch both types and merge
+    const [speedBookings, partyBookings, speedTotal, partyTotal] = await Promise.all([
+      SpeedBoatBooking.find(filter).sort({ date: -1 }).lean(),
+      PartyBoatBooking.find(filter).sort({ date: -1 }).lean(),
       SpeedBoatBooking.countDocuments(filter),
+      PartyBoatBooking.countDocuments(filter),
     ]);
 
+    const allBookings = [
+      ...formatDocuments(speedBookings).map(b => ({ ...b, bookingType: 'SPEED_BOAT' })),
+      ...formatDocuments(partyBookings).map(b => ({ ...b, bookingType: 'PARTY_BOAT' })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const total = speedTotal + partyTotal;
+    const paginatedBookings = allBookings.slice(skip, skip + take);
+
     return {
-      bookings: formatDocuments(bookings),
+      bookings: paginatedBookings,
       pagination: { page: currentPage, limit: currentLimit, total },
+      counts: { speed: speedTotal, party: partyTotal, all: total },
     };
   }
 
@@ -511,6 +621,26 @@ class BookingsService {
     }
 
     await booking.save();
+
+    // Send cancellation email (fire-and-forget)
+    try {
+      const customer = await Customer.findById(booking.customerId).lean();
+      if (customer && customer.email) {
+        const formattedDate = new Date(booking.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        sendBookingCancellation(customer.email, {
+          name: customer.name || 'Customer',
+          bookingNumber: booking.bookingNumber,
+          boatName: 'Speed Boat',
+          date: formattedDate,
+          refundAmount: `\u20B9${Math.round(refundAmount).toLocaleString('en-IN')}`,
+          refundPercent: `${refundPercent}%`,
+          cancellationReason: reason || 'Not specified',
+        }).catch((err) => console.error('📧 Cancellation email error:', err.message));
+      }
+    } catch (emailErr) {
+      console.error('📧 Cancellation email setup error:', emailErr.message);
+    }
+
     return formatDocument(booking.toObject());
   }
 
@@ -550,6 +680,102 @@ class BookingsService {
     }
 
     return { open: true, slots, totalBoats };
+  }
+
+  /**
+   * Modify booking date (customer - max 2 times)
+   */
+  async modifyBookingDate(bookingId, customerId, data) {
+    const { sendBookingModification } = require('../../utils/email');
+    const booking = await SpeedBoatBooking.findOne({ _id: bookingId, isDeleted: false });
+
+    if (!booking) {
+      throw ApiError.notFound('Booking not found');
+    }
+
+    const custId = booking.customerId?.toString();
+    if (custId !== customerId) {
+      throw ApiError.forbidden('Not your booking');
+    }
+
+    if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+      throw ApiError.badRequest('Only pending or confirmed bookings can be modified');
+    }
+
+    if (booking.dateModificationCount >= 2) {
+      throw ApiError.badRequest('Maximum date modifications (2) reached. Please cancel and rebook.');
+    }
+
+    const newDate = new Date(data.newDate);
+    newDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (newDate <= today) {
+      throw ApiError.badRequest('New date must be in the future');
+    }
+
+    // Check if new date is open
+    const dayOpen = await calendarService.isDayOpen(newDate);
+    if (!dayOpen) {
+      throw ApiError.badRequest('Selected date is not available for bookings');
+    }
+
+    // Check slot availability if startTime provided
+    if (data.newStartTime) {
+      const endTime = this._addMinutes(data.newStartTime, booking.duration * 60);
+      const bookedCount = await this._getBookedBoatCount(newDate, data.newStartTime, endTime, 30);
+      const totalBoats = await SpeedBoat.countDocuments({ status: 'ACTIVE', isDeleted: false });
+      if (totalBoats - bookedCount < 1) {
+        throw ApiError.badRequest('Selected time slot is not available on the new date');
+      }
+    }
+
+    // Store previous values
+    const previousDate = booking.date;
+    const previousStartTime = booking.startTime;
+
+    // Push modification record
+    booking.dateModifications.push({
+      previousDate: booking.date,
+      previousStartTime: booking.startTime,
+      newDate: newDate,
+      newStartTime: data.newStartTime || booking.startTime,
+      modifiedAt: new Date(),
+    });
+    booking.dateModificationCount += 1;
+
+    // Update booking
+    booking.date = newDate;
+    if (data.newStartTime) {
+      booking.startTime = data.newStartTime;
+      booking.endTime = this._addMinutes(data.newStartTime, booking.duration * 60);
+    }
+
+    await booking.save();
+
+    // Send modification email (fire-and-forget)
+    try {
+      const customer = await Customer.findById(customerId).lean();
+      if (customer && customer.email) {
+        const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        sendBookingModification(customer.email, {
+          name: customer.name || 'Customer',
+          bookingNumber: booking.bookingNumber,
+          boatName: 'Speed Boat',
+          bookingType: 'Speed Boat',
+          previousDate: formatDate(previousDate),
+          previousTime: previousStartTime || '',
+          newDate: formatDate(newDate),
+          newTime: data.newStartTime || booking.startTime || '',
+          remainingModifications: String(2 - booking.dateModificationCount),
+        }).catch((err) => console.error('📧 Modification email error:', err.message));
+      }
+    } catch (emailErr) {
+      console.error('📧 Modification email setup error:', emailErr.message);
+    }
+
+    return formatDocument(booking.toObject());
   }
 }
 

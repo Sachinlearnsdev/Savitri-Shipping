@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { api } from '@/services/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 import styles from './page.module.css';
 
 const HERO_SLIDES = [
@@ -42,11 +44,6 @@ const FEATURED_BOATS = [
   { id: 'pb-2', name: 'Star Night', type: 'party', capacity: '30-80 Guests', baseRate: null, actualRate: 45000, rating: 4.7, reviewCount: 28, gradient: 'linear-gradient(135deg, #d97706, #b45309)', href: '/party-boats/pb-2' },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Rahul Sharma', text: 'Amazing experience! The Sea Hawk was in perfect condition and the captain was very professional. Will definitely book again.', rating: 5, location: 'Mumbai' },
-  { name: 'Priya Patel', text: 'We hosted our company outing on the Royal Celebration. Everything was perfectly arranged — the DJ, catering, and decoration were top-notch!', rating: 5, location: 'Pune' },
-  { name: 'Amit Desai', text: 'Booked a speed boat for my wife\'s birthday surprise. Seamless booking process and great value for money. Highly recommended!', rating: 4, location: 'Thane' },
-];
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-IN', {
@@ -59,12 +56,35 @@ const formatCurrency = (amount) => {
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [testimonials, setTestimonials] = useState([]);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch company reviews for testimonials
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        setTestimonialsLoading(true);
+        const response = await api.get(`${API_ENDPOINTS.REVIEWS.LIST}?type=COMPANY&limit=6`);
+        if (response.success && response.data) {
+          const reviewsData = Array.isArray(response.data) ? response.data : (response.data.reviews || []);
+          setTestimonials(reviewsData);
+        }
+      } catch {
+        // Silently fail - testimonials section will show empty state
+        setTestimonials([]);
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+
+    fetchTestimonials();
   }, []);
 
   return (
@@ -257,25 +277,55 @@ export default function HomePage() {
         <div className={styles.container}>
           <h2 className={styles.sectionTitle}>What Our Customers Say</h2>
           <p className={styles.sectionSubtitle}>Real experiences from real customers</p>
-          <div className={styles.testimonialsGrid}>
-            {TESTIMONIALS.map((t, index) => (
-              <div key={index} className={styles.testimonialCard}>
-                <div className={styles.testimonialStars}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span key={star} className={star <= t.rating ? styles.starFilled : styles.starEmpty}>&#9733;</span>
-                  ))}
-                </div>
-                <p className={styles.testimonialText}>&ldquo;{t.text}&rdquo;</p>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.testimonialAvatar}>{t.name.charAt(0)}</div>
-                  <div>
-                    <div className={styles.testimonialName}>{t.name}</div>
-                    <div className={styles.testimonialLocation}>{t.location}</div>
+          <div className={styles.reviewCta}>
+            <Link href="/about?writeReview=true" className={styles.writeReviewLink}>
+              Write a Review &rarr;
+            </Link>
+          </div>
+          {testimonialsLoading ? (
+            <div className={styles.testimonialsGrid}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={styles.testimonialCard} style={{ opacity: 0.5 }}>
+                  <div className={styles.testimonialStars}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span key={star} className={styles.starEmpty}>&#9733;</span>
+                    ))}
+                  </div>
+                  <p className={styles.testimonialText} style={{ color: 'var(--text-tertiary)' }}>Loading...</p>
+                  <div className={styles.testimonialAuthor}>
+                    <div className={styles.testimonialAvatar} style={{ backgroundColor: 'var(--border-color)' }}>&nbsp;</div>
+                    <div>
+                      <div className={styles.testimonialName} style={{ color: 'var(--text-tertiary)' }}>---</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : testimonials.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 'var(--spacing-8) 0' }}>
+              No reviews yet. Be the first to share your experience!
+            </p>
+          ) : (
+            <div className={styles.testimonialsGrid}>
+              {testimonials.map((t, index) => (
+                <div key={t.id || index} className={styles.testimonialCard}>
+                  <div className={styles.testimonialStars}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span key={star} className={star <= t.rating ? styles.starFilled : styles.starEmpty}>&#9733;</span>
+                    ))}
+                  </div>
+                  <p className={styles.testimonialText}>&ldquo;{t.comment}&rdquo;</p>
+                  <div className={styles.testimonialAuthor}>
+                    <div className={styles.testimonialAvatar}>{(t.customerName || 'A').charAt(0)}</div>
+                    <div>
+                      <div className={styles.testimonialName}>{t.customerName || 'Anonymous'}</div>
+                      {t.isVerified && <div className={styles.testimonialLocation}>Verified Customer</div>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

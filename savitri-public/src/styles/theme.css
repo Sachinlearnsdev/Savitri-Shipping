@@ -141,7 +141,9 @@
   --container-max: 1440px;
   
   /* ==================== HEADER/FOOTER ==================== */
+  --topbar-height: 32px;
   --header-height: 64px;
+  --header-total-height: calc(var(--topbar-height) + var(--header-height));
   --footer-min-height: 200px;
 }
 

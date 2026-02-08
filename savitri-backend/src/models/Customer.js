@@ -24,6 +24,26 @@ const customerSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  dateOfBirth: {
+    type: Date,
+  },
+  gender: {
+    type: String,
+    enum: ['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'],
+  },
+  address: {
+    line1: { type: String, trim: true },
+    line2: { type: String, trim: true },
+    city: { type: String, trim: true },
+    state: { type: String, trim: true },
+    pincode: { type: String, trim: true },
+    country: { type: String, default: 'India', trim: true },
+  },
+  notificationPreferences: {
+    email: { type: Boolean, default: true },
+    sms: { type: Boolean, default: true },
+    promotional: { type: Boolean, default: true },
+  },
   emailVerified: {
     type: Boolean,
     default: false,

@@ -128,6 +128,17 @@ class BookingsController {
     }
   }
 
+  async modifyBookingDate(req, res, next) {
+    try {
+      const result = await bookingsService.modifyBookingDate(
+        req.params.id, req.customer.id, req.body
+      );
+      res.json(ApiResponse.success('Booking date modified successfully', result));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getPublicBoats(req, res, next) {
     try {
       const speedBoatsService = require('../speedBoats/speedBoats.service');
@@ -163,6 +174,15 @@ class BookingsController {
       const partyBoatsService = require('../partyBoats/partyBoats.service');
       const boat = await partyBoatsService.getById(req.params.id);
       res.json(ApiResponse.success('Party boat retrieved', boat));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async applyCoupon(req, res, next) {
+    try {
+      const result = await bookingsService.validateCoupon(req.body.code, req.body.orderAmount, req.body.bookingType);
+      res.json(ApiResponse.success('Coupon applied successfully', result));
     } catch (error) {
       next(error);
     }

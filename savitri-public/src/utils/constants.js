@@ -69,6 +69,14 @@ export const API_ENDPOINTS = {
     CREATE: '/bookings/create',
     MY_BOOKINGS: '/bookings/my-bookings',
     CANCEL: (id) => `/bookings/${id}/cancel`,
+    MODIFY_DATE: (id) => `/bookings/${id}/modify-date`,
+    APPLY_COUPON: '/bookings/apply-coupon',
+  },
+
+  // Reviews
+  REVIEWS: {
+    LIST: '/reviews',
+    CREATE: '/reviews',
   },
 };
 

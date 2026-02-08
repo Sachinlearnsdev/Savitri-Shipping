@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 const connectDB = require('../src/config/database');
-const { Role, AdminUser, Setting, SpeedBoat, PartyBoat, OperatingCalendar, PricingRule } = require('../src/models');
+const { Role, AdminUser, Setting, SpeedBoat, PartyBoat, OperatingCalendar, PricingRule, Coupon } = require('../src/models');
 const bcrypt = require('bcryptjs');
 
 async function seed() {
@@ -20,6 +20,7 @@ async function seed() {
     await PartyBoat.deleteMany({});
     await OperatingCalendar.deleteMany({});
     await PricingRule.deleteMany({});
+    await Coupon.deleteMany({});
 
     // ==================== ROLES ====================
     console.log('Creating roles...');
@@ -40,6 +41,8 @@ async function seed() {
         bookings: { view: true, create: true, edit: true, cancel: true },
         calendar: { view: true, edit: true },
         pricingRules: { view: true, create: true, edit: true, delete: true },
+        coupons: { view: true, create: true, edit: true, delete: true },
+        reviews: { view: true, edit: true, delete: true },
       },
     });
 
@@ -58,6 +61,8 @@ async function seed() {
         bookings: { view: true },
         calendar: { view: true },
         pricingRules: { view: true },
+        coupons: { view: true },
+        reviews: { view: true },
       },
     });
 
@@ -372,6 +377,53 @@ async function seed() {
     ]);
 
     console.log('✅ Created 3 pricing rules');
+
+    // ==================== COUPONS ====================
+    console.log('Creating coupons...');
+
+    await Coupon.insertMany([
+      {
+        code: 'WELCOME10',
+        description: '10% off on your first booking',
+        discountType: 'PERCENTAGE',
+        discountValue: 10,
+        minOrderAmount: 0,
+        maxDiscountAmount: 500,
+        validFrom: new Date('2025-01-01'),
+        validTo: new Date('2027-12-31'),
+        usageLimit: 0,
+        applicableTo: 'ALL',
+        isActive: true,
+      },
+      {
+        code: 'SPEED20',
+        description: '₹200 off on speed boat bookings',
+        discountType: 'FIXED',
+        discountValue: 200,
+        minOrderAmount: 1000,
+        maxDiscountAmount: 0,
+        validFrom: new Date('2025-01-01'),
+        validTo: new Date('2027-12-31'),
+        usageLimit: 100,
+        applicableTo: 'SPEED_BOAT',
+        isActive: true,
+      },
+      {
+        code: 'PARTY500',
+        description: '₹500 off on party boat bookings',
+        discountType: 'FIXED',
+        discountValue: 500,
+        minOrderAmount: 10000,
+        maxDiscountAmount: 0,
+        validFrom: new Date('2025-01-01'),
+        validTo: new Date('2027-12-31'),
+        usageLimit: 50,
+        applicableTo: 'PARTY_BOAT',
+        isActive: true,
+      },
+    ]);
+
+    console.log('✅ Created 3 coupons');
 
     console.log('\n🎉 Database seed completed successfully!');
     process.exit(0);

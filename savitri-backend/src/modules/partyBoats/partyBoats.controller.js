@@ -73,6 +73,16 @@ class PartyBoatsController {
       next(error);
     }
   }
+
+  async deleteImage(req, res, next) {
+    try {
+      const imageIndex = parseInt(req.params.imageIndex, 10);
+      const boat = await partyBoatsService.deleteImage(req.params.id, imageIndex);
+      res.json(ApiResponse.success('Image deleted', boat));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new PartyBoatsController();

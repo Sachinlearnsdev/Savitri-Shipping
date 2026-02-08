@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
@@ -305,6 +305,7 @@ const PartyBoats = () => {
                   <th>Capacity</th>
                   <th>Location</th>
                   <th>Base Price</th>
+                  <th>Images</th>
                   <th>Events</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -313,7 +314,11 @@ const PartyBoats = () => {
               <tbody>
                 {boats.map((boat) => (
                   <tr key={boat.id || boat._id}>
-                    <td className={styles.boatName}>{boat.name}</td>
+                    <td className={styles.boatName}>
+                      <Link to={`/party-boats/${boat.id || boat._id}`} className={styles.boatNameLink}>
+                        {boat.name}
+                      </Link>
+                    </td>
                     <td>{boat.capacityMin}-{boat.capacityMax} guests</td>
                     <td>
                       <div className={styles.badges}>
@@ -325,6 +330,11 @@ const PartyBoats = () => {
                       </div>
                     </td>
                     <td className={styles.price}>{formatCurrency(boat.basePrice)}</td>
+                    <td>
+                      <Link to={`/party-boats/${boat.id || boat._id}`} className={styles.imageCount}>
+                        {(boat.images || []).length} photo{(boat.images || []).length !== 1 ? 's' : ''}
+                      </Link>
+                    </td>
                     <td>
                       <div className={styles.badges}>
                         {(boat.eventTypes || []).slice(0, 2).map((et) => (
@@ -344,6 +354,13 @@ const PartyBoats = () => {
                     </td>
                     <td>
                       <div className={styles.actions}>
+                        <button
+                          className={`${styles.actionBtn} ${styles.viewBtn}`}
+                          onClick={() => navigate(`/party-boats/${boat.id || boat._id}`)}
+                          title="View details & images"
+                        >
+                          View
+                        </button>
                         <button
                           className={`${styles.actionBtn} ${styles.editBtn}`}
                           onClick={() => handleOpenEdit(boat)}

@@ -2,6 +2,7 @@ const { SpeedBoat } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 const { paginate } = require('../../utils/helpers');
+const { uploadMultipleToCloudinary, deleteFromCloudinary } = require('../../utils/cloudinaryUpload');
 
 class SpeedBoatsService {
   /**
@@ -127,7 +128,7 @@ class SpeedBoatsService {
   }
 
   /**
-   * Upload images for a boat
+   * Upload images for a boat (Cloudinary)
    */
   async uploadImages(id, files) {
     const boat = await SpeedBoat.findOne({ _id: id, isDeleted: false });
@@ -140,15 +141,15 @@ class SpeedBoatsService {
       throw ApiError.badRequest('No files uploaded');
     }
 
-    const imageUrls = files.map(file => `/uploads/${file.filename}`);
-    boat.images = [...(boat.images || []), ...imageUrls];
+    const uploaded = await uploadMultipleToCloudinary(files, 'savitri-shipping/speed-boats');
+    boat.images = [...(boat.images || []), ...uploaded];
     await boat.save();
 
     return formatDocument(boat.toObject());
   }
 
   /**
-   * Remove an image from a boat
+   * Remove an image from a boat by index (deletes from Cloudinary)
    */
   async removeImage(id, imageUrl) {
     const boat = await SpeedBoat.findOne({ _id: id, isDeleted: false });
@@ -158,6 +159,34 @@ class SpeedBoatsService {
     }
 
     boat.images = (boat.images || []).filter(img => img !== imageUrl);
+    await boat.save();
+
+    return formatDocument(boat.toObject());
+  }
+
+  /**
+   * Delete an image by index (removes from Cloudinary + boat images array)
+   */
+  async deleteImage(id, imageIndex) {
+    const boat = await SpeedBoat.findOne({ _id: id, isDeleted: false });
+
+    if (!boat) {
+      throw ApiError.notFound('Speed boat not found');
+    }
+
+    if (!boat.images || imageIndex < 0 || imageIndex >= boat.images.length) {
+      throw ApiError.badRequest('Invalid image index');
+    }
+
+    const image = boat.images[imageIndex];
+
+    // Delete from Cloudinary if publicId exists
+    if (image.publicId) {
+      await deleteFromCloudinary(image.publicId);
+    }
+
+    // Remove from array
+    boat.images.splice(imageIndex, 1);
     await boat.save();
 
     return formatDocument(boat.toObject());

@@ -299,9 +299,28 @@ const BookingDetail = () => {
             <div className={styles.pricingRow}>
               <span className={styles.pricingTotal}>Total Amount</span>
               <span className={styles.pricingTotalValue}>
-                {formatCurrency(booking.pricing?.finalAmount || booking.pricing?.totalAmount)}
+                {formatCurrency(booking.pricing?.totalAmount)}
               </span>
             </div>
+            {booking.pricing?.adminOverrideAmount != null && (
+              <>
+                <div className={styles.pricingRow}>
+                  <span className={styles.pricingLabel} style={{ color: 'var(--color-warning-600, #d97706)', fontWeight: 'var(--font-weight-semibold)' }}>
+                    Admin Override
+                  </span>
+                  <span className={styles.pricingValue} style={{ color: 'var(--color-warning-600, #d97706)', fontWeight: 'var(--font-weight-bold)' }}>
+                    {formatCurrency(booking.pricing.adminOverrideAmount)}
+                  </span>
+                </div>
+                <hr className={styles.pricingDivider} />
+                <div className={styles.pricingRow}>
+                  <span className={styles.pricingTotal}>Final Amount</span>
+                  <span className={styles.pricingTotalValue}>
+                    {formatCurrency(booking.pricing.finalAmount)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

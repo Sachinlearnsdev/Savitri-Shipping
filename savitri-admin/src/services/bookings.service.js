@@ -30,3 +30,8 @@ export const cancelBooking = async (id, reason) => {
   const response = await api.post(API_ENDPOINTS.BOOKING_CANCEL(id), { reason });
   return response.data;
 };
+
+export const calculatePrice = async (data) => {
+  const response = await api.post('/bookings/calculate-price', data);
+  return response.data;
+};

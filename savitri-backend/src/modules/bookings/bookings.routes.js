@@ -14,6 +14,8 @@ const {
   markPaidSchema,
   cancelBookingSchema,
   bookingQuerySchema,
+  applyCouponSchema,
+  modifyDateSchema,
 } = require('./bookings.validator');
 
 // ===== ADMIN ROUTES =====
@@ -39,6 +41,7 @@ publicRouter.get('/calendar-status', bookingsController.getCalendarStatus);
 publicRouter.post('/check-availability', validate(availabilitySchema), bookingsController.checkAvailability);
 publicRouter.post('/calculate-price', validate(priceCalcSchema), bookingsController.calculatePrice);
 publicRouter.get('/available-slots', bookingsController.getAvailableSlots);
+publicRouter.post('/apply-coupon', validate(applyCouponSchema), bookingsController.applyCoupon);
 
 // Optional auth (guest booking with auto-account) - use auth middleware that doesn't throw
 publicRouter.post('/create', (req, res, next) => {
@@ -53,5 +56,6 @@ publicRouter.post('/create', (req, res, next) => {
 // Auth required
 publicRouter.get('/my-bookings', auth, bookingsController.getMyBookings);
 publicRouter.post('/:id/cancel', auth, validate(cancelBookingSchema), bookingsController.cancelMyBooking);
+publicRouter.patch('/:id/modify-date', auth, validate(modifyDateSchema), bookingsController.modifyBookingDate);
 
 module.exports = { adminRouter, publicRouter };

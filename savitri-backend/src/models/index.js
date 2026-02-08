@@ -14,4 +14,6 @@ module.exports = {
   PricingRule: require("./PricingRule"),
   SpeedBoatBooking: require("./SpeedBoatBooking"),
   PartyBoatBooking: require("./PartyBoatBooking"),
+  Coupon: require("./Coupon"),
+  Review: require("./Review"),
 };

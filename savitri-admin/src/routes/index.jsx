@@ -47,6 +47,13 @@ import BookingDetail from '../pages/bookings/BookingDetail';
 import PartyBookings from '../pages/partyBookings/PartyBookings';
 import PartyBookingDetail from '../pages/partyBookings/PartyBookingDetail';
 
+// Reviews Pages
+import Reviews from '../pages/reviews/Reviews';
+
+// Coupons Pages
+import Coupons from '../pages/coupons/Coupons';
+import CouponDetail from '../pages/coupons/CouponDetail';
+
 /**
  * App Routes Configuration
  */
@@ -105,6 +112,16 @@ const AppRoutes = () => {
             {/* Party Bookings */}
             <Route path="/party-bookings" element={<PartyBookings />} />
             <Route path="/party-bookings/:id" element={<PartyBookingDetail />} />
+
+            {/* Reviews */}
+            <Route path="/reviews" element={<Navigate to="/reviews/company" replace />} />
+            <Route path="/reviews/company" element={<Reviews category="company" />} />
+            <Route path="/reviews/product" element={<Reviews category="product" />} />
+
+            {/* Coupons */}
+            <Route path="/coupons" element={<Coupons />} />
+            <Route path="/coupons/new" element={<CouponDetail />} />
+            <Route path="/coupons/:id" element={<CouponDetail />} />
           </Route>
         </Route>
 

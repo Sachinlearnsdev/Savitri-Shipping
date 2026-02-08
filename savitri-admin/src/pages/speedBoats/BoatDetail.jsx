@@ -4,8 +4,9 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import Textarea from '../../components/common/Textarea';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import useUIStore from '../../store/uiStore';
-import { getBoatById, updateBoat, uploadBoatImages } from '../../services/speedBoats.service';
+import { getBoatById, updateBoat, uploadBoatImages, deleteBoatImage } from '../../services/speedBoats.service';
 import {
   BOAT_STATUS,
   BOAT_STATUS_LABELS,
@@ -25,6 +26,9 @@ const BoatDetail = () => {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deletingImageIndex, setDeletingImageIndex] = useState(null);
+  const [showDeleteImageDialog, setShowDeleteImageDialog] = useState(false);
+  const [deletingImage, setDeletingImage] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -111,7 +115,7 @@ const BoatDetail = () => {
       setUploading(true);
       const formDataUpload = new FormData();
       for (let i = 0; i < files.length; i++) {
-        formDataUpload.append('images', files[i]);
+        formDataUpload.append('files', files[i]);
       }
 
       const response = await uploadBoatImages(id, formDataUpload);
@@ -126,6 +130,29 @@ const BoatDetail = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleDeleteImageClick = (index) => {
+    setDeletingImageIndex(index);
+    setShowDeleteImageDialog(true);
+  };
+
+  const handleConfirmDeleteImage = async () => {
+    if (deletingImageIndex === null) return;
+    try {
+      setDeletingImage(true);
+      const response = await deleteBoatImage(id, deletingImageIndex);
+      if (response.success) {
+        setImages(response.data?.images || images.filter((_, i) => i !== deletingImageIndex));
+        showSuccess('Image deleted successfully');
+      }
+    } catch (err) {
+      showError(err.message || 'Failed to delete image');
+    } finally {
+      setDeletingImage(false);
+      setShowDeleteImageDialog(false);
+      setDeletingImageIndex(null);
     }
   };
 
@@ -259,17 +286,57 @@ const BoatDetail = () => {
           ) : (
             <div className={styles.galleryGrid}>
               {images.map((image, index) => (
-                <div key={index} className={styles.imageWrapper}>
+                <div key={index} className={styles.imageWrapper} style={{ position: 'relative' }}>
                   <img
                     src={typeof image === 'string' ? image : image.url}
                     alt={`Boat image ${index + 1}`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImageClick(index)}
+                    style={{
+                      position: 'absolute',
+                      top: '6px',
+                      right: '6px',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      color: '#fff',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1,
+                      padding: 0,
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.85)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)'; }}
+                    title="Delete image"
+                  >
+                    &#x2715;
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+      {/* Delete Image Confirm */}
+      <ConfirmDialog
+        isOpen={showDeleteImageDialog}
+        onClose={() => { setShowDeleteImageDialog(false); setDeletingImageIndex(null); }}
+        onConfirm={handleConfirmDeleteImage}
+        title="Delete Image"
+        message="Are you sure you want to delete this image? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+        loading={deletingImage}
+      />
     </div>
   );
 };

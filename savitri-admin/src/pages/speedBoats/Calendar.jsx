@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import useUIStore from '../../store/uiStore';
-import { getCalendar, updateDay } from '../../services/calendar.service';
+import { getCalendar, updateDay, getWeather } from '../../services/calendar.service';
 import { CALENDAR_STATUS, CLOSE_REASONS } from '../../utils/constants';
 import styles from './Calendar.module.css';
 
@@ -12,6 +12,8 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+const EMPTY_SLOT = { startTime: '', endTime: '', reason: '' };
+
 const Calendar = () => {
   const { showSuccess, showError } = useUIStore();
 
@@ -19,6 +21,7 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [calendarData, setCalendarData] = useState({});
+  const [weatherData, setWeatherData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,6 +30,7 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dayStatus, setDayStatus] = useState(CALENDAR_STATUS.OPEN);
   const [closeReason, setCloseReason] = useState('');
+  const [closedSlots, setClosedSlots] = useState([]);
   const [saving, setSaving] = useState(false);
 
   const fetchCalendar = useCallback(async () => {
@@ -45,10 +49,21 @@ const Calendar = () => {
             mapped[dateKey] = {
               status: entry.status,
               reason: entry.reason || '',
+              closedSlots: entry.closedSlots || [],
             };
           }
         });
         setCalendarData(mapped);
+      }
+
+      // Fetch weather (non-critical)
+      try {
+        const weatherRes = await getWeather({ month: monthStr });
+        if (weatherRes.success) {
+          setWeatherData(weatherRes.data || {});
+        }
+      } catch {
+        // Weather fetch failure is non-critical
       }
     } catch (err) {
       setError(err.message || 'Failed to load calendar');
@@ -107,6 +122,12 @@ const Calendar = () => {
     return date < todayStart;
   };
 
+  const isPastDate = (dateKey) => {
+    const d = new Date(dateKey);
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return d < todayStart;
+  };
+
   const handleDayClick = (day) => {
     if (isPast(day)) return;
 
@@ -120,7 +141,20 @@ const Calendar = () => {
     });
     setDayStatus(existing?.status || CALENDAR_STATUS.OPEN);
     setCloseReason(existing?.reason || '');
+    setClosedSlots(existing?.closedSlots?.length > 0 ? [...existing.closedSlots] : []);
     setShowDayModal(true);
+  };
+
+  const handleAddSlot = () => {
+    setClosedSlots((prev) => [...prev, { ...EMPTY_SLOT }]);
+  };
+
+  const handleRemoveSlot = (index) => {
+    setClosedSlots((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSlotChange = (index, field, value) => {
+    setClosedSlots((prev) => prev.map((slot, i) => i === index ? { ...slot, [field]: value } : slot));
   };
 
   const handleSaveDay = async () => {
@@ -135,13 +169,18 @@ const Calendar = () => {
       if (dayStatus === CALENDAR_STATUS.CLOSED && closeReason) {
         payload.reason = closeReason;
       }
+      if (dayStatus === CALENDAR_STATUS.PARTIAL_CLOSED) {
+        if (closeReason) payload.reason = closeReason;
+        payload.closedSlots = closedSlots.filter((s) => s.startTime && s.endTime);
+      }
 
       await updateDay(payload);
       setCalendarData((prev) => ({
         ...prev,
         [selectedDate.dateKey]: {
           status: dayStatus,
-          reason: dayStatus === CALENDAR_STATUS.CLOSED ? closeReason : '',
+          reason: (dayStatus === CALENDAR_STATUS.CLOSED || dayStatus === CALENDAR_STATUS.PARTIAL_CLOSED) ? closeReason : '',
+          closedSlots: dayStatus === CALENDAR_STATUS.PARTIAL_CLOSED ? closedSlots.filter((s) => s.startTime && s.endTime) : [],
         },
       }));
       showSuccess('Calendar updated successfully');
@@ -151,6 +190,29 @@ const Calendar = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Count dangerous weather days
+  const dangerousDays = Object.entries(weatherData).filter(
+    ([dateKey, w]) => w.recommendation === 'dangerous' && !isPastDate(dateKey)
+  );
+
+  const getStatusClass = (status) => {
+    if (status === CALENDAR_STATUS.OPEN) return styles.dayOpen;
+    if (status === CALENDAR_STATUS.PARTIAL_CLOSED) return styles.dayPartial;
+    return styles.dayClosed;
+  };
+
+  const getStatusLabel = (status) => {
+    if (status === CALENDAR_STATUS.OPEN) return 'Open';
+    if (status === CALENDAR_STATUS.PARTIAL_CLOSED) return 'Partial';
+    return 'Closed';
+  };
+
+  const getWeatherClass = (recommendation) => {
+    if (recommendation === 'dangerous') return styles.weatherDangerous;
+    if (recommendation === 'caution') return styles.weatherCaution;
+    return styles.weatherSafe;
   };
 
   const renderCalendarDays = () => {
@@ -169,12 +231,13 @@ const Calendar = () => {
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = formatDateKey(day);
       const entry = calendarData[dateKey];
+      const weather = weatherData[dateKey];
       const status = entry?.status || CALENDAR_STATUS.OPEN;
       const past = isPast(day);
 
       const cellClasses = [
         styles.dayCell,
-        status === CALENDAR_STATUS.OPEN ? styles.dayOpen : styles.dayClosed,
+        getStatusClass(status),
         past && styles.dayPast,
         isToday(day) && styles.dayToday,
       ]
@@ -189,10 +252,15 @@ const Calendar = () => {
         >
           <span className={styles.dayNumber}>{day}</span>
           <span className={styles.dayStatus}>
-            {status === CALENDAR_STATUS.OPEN ? 'Open' : 'Closed'}
+            {getStatusLabel(status)}
           </span>
-          {entry?.reason && status === CALENDAR_STATUS.CLOSED && (
+          {entry?.reason && (status === CALENDAR_STATUS.CLOSED || status === CALENDAR_STATUS.PARTIAL_CLOSED) && (
             <span className={styles.dayReason}>{CLOSE_REASONS[entry.reason] || entry.reason}</span>
+          )}
+          {weather && !past && (
+            <span className={`${styles.weatherIndicator} ${getWeatherClass(weather.recommendation)}`}>
+              {weather.waveHeight.toFixed(1)}m / {Math.round(weather.windSpeed)}km/h
+            </span>
           )}
         </div>
       );
@@ -201,12 +269,25 @@ const Calendar = () => {
     return cells;
   };
 
+  // Weather data for selected day in modal
+  const selectedWeather = selectedDate ? weatherData[selectedDate.dateKey] : null;
+
   return (
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.title}>Operating Calendar</h1>
+        <h1 className={styles.title}>Calendar & Weather</h1>
       </div>
+
+      {/* Weather Warning Banner */}
+      {dangerousDays.length > 0 && (
+        <div className={styles.weatherBanner}>
+          <span className={styles.weatherBannerIcon}>&#9888;</span>
+          <span>
+            Weather Warning: {dangerousDays.length} upcoming day{dangerousDays.length !== 1 ? 's' : ''} with dangerous marine conditions
+          </span>
+        </div>
+      )}
 
       {/* Month Navigation */}
       <div className={styles.monthNav}>
@@ -228,12 +309,29 @@ const Calendar = () => {
           <span>Open</span>
         </div>
         <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.legendDotPartial}`} />
+          <span>Partial Close</span>
+        </div>
+        <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.legendDotClosed}`} />
           <span>Closed</span>
         </div>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.legendDotPast}`} />
           <span>Past</span>
+        </div>
+        <span className={styles.legendSeparator}>|</span>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.legendDotSafe}`} />
+          <span>Safe</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.legendDotCaution}`} />
+          <span>Caution</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.legendDotDangerous}`} />
+          <span>Dangerous</span>
         </div>
       </div>
 
@@ -265,17 +363,49 @@ const Calendar = () => {
         isOpen={showDayModal}
         onClose={() => setShowDayModal(false)}
         title="Update Day Status"
-        size="sm"
+        size="md"
       >
         <div className={styles.dayModal}>
           <p className={styles.dayModalDate}>{selectedDate?.displayDate}</p>
 
+          {/* Weather Info */}
+          {selectedWeather && (
+            <dl className={styles.modalWeather}>
+              <dt>Wave Height</dt>
+              <dd>{selectedWeather.waveHeight.toFixed(1)} m</dd>
+              <dt>Wind Speed</dt>
+              <dd>{Math.round(selectedWeather.windSpeed)} km/h</dd>
+              <dt>Wind Gusts</dt>
+              <dd>{Math.round(selectedWeather.windGusts)} km/h</dd>
+              <dt>Recommendation</dt>
+              <dd className={
+                selectedWeather.recommendation === 'dangerous' ? styles.recommendationDangerous
+                  : selectedWeather.recommendation === 'caution' ? styles.recommendationCaution
+                    : styles.recommendationSafe
+              }>
+                {selectedWeather.recommendation === 'dangerous' ? 'Dangerous'
+                  : selectedWeather.recommendation === 'caution' ? 'Caution'
+                    : 'Safe'}
+              </dd>
+            </dl>
+          )}
+
+          {/* 3-way Status Toggle */}
           <div className={styles.statusToggle}>
             <button
               className={`${styles.statusOption} ${dayStatus === CALENDAR_STATUS.OPEN ? styles.statusOptionActive : ''}`}
               onClick={() => setDayStatus(CALENDAR_STATUS.OPEN)}
             >
               Open
+            </button>
+            <button
+              className={`${styles.statusOption} ${dayStatus === CALENDAR_STATUS.PARTIAL_CLOSED ? styles.statusOptionActive : ''}`}
+              onClick={() => {
+                setDayStatus(CALENDAR_STATUS.PARTIAL_CLOSED);
+                if (closedSlots.length === 0) setClosedSlots([{ ...EMPTY_SLOT }]);
+              }}
+            >
+              Partial Close
             </button>
             <button
               className={`${styles.statusOption} ${dayStatus === CALENDAR_STATUS.CLOSED ? styles.statusOptionActive : ''}`}
@@ -285,9 +415,10 @@ const Calendar = () => {
             </button>
           </div>
 
-          {dayStatus === CALENDAR_STATUS.CLOSED && (
+          {/* Closed Reason (for CLOSED and PARTIAL_CLOSED) */}
+          {(dayStatus === CALENDAR_STATUS.CLOSED || dayStatus === CALENDAR_STATUS.PARTIAL_CLOSED) && (
             <div>
-              <label style={{ display: 'block', marginBottom: 'var(--spacing-1)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+              <label className={styles.closedSlotsLabel}>
                 Reason for Closure
               </label>
               <select
@@ -300,6 +431,50 @@ const Calendar = () => {
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* Closed Slots (for PARTIAL_CLOSED) */}
+          {dayStatus === CALENDAR_STATUS.PARTIAL_CLOSED && (
+            <div className={styles.closedSlotsSection}>
+              <label className={styles.closedSlotsLabel}>Closed Time Slots</label>
+              {closedSlots.map((slot, index) => (
+                <div key={index} className={styles.closedSlotRow}>
+                  <input
+                    type="time"
+                    className={styles.timeInput}
+                    value={slot.startTime}
+                    onChange={(e) => handleSlotChange(index, 'startTime', e.target.value)}
+                  />
+                  <span style={{ color: 'var(--text-tertiary)' }}>to</span>
+                  <input
+                    type="time"
+                    className={styles.timeInput}
+                    value={slot.endTime}
+                    onChange={(e) => handleSlotChange(index, 'endTime', e.target.value)}
+                  />
+                  <select
+                    className={styles.slotReasonSelect}
+                    value={slot.reason}
+                    onChange={(e) => handleSlotChange(index, 'reason', e.target.value)}
+                  >
+                    <option value="">Reason...</option>
+                    {Object.entries(CLOSE_REASONS).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                  <button
+                    className={styles.removeSlotBtn}
+                    onClick={() => handleRemoveSlot(index)}
+                    title="Remove slot"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+              <button className={styles.addSlotBtn} onClick={handleAddSlot}>
+                + Add Slot
+              </button>
             </div>
           )}
 

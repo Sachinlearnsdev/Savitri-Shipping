@@ -17,5 +17,6 @@ router.put('/:id', roleCheck('speedBoats', 'edit'), validate(updateBoatSchema), 
 router.delete('/:id', roleCheck('speedBoats', 'delete'), speedBoatsController.delete);
 router.post('/:id/images', roleCheck('speedBoats', 'edit'), uploadMultipleImages, speedBoatsController.uploadImages);
 router.delete('/:id/images', roleCheck('speedBoats', 'edit'), speedBoatsController.removeImage);
+router.delete('/:id/images/:imageIndex', roleCheck('speedBoats', 'edit'), speedBoatsController.deleteImage);
 
 module.exports = router;

@@ -1,11 +1,14 @@
+/* ==================== Profile Page Layout ==================== */
 .profilePage {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
-  max-width: 700px;
+  max-width: 780px;
   margin: 0 auto;
+  padding-bottom: var(--spacing-12);
 }
 
+/* ==================== Page Header ==================== */
 .header {
   margin-bottom: var(--spacing-2);
 }
@@ -23,74 +26,411 @@
   margin: 0;
 }
 
+/* ==================== Loading State ==================== */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20) 0;
+  gap: var(--spacing-4);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ==================== Card ==================== */
 .card {
   padding: var(--spacing-6);
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-primary-50);
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .cardTitle {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  margin: 0 0 var(--spacing-6) 0;
+  margin: 0;
 }
 
+/* ==================== Section 1: Profile Header ==================== */
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-5);
+}
+
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border-color);
+}
+
+.avatarPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  border: 3px solid var(--color-primary-100);
+}
+
+.avatarUploadBtn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid var(--bg-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.avatarUploadBtn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.avatarInput {
+  display: none;
+}
+
+.avatarSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.profileName {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.profileEmail {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.profileMemberSince {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* Verification Badges */
+.verificationBadges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.verificationBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.verificationBadge.verified {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.verificationBadge.unverified {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+/* ==================== Forms ==================== */
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
 }
 
-.infoGrid {
-  display: flex;
-  flex-direction: column;
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-4);
 }
 
-.infoItem {
+.formActions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-3) 0;
+  justify-content: flex-end;
+  padding-top: var(--spacing-2);
+}
+
+/* ==================== Section 3: Contact Information ==================== */
+.contactGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.contactItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-4) 0;
   border-bottom: 1px solid var(--border-color);
 }
 
-.infoItem:last-child {
+.contactItem:first-child {
+  padding-top: 0;
+}
+
+.contactItem:last-child {
   border-bottom: none;
 }
 
-.infoLabel {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-}
-
-.badge {
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-sm);
+.contactLabel {
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-full);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.badge.verified {
+.contactValue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.contactHint {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  margin: var(--spacing-4) 0 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Status Badges */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+}
+
+.statusVerified {
   background-color: var(--color-success-light);
   color: var(--color-success-dark);
 }
 
-.badge.pending {
+.statusUnverified {
   background-color: var(--color-warning-light);
   color: var(--color-warning-dark);
 }
 
-.badge.active {
-  background-color: var(--color-info-light);
-  color: var(--color-info-dark);
+/* ==================== Section 5: Notification Preferences ==================== */
+.notificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--spacing-4);
 }
 
+.notificationItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.notificationItem:first-child {
+  padding-top: 0;
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.notificationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notificationLabel {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.notificationDesc {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background-color: var(--color-gray-300);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+}
+
+.toggle.toggleOn {
+  background-color: var(--color-primary);
+}
+
+.toggleHandle {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--color-white);
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggle.toggleOn .toggleHandle {
+  transform: translateX(22px);
+}
+
+/* ==================== Section 6: Security ==================== */
+.passwordHint {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==================== Section 7: Account Info ==================== */
+.accountInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-6);
+}
+
+.accountInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.accountInfoLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.accountInfoValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+/* ==================== Responsive ==================== */
 @media (max-width: 768px) {
   .profilePage {
     gap: var(--spacing-4);
+    padding-bottom: var(--spacing-8);
   }
 
   .card {
@@ -99,5 +439,134 @@
 
   .title {
     font-size: var(--font-size-2xl);
+  }
+
+  /* Profile Header */
+  .profileHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+  }
+
+  .avatarSection {
+    gap: var(--spacing-4);
+  }
+
+  .avatarImage,
+  .avatarPlaceholder {
+    width: 64px;
+    height: 64px;
+    font-size: var(--font-size-xl);
+  }
+
+  .avatarUploadBtn {
+    width: 24px;
+    height: 24px;
+  }
+
+  .avatarUploadBtn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .profileName {
+    font-size: var(--font-size-lg);
+  }
+
+  .verificationBadges {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  /* Form Grid */
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Account Info Grid */
+  .accountInfoGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  /* Card header */
+  .cardHeader {
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-3);
+  }
+
+  .cardIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cardIcon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Notification items */
+  .notificationItem {
+    padding: var(--spacing-3) 0;
+  }
+
+  .notificationDesc {
+    font-size: var(--font-size-xs);
+  }
+
+  /* Contact */
+  .contactValue {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .profilePage {
+    gap: var(--spacing-3);
+  }
+
+  .card {
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+  }
+
+  .avatarSection {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .profileInfo {
+    align-items: center;
+  }
+
+  .verificationBadges {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .formActions {
+    justify-content: stretch;
+  }
+
+  .formActions button {
+    width: 100%;
+  }
+
+  .toggle {
+    width: 42px;
+    height: 24px;
+  }
+
+  .toggleHandle {
+    width: 18px;
+    height: 18px;
+  }
+
+  .toggle.toggleOn .toggleHandle {
+    transform: translateX(18px);
   }
 }

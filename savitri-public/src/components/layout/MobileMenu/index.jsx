@@ -6,13 +6,49 @@ import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { useAuth } from '@/hooks/useAuth';
+import { COMPANY_PHONE } from '@/utils/constants';
 import styles from './MobileMenu.module.css';
+
+const InstagramIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+  </svg>
+);
+
+const PhoneIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+  </svg>
+);
 
 const MobileMenu = () => {
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
   const { isMobileMenuOpen, closeMobileMenu } = useUIStore();
   const { logout } = useAuth();
+
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/speed-boats', label: 'Speed Boats' },
+    { href: '/party-boats', label: 'Party Boats' },
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+  ];
+
+  const isActive = (href) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(href);
+  };
 
   // Close menu on route change
   useEffect(() => {
@@ -81,29 +117,32 @@ const MobileMenu = () => {
 
         {/* Navigation */}
         <nav className={styles.nav}>
-          <Link href="/" className={styles.navLink}>
-            Home
-          </Link>
-          <Link href="/speed-boats" className={styles.navLink}>
-            Speed Boats
-          </Link>
-          <Link href="/party-boats" className={styles.navLink}>
-            Party Boats
-          </Link>
-          <Link href="/about" className={styles.navLink}>
-            About
-          </Link>
-          <Link href="/contact" className={styles.navLink}>
-            Contact
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`${styles.navLink} ${isActive(link.href) ? styles.activeLink : ''}`}
+            >
+              {isActive(link.href) && <span className={styles.activeIndicator} />}
+              {link.label}
+            </Link>
+          ))}
 
           {isAuthenticated ? (
             <>
               <div className={styles.divider} />
-              <Link href="/account/profile" className={styles.navLink}>
+              <Link
+                href="/account/profile"
+                className={`${styles.navLink} ${isActive('/account/profile') ? styles.activeLink : ''}`}
+              >
+                {isActive('/account/profile') && <span className={styles.activeIndicator} />}
                 My Account
               </Link>
-              <Link href="/account/bookings" className={styles.navLink}>
+              <Link
+                href="/account/bookings"
+                className={`${styles.navLink} ${isActive('/account/bookings') ? styles.activeLink : ''}`}
+              >
+                {isActive('/account/bookings') && <span className={styles.activeIndicator} />}
                 My Bookings
               </Link>
               <div className={styles.divider} />
@@ -123,6 +162,22 @@ const MobileMenu = () => {
             </>
           )}
         </nav>
+
+        {/* Social & Contact Footer */}
+        <div className={styles.menuFooter}>
+          <a href={`tel:${COMPANY_PHONE}`} className={styles.menuFooterPhone}>
+            <PhoneIcon />
+            <span>{COMPANY_PHONE}</span>
+          </a>
+          <div className={styles.menuFooterSocial}>
+            <a href="#" className={styles.socialIconButton} aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+              <InstagramIcon />
+            </a>
+            <a href="#" className={styles.socialIconButton} aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+              <FacebookIcon />
+            </a>
+          </div>
+        </div>
       </div>
     </>
   );

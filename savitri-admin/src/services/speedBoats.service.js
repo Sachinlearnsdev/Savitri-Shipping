@@ -32,3 +32,8 @@ export const uploadBoatImages = async (id, formData) => {
   });
   return response.data;
 };
+
+export const deleteBoatImage = async (boatId, imageIndex) => {
+  const response = await api.delete(`${API_ENDPOINTS.SPEED_BOAT_IMAGES(boatId)}/${imageIndex}`);
+  return response.data;
+};

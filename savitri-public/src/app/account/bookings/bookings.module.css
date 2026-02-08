@@ -345,6 +345,54 @@
   color: var(--text-tertiary);
 }
 
+.actionButtons {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.modificationCount {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.modifyButton {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modifyButton:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.modifyConfirmButton {
+  padding: var(--spacing-2) var(--spacing-5);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modifyConfirmButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.modifyConfirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .cancelButton {
   padding: var(--spacing-2) var(--spacing-4);
   background-color: transparent;
@@ -408,6 +456,23 @@
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
   margin-bottom: var(--spacing-1);
+}
+
+.cancelReasonInput {
+  width: 100%;
+  padding: var(--spacing-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: var(--spacing-4);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.cancelReasonInput:focus {
+  border-color: var(--color-primary);
 }
 
 .cancelDialogActions {

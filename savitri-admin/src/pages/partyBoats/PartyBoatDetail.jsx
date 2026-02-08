@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import useUIStore from '../../store/uiStore';
-import { getPartyBoatById, updatePartyBoat, uploadPartyBoatImages } from '../../services/partyBoats.service';
+import { getPartyBoatById, updatePartyBoat, uploadPartyBoatImages, deletePartyBoatImage } from '../../services/partyBoats.service';
 import {
   BOAT_STATUS_LABELS,
   BOAT_STATUS_COLORS,
@@ -26,6 +27,9 @@ const PartyBoatDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [deletingImageIndex, setDeletingImageIndex] = useState(null);
+  const [showDeleteImageDialog, setShowDeleteImageDialog] = useState(false);
+  const [deletingImage, setDeletingImage] = useState(false);
 
   useEffect(() => {
     const fetchBoat = async () => {
@@ -60,7 +64,7 @@ const PartyBoatDetail = () => {
       setUploading(true);
       const formData = new FormData();
       for (let i = 0; i < files.length; i++) {
-        formData.append('images', files[i]);
+        formData.append('files', files[i]);
       }
 
       const response = await uploadPartyBoatImages(id, formData);
@@ -81,6 +85,30 @@ const PartyBoatDetail = () => {
   const formatCurrency = (amount) => {
     if (amount == null) return `${CURRENCY.SYMBOL}0`;
     return `${CURRENCY.SYMBOL}${Number(amount).toLocaleString('en-IN')}`;
+  };
+
+  const handleDeleteImageClick = (index) => {
+    setDeletingImageIndex(index);
+    setShowDeleteImageDialog(true);
+  };
+
+  const handleConfirmDeleteImage = async () => {
+    if (deletingImageIndex === null) return;
+    try {
+      setDeletingImage(true);
+      const response = await deletePartyBoatImage(id, deletingImageIndex);
+      if (response.success) {
+        const updatedImages = response.data?.images || (boat.images || []).filter((_, i) => i !== deletingImageIndex);
+        setBoat((prev) => ({ ...prev, images: updatedImages }));
+        showSuccess('Image deleted successfully');
+      }
+    } catch (err) {
+      showError(err.message || 'Failed to delete image');
+    } finally {
+      setDeletingImage(false);
+      setShowDeleteImageDialog(false);
+      setDeletingImageIndex(null);
+    }
   };
 
   if (loading) {
@@ -240,17 +268,57 @@ const PartyBoatDetail = () => {
           ) : (
             <div className={styles.galleryGrid}>
               {images.map((image, index) => (
-                <div key={index} className={styles.imageWrapper}>
+                <div key={index} className={styles.imageWrapper} style={{ position: 'relative' }}>
                   <img
                     src={typeof image === 'string' ? image : image.url}
                     alt={`Boat image ${index + 1}`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImageClick(index)}
+                    style={{
+                      position: 'absolute',
+                      top: '6px',
+                      right: '6px',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      color: '#fff',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1,
+                      padding: 0,
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.85)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)'; }}
+                    title="Delete image"
+                  >
+                    &#x2715;
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+      {/* Delete Image Confirm */}
+      <ConfirmDialog
+        isOpen={showDeleteImageDialog}
+        onClose={() => { setShowDeleteImageDialog(false); setDeletingImageIndex(null); }}
+        onConfirm={handleConfirmDeleteImage}
+        title="Delete Image"
+        message="Are you sure you want to delete this image? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+        loading={deletingImage}
+      />
     </div>
   );
 };

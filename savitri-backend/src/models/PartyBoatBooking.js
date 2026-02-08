@@ -73,6 +73,13 @@ const partyBoatBookingSchema = new mongoose.Schema({
       required: true,
     },
     adminOverrideAmount: Number,
+    discountAmount: { type: Number, default: 0 },
+    coupon: {
+      code: String,
+      discountType: String,
+      discountValue: Number,
+      discountAmount: Number,
+    },
     finalAmount: {
       type: Number,
       required: true,
@@ -123,6 +130,17 @@ const partyBoatBookingSchema = new mongoose.Schema({
     type: String,
     enum: ['Customer', 'AdminUser'],
     default: 'AdminUser',
+  },
+  dateModifications: [{
+    previousDate: Date,
+    previousTimeSlot: String,
+    newDate: Date,
+    newTimeSlot: String,
+    modifiedAt: { type: Date, default: Date.now },
+  }],
+  dateModificationCount: {
+    type: Number,
+    default: 0,
   },
   isDeleted: {
     type: Boolean,

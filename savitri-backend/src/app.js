@@ -114,12 +114,18 @@ app.use("/api/admin/calendar", require("./modules/calendar/calendar.routes"));
 app.use("/api/admin/pricing-rules", require("./modules/pricingRules/pricingRules.routes"));
 app.use("/api/admin/bookings", require("./modules/bookings/bookings.routes").adminRouter);
 app.use("/api/admin/party-bookings", require("./modules/partyBookings/partyBookings.routes"));
+app.use("/api/admin/coupons", require("./modules/coupons/coupons.routes"));
+app.use("/api/admin/reviews", require("./modules/reviews/reviews.routes").adminRouter);
+app.use("/api/admin/notifications", require("./modules/notifications/notifications.routes"));
 
 // Customer Routes
 app.use("/api/profile", require("./modules/profile/profile.routes"));
 
 // Public Booking Routes
 app.use("/api/bookings", require("./modules/bookings/bookings.routes").publicRouter);
+
+// Public Review Routes
+app.use("/api/reviews", require("./modules/reviews/reviews.routes").publicRouter);
 
 
 // Root / welcome endpoint

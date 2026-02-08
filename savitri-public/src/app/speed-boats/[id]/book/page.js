@@ -112,10 +112,13 @@ export default function SpeedBoatBookPage() {
   const [bookingSuccess, setBookingSuccess] = useState(null);
   const [bookingError, setBookingError] = useState(null);
 
-  // Step management
-  const [currentStep, setCurrentStep] = useState(1);
+  // Step management — auto-advance to Step 2 if coming from detail page with slot pre-selected
+  const [currentStep, setCurrentStep] = useState(() => {
+    const hasDate = searchParams.get('date');
+    const hasSlot = searchParams.get('startTime');
+    return (hasDate && hasSlot) ? 2 : 1;
+  });
   const totalSteps = 4;
-
   // Step 1: Date (paginated week view)
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState(() => {
@@ -150,6 +153,12 @@ export default function SpeedBoatBookPage() {
   // Step 4: Payment
   const [paymentMode, setPaymentMode] = useState('ONLINE');
   const [customerNotes, setCustomerNotes] = useState('');
+
+  // Coupon
+  const [couponCode, setCouponCode] = useState(() => searchParams.get('couponCode') || '');
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const calendarDays = generateCalendarDays(calendarStatuses);
   const DAYS_PER_PAGE = 7;
@@ -290,12 +299,6 @@ export default function SpeedBoatBookPage() {
     fetchPricing();
   }, [selectedSlotTime, selectedDayIndex, effectiveDuration]);
 
-  // Reset slot when duration changes (slots shift)
-  useEffect(() => {
-    setSelectedSlotTime(null);
-    setPricing(null);
-  }, [effectiveDuration]);
-
   // Handlers
   const handleDaySelect = (index) => {
     if (!calendarDays[index].isClosed) {
@@ -309,17 +312,54 @@ export default function SpeedBoatBookPage() {
     setIsCustomDuration(false);
     setDuration(value);
     setSelectedSlotTime(null);
+    setPricing(null);
   };
 
   const handleCustomDuration = () => {
     setIsCustomDuration(true);
     setSelectedSlotTime(null);
+    setPricing(null);
   };
 
   const handleCustomHoursChange = (val) => {
     const num = Math.max(0.5, Math.min(8, parseFloat(val) || 1));
     setCustomHours(num);
     setSelectedSlotTime(null);
+    setPricing(null);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || couponLoading) return;
+
+    try {
+      setCouponLoading(true);
+      setCouponError('');
+      setCouponApplied(null);
+
+      const orderAmount = pricing ? pricing.totalAmount : boat.baseRate * effectiveDuration * 1.18;
+
+      const response = await api.post(API_ENDPOINTS.BOOKINGS.APPLY_COUPON, {
+        code: couponCode.trim().toUpperCase(),
+        orderAmount: Math.round(orderAmount),
+        bookingType: 'SPEED_BOAT',
+      });
+
+      if (response.success) {
+        setCouponApplied(response.data);
+        setCouponError('');
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code');
+      setCouponApplied(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setCouponApplied(null);
+    setCouponError('');
   };
 
   const canGoNext = () => {
@@ -372,6 +412,7 @@ export default function SpeedBoatBookPage() {
         customerEmail: customerEmail.trim().toLowerCase(),
         customerPhone: customerPhone.trim(),
         customerNotes: customerNotes.trim() || undefined,
+        couponCode: couponApplied ? couponApplied.code : undefined,
       });
 
       if (response.success) {
@@ -502,7 +543,7 @@ export default function SpeedBoatBookPage() {
 
   // Estimated price for display (API pricing when available, fallback to base estimate)
   const estimatedTotal = pricing
-    ? pricing.finalAmount
+    ? (couponApplied ? pricing.totalAmount - couponApplied.discountAmount : pricing.finalAmount)
     : boat.baseRate * effectiveDuration;
 
   return (
@@ -801,24 +842,33 @@ export default function SpeedBoatBookPage() {
                       <input
                         type="email"
                         id="email"
-                        className={styles.textInput}
+                        className={`${styles.textInput} ${customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail) ? styles.inputError : ''}`}
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder="you@example.com"
                         disabled={isAuthenticated && !!user?.email}
                       />
+                      {customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail) && (
+                        <span className={styles.fieldError}>Please enter a valid email</span>
+                      )}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel} htmlFor="phone">Phone Number</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        className={styles.textInput}
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="98765 43210"
-                        maxLength={10}
-                      />
+                      <div className={styles.phoneInputWrapper}>
+                        <span className={styles.phonePrefix}>+91</span>
+                        <input
+                          type="tel"
+                          id="phone"
+                          className={`${styles.textInput} ${styles.phoneInput} ${customerPhone && !/^\d{10}$/.test(customerPhone) ? styles.inputError : ''}`}
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          placeholder="98765 43210"
+                          maxLength={10}
+                        />
+                      </div>
+                      {customerPhone && !/^\d{10}$/.test(customerPhone) && (
+                        <span className={styles.fieldError}>Enter a valid 10-digit number</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -961,13 +1011,56 @@ export default function SpeedBoatBookPage() {
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Time</span>
                   <span className={styles.summaryValue}>
-                    {selectedSlot ? selectedSlot.label : 'Not selected'}
+                    {selectedSlot ? selectedSlot.label : (selectedSlotTime ? formatTime12(selectedSlotTime) : 'Not selected')}
                   </span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Duration</span>
                   <span className={styles.summaryValue}>{effectiveDuration} hour{effectiveDuration > 1 ? 's' : ''}</span>
                 </div>
+              </div>
+
+              {/* Coupon Section */}
+              <div className={styles.couponSection}>
+                <span className={styles.couponLabel}>Have a coupon code?</span>
+                <div className={styles.couponInputRow}>
+                  <input
+                    type="text"
+                    className={styles.couponInput}
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      if (couponError) setCouponError('');
+                    }}
+                    placeholder="Enter code"
+                    disabled={!!couponApplied || couponLoading}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                  />
+                  {couponApplied ? (
+                    <button className={styles.couponRemoveBtn} onClick={handleRemoveCoupon}>
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.couponApplyBtn}
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode.trim() || couponLoading}
+                    >
+                      {couponLoading ? 'Applying...' : 'Apply'}
+                    </button>
+                  )}
+                </div>
+                {couponError && <p className={styles.couponError}>{couponError}</p>}
+                {couponApplied && (
+                  <p className={styles.couponSuccess}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {couponApplied.discountType === 'PERCENTAGE'
+                      ? `${couponApplied.discountValue}% off applied! You save ${formatCurrency(couponApplied.discountAmount)}`
+                      : `${formatCurrency(couponApplied.discountAmount)} off applied!`}
+                  </p>
+                )}
               </div>
 
               {/* Price Breakdown */}
@@ -988,9 +1081,15 @@ export default function SpeedBoatBookPage() {
                       <span>GST ({pricing.gstPercent}%)</span>
                       <span>{formatCurrency(pricing.gstAmount)}</span>
                     </div>
+                    {couponApplied && (
+                      <div className={`${styles.priceRow} ${styles.priceDiscount}`}>
+                        <span>Coupon ({couponApplied.code})</span>
+                        <span>-{formatCurrency(couponApplied.discountAmount)}</span>
+                      </div>
+                    )}
                     <div className={`${styles.priceRow} ${styles.priceTotal}`}>
                       <span>Total</span>
-                      <span>{formatCurrency(pricing.finalAmount)}</span>
+                      <span>{formatCurrency(couponApplied ? pricing.totalAmount - couponApplied.discountAmount : pricing.finalAmount)}</span>
                     </div>
                   </>
                 ) : pricingLoading ? (

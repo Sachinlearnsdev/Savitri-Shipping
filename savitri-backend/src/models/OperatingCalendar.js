@@ -8,13 +8,26 @@ const operatingCalendarSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['OPEN', 'CLOSED'],
+    enum: ['OPEN', 'PARTIAL_CLOSED', 'CLOSED'],
     default: 'OPEN',
   },
   reason: {
     type: String,
     enum: ['TIDE', 'WEATHER', 'MAINTENANCE', 'HOLIDAY', 'OTHER', null],
   },
+  closedSlots: [{
+    startTime: {
+      type: String,
+      required: true,
+    },
+    endTime: {
+      type: String,
+      required: true,
+    },
+    reason: {
+      type: String,
+    },
+  }],
   notes: {
     type: String,
     trim: true,

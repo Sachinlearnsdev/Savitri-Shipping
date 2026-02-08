@@ -176,6 +176,74 @@ const sendPasswordChangedEmail = async (email, name) => {
   });
 };
 
+/**
+ * Send booking confirmation email
+ */
+const sendBookingConfirmation = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Booking Confirmed - ${data.bookingNumber}`,
+    templateName: 'booking-confirmation',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      date: data.date,
+      time: data.time || '',
+      duration: data.duration || '',
+      bookingType: data.bookingType,
+      subtotal: data.subtotal,
+      gst: data.gst,
+      discount: data.discount || '',
+      total: data.total,
+      paymentMode: data.paymentMode,
+      cancellationPolicy: data.cancellationPolicy || '',
+    },
+  });
+};
+
+/**
+ * Send booking cancellation email
+ */
+const sendBookingCancellation = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Booking Cancelled - ${data.bookingNumber}`,
+    templateName: 'booking-cancellation',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      date: data.date,
+      refundAmount: data.refundAmount,
+      refundPercent: data.refundPercent,
+      cancellationReason: data.cancellationReason || 'Not specified',
+    },
+  });
+};
+
+/**
+ * Send booking modification email
+ */
+const sendBookingModification = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Booking Modified - ${data.bookingNumber}`,
+    templateName: 'booking-modification',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      bookingType: data.bookingType,
+      previousDate: data.previousDate,
+      previousTime: data.previousTime || '',
+      newDate: data.newDate,
+      newTime: data.newTime || '',
+      remainingModifications: data.remainingModifications,
+    },
+  });
+};
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
@@ -183,4 +251,7 @@ module.exports = {
   sendLoginOTP,
   sendPasswordResetOTP,
   sendPasswordChangedEmail,
+  sendBookingConfirmation,
+  sendBookingCancellation,
+  sendBookingModification,
 };

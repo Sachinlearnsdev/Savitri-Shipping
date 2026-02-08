@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import useUIStore from '../../../store/uiStore';
 import useAuth from '../../../hooks/useAuth';
+import useNotificationStore from '../../../store/notificationStore';
 import { MENU_ITEMS } from '../../../utils/constants';
 import MenuIcon from './MenuIcon';
 import styles from './Sidebar.module.css';
@@ -10,6 +11,7 @@ const Sidebar = () => {
   const location = useLocation();
   const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, closeMobileSidebar } = useUIStore();
   const { hasPermission } = useAuth();
+  const counts = useNotificationStore((s) => s.counts);
   const [expandedMenus, setExpandedMenus] = useState({});
 
   const sidebarClasses = [
@@ -31,6 +33,17 @@ const Sidebar = () => {
 
   const handleLinkClick = () => {
     closeMobileSidebar();
+  };
+
+  // Get total notification count for a parent item from its children (de-duplicated)
+  const getParentCount = (children) => {
+    const keys = new Set();
+    children.forEach((child) => {
+      if (child.countKey) keys.add(child.countKey);
+    });
+    let total = 0;
+    keys.forEach((key) => { total += counts[key] || 0; });
+    return total;
   };
 
   const filteredMenuItems = MENU_ITEMS.filter(item => {
@@ -92,6 +105,7 @@ const Sidebar = () => {
                 const isExpanded = expandedMenus[item.id];
                 const isChildActive = isParentActive(item.children);
 
+                const parentCount = getParentCount(item.children);
                 return (
                   <li key={item.id} className={styles.menuItem}>
                     <button
@@ -104,6 +118,9 @@ const Sidebar = () => {
                       {!sidebarCollapsed && (
                         <>
                           <span className={styles.menuLabel}>{item.label}</span>
+                          {parentCount > 0 && !isExpanded && (
+                            <span className={styles.countBadge}>{parentCount > 99 ? '99+' : parentCount}</span>
+                          )}
                           <span className={`${styles.arrow} ${isExpanded ? styles.arrowDown : ''}`}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="9 18 15 12 9 6" />
@@ -115,17 +132,23 @@ const Sidebar = () => {
 
                     {isExpanded && !sidebarCollapsed && (
                       <ul className={styles.submenu}>
-                        {item.children.map((child) => (
-                          <li key={child.id}>
-                            <Link
-                              to={child.path}
-                              className={`${styles.submenuLink} ${isActive(child.path) ? styles.active : ''}`}
-                              onClick={handleLinkClick}
-                            >
-                              {child.label}
-                            </Link>
-                          </li>
-                        ))}
+                        {item.children.map((child) => {
+                          const childCount = child.countKey ? (counts[child.countKey] || 0) : 0;
+                          return (
+                            <li key={child.id}>
+                              <Link
+                                to={child.path}
+                                className={`${styles.submenuLink} ${isActive(child.path) ? styles.active : ''}`}
+                                onClick={handleLinkClick}
+                              >
+                                <span>{child.label}</span>
+                                {childCount > 0 && (
+                                  <span className={styles.countBadgeSm}>{childCount > 99 ? '99+' : childCount}</span>
+                                )}
+                              </Link>
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </li>

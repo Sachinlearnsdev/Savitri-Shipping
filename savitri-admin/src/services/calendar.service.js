@@ -15,3 +15,8 @@ export const bulkUpdateDays = async (dates) => {
   const response = await api.put(API_ENDPOINTS.CALENDAR_BULK, { dates });
   return response.data;
 };
+
+export const getWeather = async (params = {}) => {
+  const response = await api.get(API_ENDPOINTS.CALENDAR_WEATHER, { params });
+  return response.data;
+};

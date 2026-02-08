@@ -83,6 +83,22 @@ export const API_ENDPOINTS = {
   PARTY_BOOKING_STATUS: (id) => `/admin/party-bookings/${id}/status`,
   PARTY_BOOKING_PAYMENT: (id) => `/admin/party-bookings/${id}/payment`,
   PARTY_BOOKING_CANCEL: (id) => `/admin/party-bookings/${id}/cancel`,
+
+  // Reviews (Admin)
+  REVIEWS: '/admin/reviews',
+  REVIEW_BY_ID: (id) => `/admin/reviews/${id}`,
+  REVIEW_APPROVE: (id) => `/admin/reviews/${id}/approve`,
+
+  // Coupons (Admin)
+  COUPONS: '/admin/coupons',
+  COUPON_BY_ID: (id) => `/admin/coupons/${id}`,
+  COUPON_TOGGLE_ACTIVE: (id) => `/admin/coupons/${id}/toggle-active`,
+
+  // Notifications (Admin)
+  NOTIFICATION_COUNTS: '/admin/notifications/counts',
+
+  // Calendar Weather
+  CALENDAR_WEATHER: '/admin/calendar/weather',
 };
 
 // ==================== USER STATUS ====================
@@ -131,6 +147,20 @@ export const ADD_ON_TYPE_LABELS = { CATERING_VEG: 'Veg Catering', CATERING_NONVE
 export const PRICE_TYPE = { FIXED: 'FIXED', PER_PERSON: 'PER_PERSON' };
 export const PRICE_TYPE_LABELS = { FIXED: 'Fixed Price', PER_PERSON: 'Per Person' };
 
+// ==================== REVIEW TYPE ====================
+
+export const REVIEW_TYPE = { COMPANY: 'COMPANY', SPEED_BOAT: 'SPEED_BOAT', PARTY_BOAT: 'PARTY_BOAT' };
+export const REVIEW_TYPE_LABELS = { COMPANY: 'Company', SPEED_BOAT: 'Speed Boat', PARTY_BOAT: 'Party Boat' };
+export const REVIEW_TYPE_COLORS = { COMPANY: 'info', SPEED_BOAT: 'success', PARTY_BOAT: 'warning' };
+
+// ==================== COUPON ENUMS ====================
+
+export const DISCOUNT_TYPE = { PERCENTAGE: 'PERCENTAGE', FIXED: 'FIXED' };
+export const DISCOUNT_TYPE_LABELS = { PERCENTAGE: 'Percentage', FIXED: 'Fixed Amount' };
+
+export const APPLICABLE_TO = { ALL: 'ALL', SPEED_BOAT: 'SPEED_BOAT', PARTY_BOAT: 'PARTY_BOAT' };
+export const APPLICABLE_TO_LABELS = { ALL: 'All Services', SPEED_BOAT: 'Speed Boats', PARTY_BOAT: 'Party Boats' };
+
 // ==================== BOOKING STATUS ====================
 
 export const BOOKING_STATUS = { PENDING: 'PENDING', CONFIRMED: 'CONFIRMED', COMPLETED: 'COMPLETED', CANCELLED: 'CANCELLED', NO_SHOW: 'NO_SHOW' };
@@ -150,8 +180,8 @@ export const PAYMENT_MODE_LABELS = { ONLINE: 'Online', AT_VENUE: 'At Venue' };
 
 // ==================== CALENDAR STATUS ====================
 
-export const CALENDAR_STATUS = { OPEN: 'OPEN', CLOSED: 'CLOSED' };
-export const CALENDAR_STATUS_LABELS = { OPEN: 'Open', CLOSED: 'Closed' };
+export const CALENDAR_STATUS = { OPEN: 'OPEN', PARTIAL_CLOSED: 'PARTIAL_CLOSED', CLOSED: 'CLOSED' };
+export const CALENDAR_STATUS_LABELS = { OPEN: 'Open', PARTIAL_CLOSED: 'Partial Close', CLOSED: 'Closed' };
 export const CLOSE_REASONS = { TIDE: 'Tide', WEATHER: 'Weather', MAINTENANCE: 'Maintenance', HOLIDAY: 'Holiday', OTHER: 'Other' };
 
 // ==================== ROLES ====================
@@ -300,7 +330,7 @@ export const MENU_ITEMS = [
     children: [
       { id: 'speed-boats', label: 'Speed Boats', path: '/speed-boats', permission: 'speedBoats.view' },
       { id: 'party-boats', label: 'Party Boats', path: '/party-boats', permission: 'partyBoats.view' },
-      { id: 'boats-calendar', label: 'Calendar', path: '/speed-boats/calendar', permission: 'calendar.view' },
+      { id: 'boats-calendar', label: 'Calendar & Weather', path: '/speed-boats/calendar', permission: 'calendar.view' },
       { id: 'boats-pricing', label: 'Pricing Rules', path: '/speed-boats/pricing', permission: 'pricingRules.view' },
     ],
   },
@@ -310,8 +340,27 @@ export const MENU_ITEMS = [
     icon: 'bookings',
     permission: 'bookings.view',
     children: [
-      { id: 'speed-bookings', label: 'Speed Boat Bookings', path: '/bookings', permission: 'bookings.view' },
-      { id: 'party-bookings', label: 'Party Boat Bookings', path: '/party-bookings', permission: 'bookings.view' },
+      { id: 'speed-bookings', label: 'Speed Boat Bookings', path: '/bookings', permission: 'bookings.view', countKey: 'pendingBookings' },
+      { id: 'party-bookings', label: 'Party Boat Bookings', path: '/party-bookings', permission: 'bookings.view', countKey: 'pendingPartyBookings' },
+    ],
+  },
+  {
+    id: 'reviews',
+    label: 'Reviews',
+    icon: 'reviews',
+    permission: 'reviews.view',
+    children: [
+      { id: 'company-reviews', label: 'Company Reviews', path: '/reviews/company', permission: 'reviews.view', countKey: 'pendingReviews' },
+      { id: 'product-reviews', label: 'Product Reviews', path: '/reviews/product', permission: 'reviews.view', countKey: 'pendingReviews' },
+    ],
+  },
+  {
+    id: 'marketing',
+    label: 'Marketing',
+    icon: 'marketing',
+    permission: 'coupons.view',
+    children: [
+      { id: 'coupons', label: 'Coupons', path: '/coupons', permission: 'coupons.view' },
     ],
   },
   {
@@ -362,16 +411,19 @@ export const ROUTE_TITLES = {
   '/users/roles': 'Roles',
   '/users/customers': 'Customers',
   '/speed-boats': 'Speed Boats',
-  '/speed-boats/calendar': 'Calendar',
+  '/speed-boats/calendar': 'Calendar & Weather',
   '/speed-boats/pricing': 'Pricing Rules',
   '/party-boats': 'Party Boats',
   '/bookings': 'Speed Boat Bookings',
   '/party-bookings': 'Party Boat Bookings',
+  '/reviews/company': 'Company Reviews',
+  '/reviews/product': 'Product Reviews',
   '/settings/general': 'General',
   '/settings/billing': 'Billing',
   '/settings/booking': 'Booking',
   '/settings/notifications': 'Notifications',
   '/settings/content': 'Content',
+  '/coupons': 'Coupons',
   '/profile': 'Profile',
 };
 
@@ -386,6 +438,9 @@ export const ROUTE_PARENTS = {
   '/party-boats': { label: 'Boats', path: '/speed-boats' },
   '/bookings': { label: 'Bookings', path: '/bookings' },
   '/party-bookings': { label: 'Bookings', path: '/bookings' },
+  '/reviews/company': { label: 'Reviews', path: '/reviews/company' },
+  '/reviews/product': { label: 'Reviews', path: '/reviews/company' },
+  '/coupons': { label: 'Marketing', path: '/coupons' },
   '/settings/general': { label: 'Settings', path: '/settings/general' },
   '/settings/billing': { label: 'Settings', path: '/settings/general' },
   '/settings/booking': { label: 'Settings', path: '/settings/general' },

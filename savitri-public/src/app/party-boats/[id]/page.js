@@ -51,12 +51,6 @@ const AVATAR_COLORS = ['#dc2626', '#7c3aed', '#0891b2', '#d97706', '#2563eb', '#
 const CANCELLATION_POLICY = { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 };
 const PAYMENT_TERMS = { advancePercent: 50, remainderDueBeforeDays: 3 };
 
-// Placeholder reviews until a review system is built
-const PLACEHOLDER_REVIEWS = [
-  { id: 'r1', name: 'Ananya Sharma', rating: 5, date: '2026-01-25', comment: 'Amazing experience! The crew handled everything beautifully. The sound system and lighting were perfect for our celebration.', verified: true },
-  { id: 'r2', name: 'Rohit Kapoor', rating: 5, date: '2026-01-10', comment: 'Hosted our corporate event here and everyone was blown away. Already planning our next event. Highly recommended!', verified: true },
-  { id: 'r3', name: 'Meera Jain', rating: 4, date: '2025-12-20', comment: 'Great venue for celebrations. Spacious and well-maintained. The crew was very accommodating with our requests.', verified: true },
-];
 
 // ==================== HELPERS ====================
 
@@ -95,8 +89,15 @@ export default function PartyBoatDetailPage() {
   const [selectedEventType, setSelectedEventType] = useState(null);
   const [addOnGuestCounts, setAddOnGuestCounts] = useState({});
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
   // Reviews state
-  const [reviews, setReviews] = useState(PLACEHOLDER_REVIEWS);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHoverRating, setReviewHoverRating] = useState(0);
@@ -144,6 +145,33 @@ export default function PartyBoatDetailPage() {
     }
   }, [params.id]);
 
+  // Fetch reviews for this boat
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const response = await api.get(`${API_ENDPOINTS.REVIEWS.LIST}?type=PARTY_BOAT&boatId=${params.id}`);
+        if (response.success && response.data) {
+          const reviewsData = Array.isArray(response.data) ? response.data : (response.data.reviews || []);
+          setReviews(reviewsData.map((r) => ({
+            id: r.id || r._id,
+            name: r.customerName || 'Anonymous',
+            rating: r.rating,
+            date: r.createdAt,
+            comment: r.comment,
+            verified: r.isVerified || false,
+          })));
+        }
+      } catch {
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    if (params.id) fetchReviews();
+  }, [params.id]);
+
   // Handlers
   const handleAddOnToggle = (addOnType) => {
     setSelectedAddOns((prev) => {
@@ -168,25 +196,83 @@ export default function PartyBoatDetailPage() {
     setAddOnGuestCounts((prev) => ({ ...prev, [addOnType]: num }));
   };
 
-  const handleSubmitReview = (e) => {
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || couponLoading) return;
+
+    try {
+      setCouponLoading(true);
+      setCouponError('');
+      setCouponApplied(null);
+
+      const orderAmount = Math.round(boat.basePrice * 1.18);
+
+      const response = await api.post(API_ENDPOINTS.BOOKINGS.APPLY_COUPON, {
+        code: couponCode.trim().toUpperCase(),
+        orderAmount,
+        bookingType: 'PARTY_BOAT',
+      });
+
+      if (response.success) {
+        setCouponApplied(response.data);
+        setCouponError('');
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code');
+      setCouponApplied(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setCouponApplied(null);
+    setCouponError('');
+  };
+
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (reviewRating === 0 || !reviewName.trim() || !reviewComment.trim()) return;
-    const newReview = {
-      id: `user-${Date.now()}`,
-      name: reviewName.trim(),
-      rating: reviewRating,
-      date: new Date().toISOString().split('T')[0],
-      comment: reviewComment.trim(),
-      verified: false,
-    };
-    setReviews((prev) => [newReview, ...prev]);
-    setReviewSubmitted(true);
-    setReviewComment('');
-    setReviewRating(0);
-    setTimeout(() => {
-      setReviewSubmitted(false);
-      setShowReviewForm(false);
-    }, 3000);
+
+    try {
+      setReviewSubmitting(true);
+      setReviewError('');
+
+      const response = await api.post(API_ENDPOINTS.REVIEWS.CREATE, {
+        reviewType: 'PARTY_BOAT',
+        boatId: params.id,
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+        customerName: reviewName.trim(),
+      });
+
+      if (response.success) {
+        const r = response.data;
+        const newReview = {
+          id: r.id || r._id || `user-${Date.now()}`,
+          name: r.customerName || reviewName.trim(),
+          rating: r.rating || reviewRating,
+          date: r.createdAt || new Date().toISOString(),
+          comment: r.comment || reviewComment.trim(),
+          verified: r.isVerified || false,
+        };
+        setReviews((prev) => [newReview, ...prev]);
+        setReviewSubmitted(true);
+        setReviewComment('');
+        setReviewRating(0);
+        setTimeout(() => {
+          setReviewSubmitted(false);
+          setShowReviewForm(false);
+        }, 3000);
+      }
+    } catch (err) {
+      setReviewError(err.message || 'Failed to submit review. Please try again.');
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   const getRatingDistribution = () => {
@@ -509,6 +595,49 @@ export default function PartyBoatDetailPage() {
               <p className={styles.pricingGst}>18% GST applicable</p>
               <p className={styles.pricingCustom}>Custom quotes available for special requirements</p>
 
+              {/* Coupon Section */}
+              <div className={styles.couponSection}>
+                <span className={styles.couponLabel}>Have a promo code?</span>
+                <div className={styles.couponInputRow}>
+                  <input
+                    type="text"
+                    className={styles.couponInput}
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      if (couponError) setCouponError('');
+                    }}
+                    placeholder="Enter code"
+                    disabled={!!couponApplied || couponLoading}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                  />
+                  {couponApplied ? (
+                    <button className={styles.couponRemoveBtn} onClick={handleRemoveCoupon}>
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.couponApplyBtn}
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode.trim() || couponLoading}
+                    >
+                      {couponLoading ? '...' : 'Apply'}
+                    </button>
+                  )}
+                </div>
+                {couponError && <p className={styles.couponError}>{couponError}</p>}
+                {couponApplied && (
+                  <p className={styles.couponSuccess}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {couponApplied.discountType === 'PERCENTAGE'
+                      ? `${couponApplied.discountValue}% off applied!`
+                      : `${formatCurrency(couponApplied.discountAmount)} off applied!`}
+                  </p>
+                )}
+              </div>
+
               <div className={styles.pricingActions}>
                 <Link href={(() => {
                   const p = new URLSearchParams();
@@ -517,6 +646,7 @@ export default function PartyBoatDetailPage() {
                   const addOnTypes = Object.keys(selectedAddOns).filter(k => selectedAddOns[k]);
                   if (addOnTypes.length > 0) p.set('addOns', addOnTypes.join(','));
                   Object.entries(addOnGuestCounts).forEach(([k, v]) => { if (selectedAddOns[k]) p.set(`guests_${k}`, v); });
+                  if (couponApplied) p.set('couponCode', couponApplied.code);
                   const qs = p.toString();
                   return `/party-boats/${boatId}/book${qs ? `?${qs}` : ''}`;
                 })()} className={styles.bookNowBtn}>
@@ -665,11 +795,14 @@ export default function PartyBoatDetailPage() {
                   />
                   <span className={styles.reviewCharCount}>{reviewComment.length}/500</span>
                 </div>
+                {reviewError && (
+                  <p style={{ color: 'var(--color-error)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-2)' }}>{reviewError}</p>
+                )}
                 <div className={styles.reviewFormActions}>
-                  <button type="submit" className={styles.reviewSubmitBtn} disabled={!reviewRating || !reviewName.trim() || !reviewComment.trim()}>
-                    Submit Review
+                  <button type="submit" className={styles.reviewSubmitBtn} disabled={!reviewRating || !reviewName.trim() || !reviewComment.trim() || reviewSubmitting}>
+                    {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
                   </button>
-                  <button type="button" className={styles.reviewCancelBtn} onClick={() => setShowReviewForm(false)}>
+                  <button type="button" className={styles.reviewCancelBtn} onClick={() => setShowReviewForm(false)} disabled={reviewSubmitting}>
                     Cancel
                   </button>
                 </div>
@@ -678,41 +811,51 @@ export default function PartyBoatDetailPage() {
           </div>
 
           <div className={styles.reviewsList}>
-            {reviews.map((review) => (
-              <div key={review.id} className={styles.reviewCard}>
-                <div className={styles.reviewCardLeft}>
-                  <div className={styles.reviewerAvatar} style={{ backgroundColor: getAvatarColor(review.name) }}>
-                    {review.name.charAt(0)}
-                  </div>
-                </div>
-                <div className={styles.reviewCardBody}>
-                  <div className={styles.reviewCardTop}>
-                    <div className={styles.reviewerDetails}>
-                      <span className={styles.reviewerName}>{review.name}</span>
-                      {review.verified && (
-                        <span className={styles.verifiedBadge}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          Verified
-                        </span>
-                      )}
+            {reviewsLoading ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-4) 0' }}>
+                Loading reviews...
+              </p>
+            ) : reviews.length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-4) 0' }}>
+                No reviews yet. Be the first to share your experience!
+              </p>
+            ) : (
+              reviews.map((review) => (
+                <div key={review.id} className={styles.reviewCard}>
+                  <div className={styles.reviewCardLeft}>
+                    <div className={styles.reviewerAvatar} style={{ backgroundColor: getAvatarColor(review.name) }}>
+                      {review.name.charAt(0)}
                     </div>
-                    <span className={styles.reviewDate}>
-                      {new Date(review.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </span>
                   </div>
-                  <div className={styles.reviewStars}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span key={star} className={review.rating >= star ? styles.starFilled : styles.starEmpty}>
-                        ★
+                  <div className={styles.reviewCardBody}>
+                    <div className={styles.reviewCardTop}>
+                      <div className={styles.reviewerDetails}>
+                        <span className={styles.reviewerName}>{review.name}</span>
+                        {review.verified && (
+                          <span className={styles.verifiedBadge}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Verified
+                          </span>
+                        )}
+                      </div>
+                      <span className={styles.reviewDate}>
+                        {new Date(review.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
-                    ))}
+                    </div>
+                    <div className={styles.reviewStars}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={review.rating >= star ? styles.starFilled : styles.starEmpty}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <p className={styles.reviewComment}>{review.comment}</p>
                   </div>
-                  <p className={styles.reviewComment}>{review.comment}</p>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 

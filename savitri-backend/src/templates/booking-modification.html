@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Modified</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .booking-box { background: white; border: 2px dashed #2563eb; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .booking-number { font-size: 28px; font-weight: bold; color: #2563eb; letter-spacing: 4px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 40%; }
+        .details-table td:last-child { font-weight: 500; }
+        .change-box { background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #2563eb; }
+        .old-value { color: #ef4444; text-decoration: line-through; }
+        .new-value { color: #059669; font-weight: 600; }
+        .arrow { color: #6b7280; margin: 0 8px; }
+        .remaining { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 16px; border-radius: 8px; margin: 16px 0; text-align: center; color: #1e40af; font-weight: 500; }
+        .footer { text-align: center; padding: 20px; color: #9ca3af; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0; font-size: 24px;">Booking Modified</h1>
+        <p style="margin: 8px 0 0; opacity: 0.9;">Your booking date has been changed</p>
+    </div>
+
+    <div class="content">
+        <p>Hi {{name}},</p>
+        <p>Your booking has been successfully modified. Here are the updated details:</p>
+
+        <div class="booking-box">
+            <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 2px;">Booking Number</div>
+            <div class="booking-number">{{bookingNumber}}</div>
+        </div>
+
+        <div class="change-box">
+            <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; margin-bottom: 8px;">Date Change</div>
+            <div>
+                <span class="old-value">{{previousDate}}</span>
+                <span class="arrow">&rarr;</span>
+                <span class="new-value">{{newDate}}</span>
+            </div>
+            {{#if previousTime}}
+            <div style="margin-top: 8px;">
+                <span class="old-value">{{previousTime}}</span>
+                <span class="arrow">&rarr;</span>
+                <span class="new-value">{{newTime}}</span>
+            </div>
+            {{/if}}
+        </div>
+
+        <table class="details-table">
+            <tr><td>Boat</td><td>{{boatName}}</td></tr>
+            <tr><td>Booking Type</td><td>{{bookingType}}</td></tr>
+            <tr><td>New Date</td><td>{{newDate}}</td></tr>
+            <tr><td>New Time</td><td>{{newTime}}</td></tr>
+        </table>
+
+        <div class="remaining">
+            {{remainingModifications}} date modification(s) remaining
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px;">
+            Please note: Each booking can be modified up to 2 times. After that, you would need to cancel and rebook.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>

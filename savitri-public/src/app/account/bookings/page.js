@@ -1,96 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
+import { api } from '@/services/api';
+import { API_ENDPOINTS } from '@/utils/constants';
 import styles from './bookings.module.css';
-
-const SPEED_BOAT_BOOKINGS = [
-  {
-    id: 'sbk-1',
-    bookingNumber: 'SB-20260215-001',
-    boatName: 'Sea Hawk',
-    type: 'speed',
-    date: '2026-02-20',
-    startTime: '10:00',
-    duration: 2,
-    amount: 5900,
-    paymentMode: 'ONLINE',
-    paymentStatus: 'PAID',
-    status: 'CONFIRMED',
-    createdAt: '2026-02-10T10:30:00Z',
-  },
-  {
-    id: 'sbk-2',
-    bookingNumber: 'SB-20260210-003',
-    boatName: 'Ocean Rider',
-    type: 'speed',
-    date: '2026-02-12',
-    startTime: '14:00',
-    duration: 1,
-    amount: 2360,
-    paymentMode: 'AT_VENUE',
-    paymentStatus: 'PENDING',
-    status: 'COMPLETED',
-    createdAt: '2026-02-08T14:00:00Z',
-  },
-  {
-    id: 'sbk-3',
-    bookingNumber: 'SB-20260205-002',
-    boatName: 'Wave Runner',
-    type: 'speed',
-    date: '2026-02-08',
-    startTime: '09:00',
-    duration: 3,
-    amount: 12390,
-    paymentMode: 'ONLINE',
-    paymentStatus: 'REFUNDED',
-    status: 'CANCELLED',
-    createdAt: '2026-02-05T09:00:00Z',
-  },
-];
-
-const PARTY_BOAT_BOOKINGS = [
-  {
-    id: 'pbk-1',
-    bookingNumber: 'PB-20260220-001',
-    boatName: 'Royal Celebration',
-    type: 'party',
-    date: '2026-03-15',
-    timeSlot: 'Evening',
-    eventType: 'Birthday',
-    guests: 75,
-    amount: 95800,
-    paymentMode: 'ONLINE',
-    paymentStatus: 'ADVANCE_PAID',
-    status: 'CONFIRMED',
-    createdAt: '2026-02-05T16:00:00Z',
-  },
-  {
-    id: 'pbk-2',
-    bookingNumber: 'PB-20260218-002',
-    boatName: 'Star Night',
-    type: 'party',
-    date: '2026-02-25',
-    timeSlot: 'Afternoon',
-    eventType: 'College Farewell',
-    guests: 45,
-    amount: 62540,
-    paymentMode: 'ONLINE',
-    paymentStatus: 'FULLY_PAID',
-    status: 'PENDING',
-    createdAt: '2026-02-01T12:00:00Z',
-  },
-];
-
-const ALL_BOOKINGS = [...SPEED_BOAT_BOOKINGS, ...PARTY_BOAT_BOOKINGS].sort(
-  (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-);
-
-const TABS = [
-  { id: 'all', label: 'All Bookings', count: ALL_BOOKINGS.length },
-  { id: 'speed', label: 'Speed Boats', count: SPEED_BOAT_BOOKINGS.length },
-  { id: 'party', label: 'Party Boats', count: PARTY_BOAT_BOOKINGS.length },
-];
 
 const STATUS_CONFIG = {
   PENDING: { label: 'Pending', className: 'statusPending' },
@@ -110,16 +25,47 @@ const PAYMENT_STATUS_LABELS = {
 };
 
 export default function MyBookingsPage() {
+  const { isAuthenticated } = useAuthStore();
   const [activeTab, setActiveTab] = useState('all');
+  const [bookings, setBookings] = useState([]);
+  const [counts, setCounts] = useState({ all: 0, speed: 0, party: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showCancelDialog, setShowCancelDialog] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
 
-  const getFilteredBookings = () => {
-    if (activeTab === 'speed') return SPEED_BOAT_BOOKINGS;
-    if (activeTab === 'party') return PARTY_BOAT_BOOKINGS;
-    return ALL_BOOKINGS;
+  // Date modification
+  const [showModifyDialog, setShowModifyDialog] = useState(null);
+  const [modifyDate, setModifyDate] = useState('');
+  const [modifyLoading, setModifyLoading] = useState(false);
+
+  const fetchBookings = async (type) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const query = type && type !== 'all' ? `?type=${type}&limit=50` : '?limit=50';
+      const response = await api.get(`${API_ENDPOINTS.BOOKINGS.MY_BOOKINGS}${query}`);
+      if (response.success) {
+        setBookings(response.data.bookings || response.data || []);
+        if (response.data.counts) {
+          setCounts(response.data.counts);
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load bookings');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const bookings = getFilteredBookings();
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchBookings(activeTab);
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated, activeTab]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
@@ -132,21 +78,12 @@ export default function MyBookingsPage() {
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   const formatLongDate = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    return d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   const formatTime = (timeStr) => {
@@ -155,7 +92,7 @@ export default function MyBookingsPage() {
     const h = parseInt(hours, 10);
     const ampm = h >= 12 ? 'PM' : 'AM';
     const displayHour = h % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return `${displayHour}:${minutes || '00'} ${ampm}`;
   };
 
   const canCancel = (booking) => {
@@ -166,10 +103,82 @@ export default function MyBookingsPage() {
     return STATUS_CONFIG[status] || { label: status, className: 'statusPending' };
   };
 
-  const handleCancel = (bookingId) => {
-    alert('Booking cancellation will be available when connected to the backend.');
-    setShowCancelDialog(null);
+  const getBookingAmount = (booking) => {
+    if (booking.pricing) {
+      return booking.pricing.finalAmount || booking.pricing.totalAmount || 0;
+    }
+    return booking.amount || 0;
   };
+
+  const getBoatName = (booking) => {
+    if (booking.boatName) return booking.boatName;
+    if (booking.boatId && typeof booking.boatId === 'object') return booking.boatId.name;
+    return booking.bookingType === 'PARTY_BOAT' ? 'Party Boat' : 'Speed Boat';
+  };
+
+  const handleCancel = async (bookingId) => {
+    try {
+      setCancelLoading(true);
+      const response = await api.post(API_ENDPOINTS.BOOKINGS.CANCEL(bookingId), {
+        reason: cancelReason || 'Customer requested cancellation',
+      });
+      if (response.success) {
+        setShowCancelDialog(null);
+        setCancelReason('');
+        fetchBookings(activeTab);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to cancel booking');
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const canModifyDate = (booking) => {
+    return (booking.status === 'PENDING' || booking.status === 'CONFIRMED') &&
+      (booking.dateModificationCount || 0) < 2;
+  };
+
+  const handleModifyDate = async (bookingId) => {
+    if (!modifyDate) {
+      alert('Please select a new date');
+      return;
+    }
+    try {
+      setModifyLoading(true);
+      const response = await api.patch(API_ENDPOINTS.BOOKINGS.MODIFY_DATE(bookingId), {
+        newDate: modifyDate,
+      });
+      if (response.success) {
+        setShowModifyDialog(null);
+        setModifyDate('');
+        fetchBookings(activeTab);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to modify booking date');
+    } finally {
+      setModifyLoading(false);
+    }
+  };
+
+  const tabs = [
+    { id: 'all', label: 'All Bookings', count: counts.all },
+    { id: 'speed', label: 'Speed Boats', count: counts.speed },
+    { id: 'party', label: 'Party Boats', count: counts.party },
+  ];
+
+  if (!isAuthenticated) {
+    return (
+      <div className={styles.bookingsPage}>
+        <div className={styles.emptyContainer}>
+          <div className={styles.emptyIcon}>&#x1F512;</div>
+          <h3 className={styles.emptyTitle}>Sign in Required</h3>
+          <p className={styles.emptyText}>Please sign in to view your bookings.</p>
+          <Link href="/login" className={styles.emptyButton}>Sign In</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.bookingsPage}>
@@ -190,7 +199,7 @@ export default function MyBookingsPage() {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
@@ -202,8 +211,28 @@ export default function MyBookingsPage() {
         ))}
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className={styles.emptyContainer}>
+          <div className={styles.emptyIcon}>&#x23F3;</div>
+          <h3 className={styles.emptyTitle}>Loading bookings...</h3>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!loading && error && (
+        <div className={styles.emptyContainer}>
+          <div className={styles.emptyIcon}>&#x26A0;</div>
+          <h3 className={styles.emptyTitle}>Something went wrong</h3>
+          <p className={styles.emptyText}>{error}</p>
+          <button onClick={() => fetchBookings(activeTab)} className={styles.emptyButton}>
+            Try Again
+          </button>
+        </div>
+      )}
+
       {/* Empty State */}
-      {bookings.length === 0 && (
+      {!loading && !error && bookings.length === 0 && (
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>&#x1F4CB;</div>
           <h3 className={styles.emptyTitle}>No Bookings Found</h3>
@@ -224,11 +253,13 @@ export default function MyBookingsPage() {
       )}
 
       {/* Bookings List */}
-      {bookings.length > 0 && (
+      {!loading && !error && bookings.length > 0 && (
         <div className={styles.bookingsList}>
           {bookings.map((booking) => {
             const statusConfig = getStatusConfig(booking.status);
-            const isParty = booking.type === 'party';
+            const isParty = booking.bookingType === 'PARTY_BOAT';
+            const amount = getBookingAmount(booking);
+            const boatName = getBoatName(booking);
 
             return (
               <div key={booking.id} className={styles.bookingCard}>
@@ -245,7 +276,7 @@ export default function MyBookingsPage() {
                 </div>
 
                 <div className={styles.bookingBody}>
-                  <div className={styles.boatName}>{booking.boatName}</div>
+                  <div className={styles.boatName}>{boatName}</div>
                   <div className={styles.bookingDetails}>
                     <div className={styles.bookingDetail}>
                       <span className={styles.detailLabel}>Date</span>
@@ -255,25 +286,25 @@ export default function MyBookingsPage() {
                       <span className={styles.detailLabel}>{isParty ? 'Time Slot' : 'Time'}</span>
                       <span className={styles.detailValue}>
                         {isParty
-                          ? booking.timeSlot
-                          : `${formatTime(booking.startTime)} (${booking.duration}h)`}
+                          ? (booking.timeSlot || '-')
+                          : `${formatTime(booking.startTime)} (${booking.duration || '-'}h)`}
                       </span>
                     </div>
-                    {isParty && (
-                      <>
-                        <div className={styles.bookingDetail}>
-                          <span className={styles.detailLabel}>Event</span>
-                          <span className={styles.detailValue}>{booking.eventType}</span>
-                        </div>
-                        <div className={styles.bookingDetail}>
-                          <span className={styles.detailLabel}>Guests</span>
-                          <span className={styles.detailValue}>{booking.guests}</span>
-                        </div>
-                      </>
+                    {isParty && booking.eventType && (
+                      <div className={styles.bookingDetail}>
+                        <span className={styles.detailLabel}>Event</span>
+                        <span className={styles.detailValue}>{booking.eventType}</span>
+                      </div>
+                    )}
+                    {isParty && booking.numberOfGuests && (
+                      <div className={styles.bookingDetail}>
+                        <span className={styles.detailLabel}>Guests</span>
+                        <span className={styles.detailValue}>{booking.numberOfGuests}</span>
+                      </div>
                     )}
                     <div className={styles.bookingDetail}>
                       <span className={styles.detailLabel}>Amount</span>
-                      <span className={styles.detailValue}>{formatCurrency(booking.amount)}</span>
+                      <span className={styles.detailValue}>{formatCurrency(amount)}</span>
                     </div>
                   </div>
 
@@ -286,7 +317,7 @@ export default function MyBookingsPage() {
                       className={`${styles.paymentStatus} ${
                         ['PAID', 'FULLY_PAID', 'ADVANCE_PAID'].includes(booking.paymentStatus)
                           ? styles.paymentPaid
-                          : booking.paymentStatus === 'REFUNDED'
+                          : booking.paymentStatus === 'REFUNDED' || booking.paymentStatus === 'PARTIALLY_REFUNDED'
                           ? styles.paymentRefunded
                           : styles.paymentPending
                       }`}
@@ -297,15 +328,32 @@ export default function MyBookingsPage() {
                 </div>
 
                 <div className={styles.bookingActions}>
-                  <span className={styles.bookingDate}>Booked on {formatDate(booking.createdAt)}</span>
-                  {canCancel(booking) && (
-                    <button
-                      className={styles.cancelButton}
-                      onClick={() => setShowCancelDialog(booking.id)}
-                    >
-                      Cancel Booking
-                    </button>
-                  )}
+                  <span className={styles.bookingDate}>
+                    Booked on {formatDate(booking.createdAt)}
+                    {(booking.dateModificationCount || 0) > 0 && (
+                      <span className={styles.modificationCount}>
+                        {' '}&middot; {booking.dateModificationCount}/2 modifications used
+                      </span>
+                    )}
+                  </span>
+                  <div className={styles.actionButtons}>
+                    {canModifyDate(booking) && (
+                      <button
+                        className={styles.modifyButton}
+                        onClick={() => { setShowModifyDialog(booking.id); setModifyDate(''); }}
+                      >
+                        Modify Date
+                      </button>
+                    )}
+                    {canCancel(booking) && (
+                      <button
+                        className={styles.cancelButton}
+                        onClick={() => setShowCancelDialog(booking.id)}
+                      >
+                        Cancel Booking
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Cancel Confirmation Dialog */}
@@ -331,18 +379,63 @@ export default function MyBookingsPage() {
                           </>
                         )}
                       </ul>
+                      <textarea
+                        className={styles.cancelReasonInput}
+                        placeholder="Reason for cancellation (optional)"
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        rows={2}
+                      />
                       <div className={styles.cancelDialogActions}>
                         <button
                           className={styles.cancelConfirmButton}
                           onClick={() => handleCancel(booking.id)}
+                          disabled={cancelLoading}
                         >
-                          Yes, Cancel
+                          {cancelLoading ? 'Cancelling...' : 'Yes, Cancel'}
                         </button>
                         <button
                           className={styles.cancelDismissButton}
-                          onClick={() => setShowCancelDialog(null)}
+                          onClick={() => { setShowCancelDialog(null); setCancelReason(''); }}
                         >
                           Keep Booking
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modify Date Dialog */}
+                {showModifyDialog === booking.id && (
+                  <div className={styles.cancelDialog}>
+                    <div className={styles.cancelDialogContent}>
+                      <h4 className={styles.cancelDialogTitle}>Modify Booking Date</h4>
+                      <p className={styles.cancelDialogText}>
+                        Select a new date for your booking. You have{' '}
+                        <strong>{2 - (booking.dateModificationCount || 0)}</strong> modification(s) remaining.
+                      </p>
+                      <input
+                        type="date"
+                        className={styles.cancelReasonInput}
+                        value={modifyDate}
+                        onChange={(e) => setModifyDate(e.target.value)}
+                        min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                        max={new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0]}
+                        style={{ padding: '10px 12px' }}
+                      />
+                      <div className={styles.cancelDialogActions}>
+                        <button
+                          className={styles.modifyConfirmButton}
+                          onClick={() => handleModifyDate(booking.id)}
+                          disabled={modifyLoading || !modifyDate}
+                        >
+                          {modifyLoading ? 'Modifying...' : 'Confirm Change'}
+                        </button>
+                        <button
+                          className={styles.cancelDismissButton}
+                          onClick={() => { setShowModifyDialog(null); setModifyDate(''); }}
+                        >
+                          Cancel
                         </button>
                       </div>
                     </div>

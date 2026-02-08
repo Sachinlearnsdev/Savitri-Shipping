@@ -23,6 +23,7 @@ const createBookingSchema = z.object({
   duration: z.number().min(0.5, 'Duration must be at least 0.5 hours'),
   numberOfBoats: z.number().int().min(1, 'At least 1 boat required'),
   customerNotes: z.string().optional(),
+  couponCode: z.string().optional(),
   paymentMode: z.enum(['ONLINE', 'AT_VENUE']),
   // For auto-account creation (guest booking)
   customerName: z.string().min(2).optional(),
@@ -55,6 +56,13 @@ const markPaidSchema = z.object({
   paymentMode: z.string().optional(),
 });
 
+// Public: apply coupon
+const applyCouponSchema = z.object({
+  code: z.string().min(1, 'Coupon code is required'),
+  orderAmount: z.number().min(0, 'Order amount must be non-negative'),
+  bookingType: z.enum(['SPEED_BOAT', 'PARTY_BOAT']),
+});
+
 // Cancel booking
 const cancelBookingSchema = z.object({
   reason: z.string().optional(),
@@ -72,6 +80,11 @@ const bookingQuerySchema = z.object({
   endDate: z.string().optional(),
 });
 
+const modifyDateSchema = z.object({
+  newDate: z.string().min(1, 'New date is required'),
+  newStartTime: z.string().optional(),
+});
+
 module.exports = {
   availabilitySchema,
   priceCalcSchema,
@@ -81,4 +94,6 @@ module.exports = {
   markPaidSchema,
   cancelBookingSchema,
   bookingQuerySchema,
+  applyCouponSchema,
+  modifyDateSchema,
 };

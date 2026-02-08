@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -7,7 +7,7 @@ import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import Pagination from '../../components/common/Pagination';
 import useUIStore from '../../store/uiStore';
-import { getAllBookings, createBooking } from '../../services/bookings.service';
+import { getAllBookings, createBooking, calculatePrice } from '../../services/bookings.service';
 import { getAllBoats } from '../../services/speedBoats.service';
 import {
   BOOKING_STATUS,
@@ -71,7 +71,14 @@ const Bookings = () => {
     duration: '1',
     paymentMode: PAYMENT_MODE.AT_VENUE,
     adminNotes: '',
+    adminOverrideAmount: '',
   });
+
+  // Price calculator
+  const [priceData, setPriceData] = useState(null);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceError, setPriceError] = useState(null);
+  const priceTimerRef = useRef(null);
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -123,6 +130,58 @@ const Bookings = () => {
     }
   };
 
+  // Live price calculation with debounce
+  useEffect(() => {
+    const { date, startTime, duration } = createForm;
+    const numBoats = selectedBoatIds.length;
+
+    // Clear previous timer
+    if (priceTimerRef.current) {
+      clearTimeout(priceTimerRef.current);
+    }
+
+    // Only calculate if all required fields are filled
+    if (!date || !startTime || !duration || numBoats === 0) {
+      setPriceData(null);
+      setPriceError(null);
+      return;
+    }
+
+    const parsedDuration = Number(duration);
+    if (isNaN(parsedDuration) || parsedDuration < 0.5) {
+      setPriceData(null);
+      setPriceError(null);
+      return;
+    }
+
+    priceTimerRef.current = setTimeout(async () => {
+      try {
+        setPriceLoading(true);
+        setPriceError(null);
+        const response = await calculatePrice({
+          date,
+          startTime,
+          duration: parsedDuration,
+          numberOfBoats: numBoats,
+        });
+        if (response.success) {
+          setPriceData(response.data);
+        }
+      } catch (err) {
+        setPriceError(err.message || 'Failed to calculate price');
+        setPriceData(null);
+      } finally {
+        setPriceLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      if (priceTimerRef.current) {
+        clearTimeout(priceTimerRef.current);
+      }
+    };
+  }, [createForm.date, createForm.startTime, createForm.duration, selectedBoatIds.length]);
+
   const handleOpenCreate = () => {
     setCreateForm({
       customerName: '',
@@ -133,8 +192,11 @@ const Bookings = () => {
       duration: '1',
       paymentMode: PAYMENT_MODE.AT_VENUE,
       adminNotes: '',
+      adminOverrideAmount: '',
     });
     setSelectedBoatIds([]);
+    setPriceData(null);
+    setPriceError(null);
     fetchAvailableBoats();
     setShowCreateModal(true);
   };
@@ -174,6 +236,9 @@ const Bookings = () => {
       };
       if (createForm.customerEmail) payload.customerEmail = createForm.customerEmail;
       if (createForm.adminNotes) payload.adminNotes = createForm.adminNotes;
+      if (createForm.adminOverrideAmount !== '' && createForm.adminOverrideAmount !== null) {
+        payload.adminOverrideAmount = Number(createForm.adminOverrideAmount);
+      }
 
       const response = await createBooking(payload);
       if (response.success) {
@@ -426,6 +491,61 @@ const Bookings = () => {
               </div>
             )}
           </div>
+          {/* Live Price Breakdown */}
+          {(priceLoading || priceData || priceError) && (
+            <div className={styles.priceBreakdown}>
+              <h4 className={styles.priceBreakdownTitle}>Price Breakdown</h4>
+              {priceLoading ? (
+                <div className={styles.priceLoading}>Calculating price...</div>
+              ) : priceError ? (
+                <div className={styles.priceError}>{priceError}</div>
+              ) : priceData ? (
+                <>
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>Base Rate (per boat/hr)</span>
+                    <span className={styles.priceValue}>{formatCurrency(priceData.baseRate)}</span>
+                  </div>
+                  {priceData.appliedRule && (
+                    <div className={styles.priceRow}>
+                      <span className={styles.priceLabel}>
+                        Rule: {priceData.appliedRule.name} ({priceData.appliedRule.adjustmentPercent >= 0 ? '+' : ''}{priceData.appliedRule.adjustmentPercent}%)
+                      </span>
+                      <span className={styles.priceValue}>{formatCurrency(priceData.adjustedRate)}/hr</span>
+                    </div>
+                  )}
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>
+                      Subtotal ({priceData.numberOfBoats} boat{priceData.numberOfBoats > 1 ? 's' : ''} x {priceData.duration} hr{priceData.duration > 1 ? 's' : ''})
+                    </span>
+                    <span className={styles.priceValue}>{formatCurrency(priceData.subtotal)}</span>
+                  </div>
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>GST ({priceData.gstPercent}%)</span>
+                    <span className={styles.priceValue}>{formatCurrency(priceData.gstAmount)}</span>
+                  </div>
+                  <hr className={styles.priceDivider} />
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceTotalLabel}>Total Amount</span>
+                    <span className={styles.priceTotalValue}>{formatCurrency(priceData.totalAmount)}</span>
+                  </div>
+                  {createForm.adminOverrideAmount !== '' && Number(createForm.adminOverrideAmount) >= 0 && (
+                    <div className={styles.priceFinalRow}>
+                      <span className={styles.priceFinalLabel}>Final (Override)</span>
+                      <span className={styles.priceFinalValue}>{formatCurrency(Number(createForm.adminOverrideAmount))}</span>
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
+          <Input
+            label="Override Amount (optional)"
+            type="number"
+            placeholder="Leave empty to use calculated total"
+            value={createForm.adminOverrideAmount}
+            onChange={(e) => handleCreateChange('adminOverrideAmount', e.target.value)}
+            hint={createForm.adminOverrideAmount !== '' ? 'This amount will replace the calculated total' : 'Set a custom amount to override the calculated price'}
+          />
           <Select
             label="Payment Mode"
             options={paymentModeOptions}

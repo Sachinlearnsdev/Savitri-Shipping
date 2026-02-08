@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import useClickOutside from '../../../hooks/useClickOutside';
 import useAuth from '../../../hooks/useAuth';
 import useUIStore from '../../../store/uiStore';
+import useNotificationStore from '../../../store/notificationStore';
 import { ROUTE_TITLES, ROUTE_PARENTS } from '../../../utils/constants';
 import { getInitials, getAvatarColor } from '../../../utils/helpers';
 import styles from './Header.module.css';
@@ -12,9 +13,12 @@ const Header = () => {
   const location = useLocation();
   const { user, logout, getUserName, getRoleName } = useAuth();
   const { toggleMobileSidebar } = useUIStore();
+  const counts = useNotificationStore((s) => s.counts);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifMenu, setShowNotifMenu] = useState(false);
 
   const userMenuRef = useClickOutside(() => setShowUserMenu(false));
+  const notifMenuRef = useClickOutside(() => setShowNotifMenu(false));
 
   const handleLogout = async () => {
     await logout();
@@ -90,12 +94,64 @@ const Header = () => {
         </button>
 
         {/* Notifications */}
-        <button className={styles.iconButton} aria-label="Notifications">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        </button>
+        <div className={styles.notificationContainer} ref={notifMenuRef}>
+          <button
+            className={styles.iconButton}
+            aria-label="Notifications"
+            onClick={() => setShowNotifMenu(!showNotifMenu)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {counts.total > 0 && (
+              <span className={styles.notifBadge}>{counts.total > 99 ? '99+' : counts.total}</span>
+            )}
+          </button>
+
+          {showNotifMenu && (
+            <div className={styles.notificationDropdown}>
+              <div className={styles.notifHeader}>
+                <span>Notifications</span>
+              </div>
+              <div className={styles.notifBody}>
+                {counts.total === 0 ? (
+                  <div className={styles.notifEmpty}>No pending notifications</div>
+                ) : (
+                  <>
+                    {counts.pendingBookings > 0 && (
+                      <button
+                        className={styles.notifItem}
+                        onClick={() => { navigate('/bookings'); setShowNotifMenu(false); }}
+                      >
+                        <span className={styles.notifDot} />
+                        <span>{counts.pendingBookings} pending speed boat booking{counts.pendingBookings !== 1 ? 's' : ''}</span>
+                      </button>
+                    )}
+                    {counts.pendingPartyBookings > 0 && (
+                      <button
+                        className={styles.notifItem}
+                        onClick={() => { navigate('/party-bookings'); setShowNotifMenu(false); }}
+                      >
+                        <span className={styles.notifDot} />
+                        <span>{counts.pendingPartyBookings} pending party boat booking{counts.pendingPartyBookings !== 1 ? 's' : ''}</span>
+                      </button>
+                    )}
+                    {counts.pendingReviews > 0 && (
+                      <button
+                        className={styles.notifItem}
+                        onClick={() => { navigate('/reviews/company'); setShowNotifMenu(false); }}
+                      >
+                        <span className={styles.notifDot} />
+                        <span>{counts.pendingReviews} unapproved review{counts.pendingReviews !== 1 ? 's' : ''}</span>
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* User Menu */}
         <div className={styles.userMenuContainer} ref={userMenuRef}>

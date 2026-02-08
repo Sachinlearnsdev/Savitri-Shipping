@@ -39,3 +39,8 @@ export const removePartyBoatImage = async (id, imageUrl) => {
   });
   return response.data;
 };
+
+export const deletePartyBoatImage = async (boatId, imageIndex) => {
+  const response = await api.delete(`${API_ENDPOINTS.PARTY_BOAT_IMAGES(boatId)}/${imageIndex}`);
+  return response.data;
+};

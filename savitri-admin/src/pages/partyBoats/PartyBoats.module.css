@@ -105,6 +105,29 @@
   font-weight: var(--font-weight-medium);
 }
 
+.boatNameLink {
+  color: var(--color-primary-600);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.boatNameLink:hover {
+  text-decoration: underline;
+}
+
+.imageCount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--color-primary-600);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+}
+
+.imageCount:hover {
+  text-decoration: underline;
+}
+
 .price {
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-600);
@@ -135,6 +158,11 @@
 
 .actionBtn:hover {
   background-color: var(--bg-secondary);
+}
+
+.viewBtn {
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-medium);
 }
 
 .editBtn {

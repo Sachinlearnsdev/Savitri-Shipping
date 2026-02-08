@@ -8,6 +8,7 @@ const { updateDaySchema, bulkUpdateSchema, calendarQuerySchema } = require('./ca
 
 router.use(adminAuth);
 
+router.get('/weather', roleCheck('calendar', 'view'), calendarController.getWeather);
 router.get('/', roleCheck('calendar', 'view'), validateQuery(calendarQuerySchema), calendarController.getCalendar);
 router.put('/', roleCheck('calendar', 'edit'), validate(updateDaySchema), calendarController.updateDay);
 router.put('/bulk', roleCheck('calendar', 'edit'), validate(bulkUpdateSchema), calendarController.bulkUpdate);

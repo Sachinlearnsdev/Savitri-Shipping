@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
@@ -234,6 +234,7 @@ const SpeedBoats = () => {
                   <th>Registration #</th>
                   <th>Capacity</th>
                   <th>Base Rate</th>
+                  <th>Images</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -241,10 +242,19 @@ const SpeedBoats = () => {
               <tbody>
                 {boats.map((boat) => (
                   <tr key={boat.id || boat._id}>
-                    <td className={styles.boatName}>{boat.name}</td>
+                    <td className={styles.boatName}>
+                      <Link to={`/speed-boats/${boat.id || boat._id}`} className={styles.boatNameLink}>
+                        {boat.name}
+                      </Link>
+                    </td>
                     <td>{boat.registrationNumber}</td>
                     <td>{boat.capacity} Passengers</td>
                     <td className={styles.rate}>{formatCurrency(boat.baseRate)}/hr</td>
+                    <td>
+                      <Link to={`/speed-boats/${boat.id || boat._id}`} className={styles.imageCount}>
+                        {(boat.images || []).length} photo{(boat.images || []).length !== 1 ? 's' : ''}
+                      </Link>
+                    </td>
                     <td>
                       <Badge variant={BOAT_STATUS_COLORS[boat.status] || 'default'}>
                         {BOAT_STATUS_LABELS[boat.status] || boat.status}
@@ -252,6 +262,13 @@ const SpeedBoats = () => {
                     </td>
                     <td>
                       <div className={styles.actions}>
+                        <button
+                          className={`${styles.actionBtn} ${styles.viewBtn}`}
+                          onClick={() => navigate(`/speed-boats/${boat.id || boat._id}`)}
+                          title="View details & images"
+                        >
+                          View
+                        </button>
                         <button
                           className={`${styles.actionBtn} ${styles.editBtn}`}
                           onClick={() => handleOpenEdit(boat)}

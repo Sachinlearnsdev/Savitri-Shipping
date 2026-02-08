@@ -17,5 +17,6 @@ router.put('/:id', roleCheck('partyBoats', 'edit'), validate(updatePartyBoatSche
 router.delete('/:id', roleCheck('partyBoats', 'delete'), partyBoatsController.delete);
 router.post('/:id/images', roleCheck('partyBoats', 'edit'), uploadMultipleImages, partyBoatsController.uploadImages);
 router.delete('/:id/images', roleCheck('partyBoats', 'edit'), partyBoatsController.removeImage);
+router.delete('/:id/images/:imageIndex', roleCheck('partyBoats', 'edit'), partyBoatsController.deleteImage);
 
 module.exports = router;

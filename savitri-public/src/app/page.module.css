@@ -446,6 +446,28 @@
   background-color: var(--bg-secondary);
 }
 
+.reviewCta {
+  text-align: center;
+  margin-bottom: var(--spacing-8);
+}
+
+.writeReviewLink {
+  display: inline-block;
+  padding: var(--spacing-2) var(--spacing-5);
+  background-color: var(--color-primary);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+}
+
+.writeReviewLink:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
 .testimonialsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -2,7 +2,7 @@
   background-color: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
   padding-top: var(--spacing-12);
-  padding-bottom: var(--spacing-6);
+  padding-bottom: 0;
   margin-top: var(--spacing-16);
 }
 
@@ -11,7 +11,7 @@
   margin: 0 auto;
   padding: 0 var(--spacing-4);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
   gap: var(--spacing-8);
 }
 
@@ -43,7 +43,37 @@
   margin: 0 0 var(--spacing-2) 0;
 }
 
-/* Links */
+/* ==================== SOCIAL ICONS ==================== */
+.socialIcons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+.socialIconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.socialIconButton:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+}
+
+/* ==================== LINKS ==================== */
 .linkList {
   display: flex;
   flex-direction: column;
@@ -64,8 +94,14 @@
   color: var(--color-primary);
 }
 
-/* Contact */
-.contactList {
+/* ==================== OPERATING HOURS ==================== */
+.hoursSection {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border-color);
+}
+
+.hoursList {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
@@ -74,7 +110,28 @@
   margin: 0;
 }
 
+.hoursItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+/* ==================== CONTACT ==================== */
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 .contactLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   text-decoration: none;
@@ -85,27 +142,50 @@
   color: var(--color-primary);
 }
 
-.address {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  line-height: var(--line-height-relaxed);
-}
-
-/* Bottom Bar */
+/* ==================== BOTTOM BAR ==================== */
 .bottom {
   margin-top: var(--spacing-8);
-  padding-top: var(--spacing-6);
+  padding: var(--spacing-5) 0;
   border-top: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+}
+
+.bottomContainer {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .copyright {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
-  text-align: center;
   margin: 0;
 }
 
-/* Responsive */
+.bottomSocial {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.bottomSocialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  padding: 2px;
+}
+
+.bottomSocialLink:hover {
+  color: var(--color-primary);
+}
+
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
   .container {
     grid-template-columns: repeat(2, 1fr);
@@ -126,5 +206,11 @@
   .column:first-child {
     padding-bottom: var(--spacing-4);
     border-bottom: 1px solid var(--border-color);
+  }
+
+  .bottomContainer {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    text-align: center;
   }
 }

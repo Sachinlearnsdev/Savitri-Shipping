@@ -17,7 +17,7 @@ class ProfileService {
    */
   async getProfile(customerId) {
     const customer = await Customer.findById(customerId)
-      .select('id name email phone avatar emailVerified phoneVerified emailNotifications smsNotifications promotionalEmails createdAt')
+      .select('id name email phone avatar dateOfBirth gender address notificationPreferences emailVerified phoneVerified emailNotifications smsNotifications promotionalEmails createdAt')
       .lean();
 
     if (!customer) {
@@ -31,14 +31,21 @@ class ProfileService {
    * Update profile
    */
   async updateProfile(customerId, data) {
-    const { name } = data;
+    const { name, dateOfBirth, gender, address, notificationPreferences } = data;
+
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+    if (gender !== undefined) updateData.gender = gender;
+    if (address !== undefined) updateData.address = address;
+    if (notificationPreferences !== undefined) updateData.notificationPreferences = notificationPreferences;
 
     const customer = await Customer.findByIdAndUpdate(
       customerId,
-      { name },
+      updateData,
       { new: true }
     )
-      .select('id name email phone avatar')
+      .select('id name email phone avatar dateOfBirth gender address notificationPreferences')
       .lean();
 
     return formatDocument(customer);

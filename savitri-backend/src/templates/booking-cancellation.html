@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Cancelled</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .booking-box { background: white; border: 2px dashed #d97706; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .booking-number { font-size: 28px; font-weight: bold; color: #d97706; letter-spacing: 4px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 40%; }
+        .details-table td:last-child { font-weight: 500; }
+        .refund-box { background: #ecfdf5; border-left: 4px solid #059669; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .refund-box strong { color: #059669; }
+        .reason-box { background: #f3f4f6; padding: 15px; margin: 20px 0; border-radius: 8px; font-size: 14px; }
+        .cta-button { display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Booking Cancelled &#9888;&#65039;</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{name}},</p>
+
+        <p>Your booking with <strong>{{companyName}}</strong> has been cancelled.</p>
+
+        <div class="booking-box">
+            <p style="margin: 0 0 10px 0; color: #6b7280;">Booking number:</p>
+            <div class="booking-number">{{bookingNumber}}</div>
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td>Boat</td>
+                <td>{{boatName}}</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>{{date}}</td>
+            </tr>
+        </table>
+
+        <div class="refund-box">
+            <strong>Refund:</strong> {{refundPercent}} of your payment ({{refundAmount}}) will be processed within 5-7 business days.
+        </div>
+
+        <div class="reason-box">
+            <strong>Cancellation Reason:</strong> {{cancellationReason}}
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{frontendUrl}}/speed-boats" class="cta-button">Browse Boats</a>
+        </p>
+
+        <p>If you have any questions, please contact our support team.</p>
+
+        <p>Best regards,<br><strong>Team {{companyName}}</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>
