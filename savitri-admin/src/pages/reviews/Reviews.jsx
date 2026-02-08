@@ -162,7 +162,7 @@ const Reviews = ({ category = 'company' }) => {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.title}>{isCompany ? 'Company Reviews' : 'Product Reviews'}</h1>
+        <h1 className={styles.title}>{isCompany ? 'Company Reviews' : 'Boat Reviews'}</h1>
       </div>
 
       {/* Filters */}

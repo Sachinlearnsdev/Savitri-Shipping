@@ -207,6 +207,14 @@
   font-size: var(--font-size-sm);
 }
 
+.avatarImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary-100);
+}
+
 .accountName {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);

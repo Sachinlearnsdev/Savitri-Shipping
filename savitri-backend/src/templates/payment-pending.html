@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed - Payment Pending</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .booking-box { background: white; border: 2px dashed #d97706; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .booking-number { font-size: 28px; font-weight: bold; color: #d97706; letter-spacing: 4px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 40%; }
+        .details-table td:last-child { font-weight: 500; }
+        .amount-box { background: white; border: 1px solid #fbbf24; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .amount { font-size: 32px; font-weight: bold; color: #d97706; }
+        .warning { background: #fef3c7; border-left: 4px solid #d97706; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+        .payment-instructions { background: white; border: 1px solid #e5e7eb; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .payment-instructions h3 { margin-top: 0; color: #d97706; }
+        .payment-instructions ol { margin: 10px 0; padding-left: 20px; }
+        .payment-instructions li { margin-bottom: 8px; font-size: 14px; }
+        .cta-button { display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Booking Confirmed &#9203;</h1>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Payment Pending</p>
+    </div>
+    <div class="content">
+        <p>Dear {{name}},</p>
+
+        <p>Your booking with <strong>{{companyName}}</strong> has been confirmed! Please complete your payment to secure your reservation.</p>
+
+        <div class="booking-box">
+            <p style="margin: 0 0 10px 0; color: #6b7280;">Your booking number is:</p>
+            <div class="booking-number">{{bookingNumber}}</div>
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td>Boat</td>
+                <td>{{boatName}}</td>
+            </tr>
+            <tr>
+                <td>Booking Type</td>
+                <td>{{bookingType}}</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>{{date}}</td>
+            </tr>
+            <tr>
+                <td>Time</td>
+                <td>{{time}}</td>
+            </tr>
+        </table>
+
+        <div class="amount-box">
+            <p style="margin: 0 0 5px 0; color: #6b7280; font-size: 14px;">Amount to Pay</p>
+            <div class="amount">{{total}}</div>
+        </div>
+
+        <div class="warning">
+            <strong>&#9888;&#65039; Payment Required:</strong> Please complete your payment as soon as possible to confirm your reservation. Unpaid bookings may be cancelled.
+        </div>
+
+        <div class="payment-instructions">
+            <h3>How to Complete Payment</h3>
+            <ol>
+                <li>Log in to your account on our website.</li>
+                <li>Go to <strong>My Bookings</strong> and find booking <strong>{{bookingNumber}}</strong>.</li>
+                <li>Click on <strong>Pay Now</strong> to complete your payment online.</li>
+                <li>You will receive a payment confirmation email once the payment is processed.</li>
+            </ol>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{frontendUrl}}/account/bookings" class="cta-button">Complete Payment</a>
+        </p>
+
+        <p>If you have any questions or need assistance, please contact our support team.</p>
+
+        <p>Best regards,<br><strong>Team {{companyName}}</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>

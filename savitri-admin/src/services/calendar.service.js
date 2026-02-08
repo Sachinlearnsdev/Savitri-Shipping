@@ -20,3 +20,8 @@ export const getWeather = async (params = {}) => {
   const response = await api.get(API_ENDPOINTS.CALENDAR_WEATHER, { params });
   return response.data;
 };
+
+export const getCurrentWeather = async () => {
+  const response = await api.get(API_ENDPOINTS.CALENDAR_CURRENT_WEATHER);
+  return response.data;
+};

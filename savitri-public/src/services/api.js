@@ -61,25 +61,34 @@ class ApiService {
     try {
       const response = await fetch(url, config);
 
+      // Parse JSON response
+      const data = await response.json();
+
       // Handle 401 Unauthorized
       if (response.status === 401) {
-        // Clear auth data
-        removeFromStorage(STORAGE_KEYS.AUTH_TOKEN);
-        removeFromStorage(STORAGE_KEYS.USER);
+        // Only redirect to login if NOT already on an auth page
+        const isAuthPage =
+          typeof window !== "undefined" &&
+          ["/login", "/register", "/forgot-password", "/reset-password"].some(
+            (p) => window.location.pathname.startsWith(p)
+          );
 
-        // Redirect to login if in browser
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+        if (!isAuthPage) {
+          // Clear auth data
+          removeFromStorage(STORAGE_KEYS.AUTH_TOKEN);
+          removeFromStorage(STORAGE_KEYS.USER);
+
+          if (typeof window !== "undefined") {
+            window.location.href = "/login";
+          }
         }
 
         throw {
           status: 401,
-          message: "Session expired. Please login again.",
+          message: data.message || "Session expired. Please login again.",
+          errors: data.errors || [],
         };
       }
-
-      // Parse JSON response
-      const data = await response.json();
 
       // Handle non-OK responses
       if (!response.ok) {

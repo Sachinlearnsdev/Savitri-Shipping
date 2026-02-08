@@ -85,6 +85,216 @@
   color: var(--text-tertiary);
 }
 
+/* Weather & Calendar Row */
+.weatherCalendarRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-6);
+}
+
+/* Weather Card */
+.weatherCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.weatherMain {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.weatherEmoji {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.weatherTemp {
+  display: block;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.weatherDesc {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-1);
+}
+
+.weatherGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.weatherDetail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.weatherDetailLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weatherDetailValue {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.weatherBadgeRow {
+  display: flex;
+  align-items: center;
+}
+
+.weatherBadge {
+  display: inline-block;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.badgeSafe {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.badgeCaution {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.badgeDangerous {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.weatherUnavailable {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  padding: var(--spacing-8) 0;
+  text-align: center;
+}
+
+/* Festival Card */
+.festivalCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendarStatusRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.calendarStatusLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.calendarStatusBadge {
+  display: inline-block;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.calendarStatusOpen {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.calendarStatusPartial {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.calendarStatusClosed {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.todayFestival {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: #92400e;
+}
+
+.todayFestivalIcon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.upcomingFestivals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.upcomingTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.festivalItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.festivalName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.festivalDate {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.noFestivals {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
 /* Section */
 .section {
   display: flex;
@@ -220,6 +430,24 @@
   }
 
   .statValue {
+    font-size: var(--font-size-2xl);
+  }
+
+  .weatherCalendarRow {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .weatherCard,
+  .festivalCard {
+    padding: var(--spacing-4);
+  }
+
+  .weatherEmoji {
+    font-size: 40px;
+  }
+
+  .weatherTemp {
     font-size: var(--font-size-2xl);
   }
 

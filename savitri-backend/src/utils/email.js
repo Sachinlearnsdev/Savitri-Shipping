@@ -244,6 +244,68 @@ const sendBookingModification = async (email, data) => {
   });
 };
 
+/**
+ * Send payment pending email (booking confirmed, awaiting payment)
+ */
+const sendPaymentPendingEmail = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Booking Confirmed - Payment Pending | ${data.bookingNumber}`,
+    templateName: 'payment-pending',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      date: data.date,
+      time: data.time,
+      bookingType: data.bookingType,
+      total: data.total,
+    },
+  });
+};
+
+/**
+ * Send payment confirmed email (payment received)
+ */
+const sendPaymentConfirmedEmail = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Payment Received - Thank You | ${data.bookingNumber}`,
+    templateName: 'payment-confirmed',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      date: data.date,
+      time: data.time,
+      bookingType: data.bookingType,
+      total: data.total,
+      transactionId: data.transactionId,
+      paymentMode: data.paymentMode,
+    },
+  });
+};
+
+/**
+ * Send at-venue booking email (pay at venue confirmation)
+ */
+const sendAtVenueBookingEmail = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Thank You for Choosing ${config.companyName} | ${data.bookingNumber}`,
+    templateName: 'at-venue-booking',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      date: data.date,
+      time: data.time,
+      bookingType: data.bookingType,
+      total: data.total,
+    },
+  });
+};
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
@@ -254,4 +316,7 @@ module.exports = {
   sendBookingConfirmation,
   sendBookingCancellation,
   sendBookingModification,
+  sendPaymentPendingEmail,
+  sendPaymentConfirmedEmail,
+  sendAtVenueBookingEmail,
 };

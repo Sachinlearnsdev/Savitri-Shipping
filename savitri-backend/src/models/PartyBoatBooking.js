@@ -99,6 +99,11 @@ const partyBoatBookingSchema = new mongoose.Schema({
     type: String,
     enum: ['ONLINE', 'AT_VENUE'],
   },
+  transactionId: { type: String },
+  paymentProof: {
+    url: { type: String },
+    publicId: { type: String },
+  },
   cancellation: {
     cancelledAt: Date,
     cancelledBy: {

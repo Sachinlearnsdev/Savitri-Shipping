@@ -126,9 +126,17 @@ const Header = () => {
                   className={styles.accountButton}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  <span className={styles.avatar}>
-                    {user?.name?.charAt(0).toUpperCase() || "U"}
-                  </span>
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`}
+                      alt={user?.name}
+                      className={styles.avatarImage}
+                    />
+                  ) : (
+                    <span className={styles.avatar}>
+                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  )}
                   <span className={styles.accountName}>{user?.name}</span>
                   <svg
                     width="16"

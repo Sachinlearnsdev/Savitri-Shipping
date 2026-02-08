@@ -99,6 +99,19 @@ export const API_ENDPOINTS = {
 
   // Calendar Weather
   CALENDAR_WEATHER: '/admin/calendar/weather',
+  CALENDAR_CURRENT_WEATHER: '/admin/calendar/current-weather',
+
+  // Marketing
+  MARKETING: '/admin/marketing',
+  MARKETING_BY_ID: (id) => `/admin/marketing/${id}`,
+  MARKETING_SEND: '/admin/marketing/send',
+  MARKETING_TEST: '/admin/marketing/test',
+
+  // Reports (backend path is /admin/analytics but frontend uses "reports" to avoid ad blockers)
+  REPORTS_OVERVIEW: '/admin/analytics/overview',
+  REPORTS_REVENUE: '/admin/analytics/revenue',
+  REPORTS_BOOKINGS: '/admin/analytics/bookings',
+  REPORTS_TOP_BOATS: '/admin/analytics/top-boats',
 };
 
 // ==================== USER STATUS ====================
@@ -305,18 +318,21 @@ export const MENU_ITEMS = [
       {
         id: 'admin-users',
         label: 'Admin Users',
+        icon: 'admin-users',
         path: '/users/admins',
         permission: 'adminUsers.view',
       },
       {
         id: 'roles',
         label: 'Roles',
+        icon: 'roles-perms',
         path: '/users/roles',
         permission: 'roles.view',
       },
       {
         id: 'customers',
         label: 'Customers',
+        icon: 'admin-users',
         path: '/users/customers',
         permission: 'customers.view',
       },
@@ -328,10 +344,10 @@ export const MENU_ITEMS = [
     icon: 'boats',
     permission: 'speedBoats.view',
     children: [
-      { id: 'speed-boats', label: 'Speed Boats', path: '/speed-boats', permission: 'speedBoats.view' },
-      { id: 'party-boats', label: 'Party Boats', path: '/party-boats', permission: 'partyBoats.view' },
-      { id: 'boats-calendar', label: 'Calendar & Weather', path: '/speed-boats/calendar', permission: 'calendar.view' },
-      { id: 'boats-pricing', label: 'Pricing Rules', path: '/speed-boats/pricing', permission: 'pricingRules.view' },
+      { id: 'speed-boats', label: 'Speed Boats', icon: 'speed-boats', path: '/speed-boats', permission: 'speedBoats.view' },
+      { id: 'party-boats', label: 'Party Boats', icon: 'party-boats', path: '/party-boats', permission: 'partyBoats.view' },
+      { id: 'boats-calendar', label: 'Calendar & Weather', icon: 'calendar-weather', path: '/speed-boats/calendar', permission: 'calendar.view' },
+      { id: 'boats-pricing', label: 'Pricing Rules', icon: 'pricing-rules', path: '/speed-boats/pricing', permission: 'pricingRules.view' },
     ],
   },
   {
@@ -340,8 +356,8 @@ export const MENU_ITEMS = [
     icon: 'bookings',
     permission: 'bookings.view',
     children: [
-      { id: 'speed-bookings', label: 'Speed Boat Bookings', path: '/bookings', permission: 'bookings.view', countKey: 'pendingBookings' },
-      { id: 'party-bookings', label: 'Party Boat Bookings', path: '/party-bookings', permission: 'bookings.view', countKey: 'pendingPartyBookings' },
+      { id: 'speed-bookings', label: 'Speed Boat Bookings', icon: 'speed-bookings', path: '/bookings', permission: 'bookings.view', countKey: 'pendingBookings' },
+      { id: 'party-bookings', label: 'Party Boat Bookings', icon: 'party-bookings', path: '/party-bookings', permission: 'bookings.view', countKey: 'pendingPartyBookings' },
     ],
   },
   {
@@ -350,8 +366,8 @@ export const MENU_ITEMS = [
     icon: 'reviews',
     permission: 'reviews.view',
     children: [
-      { id: 'company-reviews', label: 'Company Reviews', path: '/reviews/company', permission: 'reviews.view', countKey: 'pendingReviews' },
-      { id: 'product-reviews', label: 'Product Reviews', path: '/reviews/product', permission: 'reviews.view', countKey: 'pendingReviews' },
+      { id: 'company-reviews', label: 'Company Reviews', icon: 'company-reviews', path: '/reviews/company', permission: 'reviews.view', countKey: 'pendingReviews' },
+      { id: 'boat-reviews', label: 'Boat Reviews', icon: 'boat-reviews', path: '/reviews/product', permission: 'reviews.view', countKey: 'pendingReviews' },
     ],
   },
   {
@@ -360,7 +376,19 @@ export const MENU_ITEMS = [
     icon: 'marketing',
     permission: 'coupons.view',
     children: [
-      { id: 'coupons', label: 'Coupons', path: '/coupons', permission: 'coupons.view' },
+      { id: 'coupons', label: 'Coupons', icon: 'coupon-list', path: '/coupons', permission: 'coupons.view' },
+      { id: 'email-campaigns', label: 'Email Campaigns', icon: 'email-campaigns', path: '/marketing', permission: 'marketing.view' },
+    ],
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    icon: 'analytics',
+    permission: 'analytics.view',
+    children: [
+      { id: 'revenue-reports', label: 'Revenue', icon: 'revenue', path: '/reports/revenue', permission: 'analytics.view' },
+      { id: 'booking-reports', label: 'Bookings', icon: 'booking-reports', path: '/reports/bookings', permission: 'analytics.view' },
+      { id: 'boat-performance', label: 'Boat Performance', icon: 'boat-performance', path: '/reports/boats', permission: 'analytics.view' },
     ],
   },
   {
@@ -372,30 +400,35 @@ export const MENU_ITEMS = [
       {
         id: 'general-settings',
         label: 'General',
+        icon: 'general-settings',
         path: '/settings/general',
         permission: 'settings.view',
       },
       {
         id: 'billing-settings',
         label: 'Billing',
+        icon: 'billing-settings',
         path: '/settings/billing',
         permission: 'settings.view',
       },
       {
         id: 'booking-settings',
         label: 'Booking',
+        icon: 'booking-settings',
         path: '/settings/booking',
         permission: 'settings.view',
       },
       {
         id: 'notification-settings',
         label: 'Notifications',
+        icon: 'notification-settings',
         path: '/settings/notifications',
         permission: 'settings.view',
       },
       {
         id: 'content-settings',
         label: 'Content',
+        icon: 'content-settings',
         path: '/settings/content',
         permission: 'settings.view',
       },
@@ -417,13 +450,17 @@ export const ROUTE_TITLES = {
   '/bookings': 'Speed Boat Bookings',
   '/party-bookings': 'Party Boat Bookings',
   '/reviews/company': 'Company Reviews',
-  '/reviews/product': 'Product Reviews',
+  '/reviews/product': 'Boat Reviews',
   '/settings/general': 'General',
   '/settings/billing': 'Billing',
   '/settings/booking': 'Booking',
   '/settings/notifications': 'Notifications',
   '/settings/content': 'Content',
   '/coupons': 'Coupons',
+  '/marketing': 'Email Campaigns',
+  '/reports/revenue': 'Revenue Reports',
+  '/reports/bookings': 'Booking Reports',
+  '/reports/boats': 'Boat Performance',
   '/profile': 'Profile',
 };
 
@@ -441,6 +478,10 @@ export const ROUTE_PARENTS = {
   '/reviews/company': { label: 'Reviews', path: '/reviews/company' },
   '/reviews/product': { label: 'Reviews', path: '/reviews/company' },
   '/coupons': { label: 'Marketing', path: '/coupons' },
+  '/marketing': { label: 'Marketing', path: '/coupons' },
+  '/reports/revenue': { label: 'Reports', path: '/reports/revenue' },
+  '/reports/bookings': { label: 'Reports', path: '/reports/revenue' },
+  '/reports/boats': { label: 'Reports', path: '/reports/revenue' },
   '/settings/general': { label: 'Settings', path: '/settings/general' },
   '/settings/billing': { label: 'Settings', path: '/settings/general' },
   '/settings/booking': { label: 'Settings', path: '/settings/general' },

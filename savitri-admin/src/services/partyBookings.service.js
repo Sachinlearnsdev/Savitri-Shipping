@@ -22,7 +22,9 @@ export const updatePartyBookingStatus = async (id, status) => {
 };
 
 export const markPartyBookingPaid = async (id, data) => {
-  const response = await api.patch(API_ENDPOINTS.PARTY_BOOKING_PAYMENT(id), data);
+  const response = await api.patch(API_ENDPOINTS.PARTY_BOOKING_PAYMENT(id), data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  });
   return response.data;
 };
 

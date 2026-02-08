@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Received</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .booking-box { background: white; border: 2px dashed #059669; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .booking-number { font-size: 28px; font-weight: bold; color: #059669; letter-spacing: 4px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 40%; }
+        .details-table td:last-child { font-weight: 500; }
+        .payment-box { background: #ecfdf5; border: 2px solid #059669; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .payment-box h3 { margin: 0 0 15px 0; color: #059669; }
+        .payment-box table { width: 100%; border-collapse: collapse; }
+        .payment-box table td { padding: 8px 0; border-bottom: 1px solid #d1fae5; font-size: 14px; }
+        .payment-box table td:first-child { color: #6b7280; }
+        .payment-box table td:last-child { font-weight: 500; text-align: right; }
+        .payment-box table tr:last-child td { border-bottom: none; }
+        .success-badge { display: inline-block; background: #059669; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; margin: 10px 0; }
+        .cta-button { display: inline-block; background: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Payment Received! &#10004;&#65039;</h1>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Thank you for your payment</p>
+    </div>
+    <div class="content">
+        <p>Dear {{name}},</p>
+
+        <p>We have successfully received your payment for booking with <strong>{{companyName}}</strong>. Your reservation is now fully confirmed!</p>
+
+        <div class="booking-box">
+            <p style="margin: 0 0 10px 0; color: #6b7280;">Booking Reference:</p>
+            <div class="booking-number">{{bookingNumber}}</div>
+            <div style="margin-top: 10px;">
+                <span class="success-badge">PAID</span>
+            </div>
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td>Boat</td>
+                <td>{{boatName}}</td>
+            </tr>
+            <tr>
+                <td>Booking Type</td>
+                <td>{{bookingType}}</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>{{date}}</td>
+            </tr>
+            <tr>
+                <td>Time</td>
+                <td>{{time}}</td>
+            </tr>
+        </table>
+
+        <div class="payment-box">
+            <h3>Payment Details</h3>
+            <table>
+                <tr>
+                    <td>Transaction ID</td>
+                    <td>{{transactionId}}</td>
+                </tr>
+                <tr>
+                    <td>Payment Mode</td>
+                    <td>{{paymentMode}}</td>
+                </tr>
+                <tr>
+                    <td>Amount Paid</td>
+                    <td style="font-size: 18px; color: #059669; font-weight: bold;">{{total}}</td>
+                </tr>
+            </table>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{frontendUrl}}/account/bookings" class="cta-button">View My Bookings</a>
+        </p>
+
+        <p>Thank you for choosing <strong>{{companyName}}</strong>. We look forward to giving you a wonderful experience!</p>
+
+        <p>If you have any questions, please contact our support team.</p>
+
+        <p>Best regards,<br><strong>Team {{companyName}}</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>

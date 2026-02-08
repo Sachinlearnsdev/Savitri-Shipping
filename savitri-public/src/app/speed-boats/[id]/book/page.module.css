@@ -1366,6 +1366,30 @@
   margin-bottom: var(--spacing-6);
 }
 
+.successPaymentNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-5);
+  text-align: left;
+}
+
+.successPaymentNoteIcon {
+  flex-shrink: 0;
+  color: #2563eb;
+  margin-top: 1px;
+}
+
+.successPaymentNoteText {
+  font-size: var(--font-size-sm);
+  color: #1e40af;
+  line-height: var(--line-height-relaxed);
+}
+
 .successDetails {
   background-color: var(--bg-secondary);
   border-radius: var(--radius-lg);

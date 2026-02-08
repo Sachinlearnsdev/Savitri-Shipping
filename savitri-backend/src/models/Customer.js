@@ -24,6 +24,9 @@ const customerSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  avatarPublicId: {
+    type: String,
+  },
   dateOfBirth: {
     type: Date,
   },
@@ -77,7 +80,7 @@ const customerSchema = new mongoose.Schema({
   },
   promotionalEmails: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   deletedAt: {
     type: Date,

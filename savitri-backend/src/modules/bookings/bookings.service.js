@@ -1,11 +1,11 @@
 const { SpeedBoatBooking, PartyBoatBooking, SpeedBoat, Customer, Setting, Coupon } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
-const { paginate, calculateGST, hashPassword } = require('../../utils/helpers');
+const { paginate, calculateGST, hashPassword, formatCurrency } = require('../../utils/helpers');
 const calendarService = require('../calendar/calendar.service');
 const pricingRulesService = require('../pricingRules/pricingRules.service');
 const { BOOKING_LIMITS, CANCELLATION_POLICY, GST } = require('../../config/constants');
-const { sendBookingConfirmation, sendBookingCancellation } = require('../../utils/email');
+const { sendBookingConfirmation, sendBookingCancellation, sendPaymentPendingEmail, sendPaymentConfirmedEmail, sendAtVenueBookingEmail } = require('../../utils/email');
 
 class BookingsService {
   /**
@@ -353,6 +353,19 @@ class BookingsService {
           paymentMode: data.paymentMode,
           cancellationPolicy: '24h+ = 100% refund, 12-24h = 50% refund, <12h = No refund',
         }).catch((err) => console.error('📧 Booking confirmation email error:', err.message));
+
+        // Send payment pending email if payment is not yet completed
+        if (booking.paymentStatus === 'PENDING') {
+          sendPaymentPendingEmail(customer.email, {
+            name: customer.name || 'Customer',
+            bookingNumber,
+            boatName: 'Speed Boat',
+            date: formattedDate,
+            time: `${data.startTime} - ${endTime}`,
+            bookingType: 'Speed Boat',
+            total: formatCurrency(pricing.finalAmount),
+          }).catch((err) => console.error('📧 Payment pending email error:', err.message));
+        }
       }
     } catch (emailErr) {
       console.error('📧 Booking email setup error:', emailErr.message);
@@ -546,22 +559,71 @@ class BookingsService {
   /**
    * Mark booking as paid (admin)
    */
-  async markPaid(id, data) {
+  async markPaid(id, data, file) {
     const booking = await SpeedBoatBooking.findOne({ _id: id, isDeleted: false });
 
     if (!booking) {
       throw ApiError.notFound('Booking not found');
     }
 
+    // Validate online payment requires proof
+    if (data.paymentMode === 'ONLINE') {
+      if (!data.transactionId) {
+        throw ApiError.badRequest('Transaction ID is required for online payments');
+      }
+      if (!file) {
+        throw ApiError.badRequest('Payment proof image is required for online payments');
+      }
+    }
+
+    // Upload payment proof if provided
+    if (file) {
+      const { uploadToCloudinary } = require('../../utils/cloudinaryUpload');
+      const uploaded = await uploadToCloudinary(file.buffer, 'savitri-shipping/payment-proofs');
+      booking.paymentProof = { url: uploaded.url, publicId: uploaded.publicId };
+    }
+
+    // Update payment fields
     booking.paymentStatus = 'PAID';
     if (data.paymentMode) booking.paymentMode = data.paymentMode;
+    if (data.transactionId) booking.transactionId = data.transactionId;
 
-    // Auto-confirm if pending
+    // Auto-confirm if booking is still PENDING
     if (booking.status === 'PENDING') {
       booking.status = 'CONFIRMED';
     }
 
     await booking.save();
+
+    // Send payment email based on payment mode (fire-and-forget)
+    try {
+      const customer = await Customer.findById(booking.customerId).lean();
+      if (customer && customer.email) {
+        const formattedDate = new Date(booking.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const emailData = {
+          name: customer.name || 'Customer',
+          bookingNumber: booking.bookingNumber,
+          boatName: 'Speed Boat',
+          date: formattedDate,
+          time: `${booking.startTime} - ${booking.endTime}`,
+          bookingType: 'Speed Boat',
+          total: formatCurrency(booking.pricing?.finalAmount || booking.pricing?.totalAmount),
+          transactionId: booking.transactionId || '',
+          paymentMode: booking.paymentMode,
+        };
+
+        if (booking.paymentMode === 'ONLINE') {
+          sendPaymentConfirmedEmail(customer.email, emailData)
+            .catch((err) => console.error('Payment confirmed email error:', err.message));
+        } else {
+          sendAtVenueBookingEmail(customer.email, emailData)
+            .catch((err) => console.error('At-venue booking email error:', err.message));
+        }
+      }
+    } catch (emailErr) {
+      console.error('Failed to send payment email:', emailErr.message);
+    }
+
     return formatDocument(booking.toObject());
   }
 

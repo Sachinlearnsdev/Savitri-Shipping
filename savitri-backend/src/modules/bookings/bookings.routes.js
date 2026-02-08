@@ -5,13 +5,13 @@ const adminAuth = require('../../middleware/adminAuth');
 const auth = require('../../middleware/auth');
 const { roleCheck } = require('../../middleware/roleCheck');
 const { validate, validateQuery } = require('../../middleware/validate');
+const { uploadSingleImage } = require('../../middleware/upload');
 const {
   availabilitySchema,
   priceCalcSchema,
   createBookingSchema,
   adminCreateBookingSchema,
   updateStatusSchema,
-  markPaidSchema,
   cancelBookingSchema,
   bookingQuerySchema,
   applyCouponSchema,
@@ -26,7 +26,7 @@ adminRouter.get('/', roleCheck('bookings', 'view'), validateQuery(bookingQuerySc
 adminRouter.get('/:id', roleCheck('bookings', 'view'), bookingsController.getById);
 adminRouter.post('/', roleCheck('bookings', 'create'), validate(adminCreateBookingSchema), bookingsController.adminCreate);
 adminRouter.patch('/:id/status', roleCheck('bookings', 'edit'), validate(updateStatusSchema), bookingsController.updateStatus);
-adminRouter.patch('/:id/payment', roleCheck('bookings', 'edit'), validate(markPaidSchema), bookingsController.markPaid);
+adminRouter.patch('/:id/payment', roleCheck('bookings', 'edit'), uploadSingleImage, bookingsController.markPaid);
 adminRouter.post('/:id/cancel', roleCheck('bookings', 'cancel'), validate(cancelBookingSchema), bookingsController.adminCancel);
 
 // ===== PUBLIC ROUTES =====

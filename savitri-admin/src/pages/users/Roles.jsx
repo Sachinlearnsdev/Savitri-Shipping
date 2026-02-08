@@ -19,6 +19,11 @@ const permissionFeatures = [
   { key: 'bookings', label: 'Bookings', actions: ['view', 'create', 'edit', 'cancel', 'refund', 'cashPayment'] },
   { key: 'calendar', label: 'Calendar', actions: ['view', 'edit'] },
   { key: 'pricingRules', label: 'Pricing Rules', actions: ['view', 'create', 'edit', 'delete'] },
+  { key: 'partyBoats', label: 'Party Boats', actions: ['view', 'create', 'edit', 'delete'] },
+  { key: 'coupons', label: 'Coupons', actions: ['view', 'create', 'edit', 'delete'] },
+  { key: 'reviews', label: 'Reviews', actions: ['view', 'edit', 'delete'] },
+  { key: 'marketing', label: 'Marketing', actions: ['view', 'create'] },
+  { key: 'analytics', label: 'Analytics', actions: ['view'] },
   { key: 'settings', label: 'Settings', actions: ['view', 'edit'] },
 ];
 

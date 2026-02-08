@@ -42,6 +42,15 @@ class CalendarController {
       next(error);
     }
   }
+
+  async getCurrentWeather(req, res, next) {
+    try {
+      const data = await calendarService.getCurrentWeather();
+      res.json(ApiResponse.success('Current weather data retrieved', data));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CalendarController();

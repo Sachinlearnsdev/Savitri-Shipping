@@ -40,8 +40,8 @@ class PartyBookingsController {
 
   async markPaid(req, res, next) {
     try {
-      const booking = await partyBookingsService.markPaid(req.params.id, req.body);
-      res.json(ApiResponse.success('Payment recorded', booking));
+      const result = await partyBookingsService.markPaid(req.params.id, req.body, req.file);
+      res.json(ApiResponse.success('Payment updated successfully', result));
     } catch (error) {
       next(error);
     }

@@ -43,6 +43,8 @@ async function seed() {
         pricingRules: { view: true, create: true, edit: true, delete: true },
         coupons: { view: true, create: true, edit: true, delete: true },
         reviews: { view: true, edit: true, delete: true },
+        marketing: { view: true, create: true },
+        analytics: { view: true },
       },
     });
 
@@ -63,6 +65,8 @@ async function seed() {
         pricingRules: { view: true },
         coupons: { view: true },
         reviews: { view: true },
+        marketing: { view: true },
+        analytics: { view: true },
       },
     });
 

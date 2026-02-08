@@ -24,6 +24,7 @@ router.use(auth);
 router.get('/', profileController.getProfile);
 router.put('/', validate(updateProfileSchema), profileController.updateProfile);
 router.post('/avatar', uploadLimiter, uploadAvatar, profileController.uploadAvatar);
+router.delete('/avatar', profileController.removeAvatar);
 
 // Password
 router.post('/change-password', validate(changePasswordSchema), profileController.changePassword);

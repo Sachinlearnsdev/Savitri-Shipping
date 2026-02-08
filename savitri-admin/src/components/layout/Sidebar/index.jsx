@@ -141,6 +141,7 @@ const Sidebar = () => {
                                 className={`${styles.submenuLink} ${isActive(child.path) ? styles.active : ''}`}
                                 onClick={handleLinkClick}
                               >
+                                {child.icon && <MenuIcon name={child.icon} size={14} />}
                                 <span>{child.label}</span>
                                 {childCount > 0 && (
                                   <span className={styles.countBadgeSm}>{childCount > 99 ? '99+' : childCount}</span>

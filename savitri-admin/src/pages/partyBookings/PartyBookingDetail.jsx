@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import Input from '../../components/common/Input';
 import Textarea from '../../components/common/Textarea';
 import Select from '../../components/common/Select';
 import useUIStore from '../../store/uiStore';
@@ -56,6 +57,9 @@ const PartyBookingDetail = () => {
   const [showPaidModal, setShowPaidModal] = useState(false);
   const [paidMode, setPaidMode] = useState('AT_VENUE');
   const [markingPaid, setMarkingPaid] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
+  const [proofFile, setProofFile] = useState(null);
+  const [proofPreview, setProofPreview] = useState('');
 
   const fetchBooking = async () => {
     try {
@@ -92,11 +96,30 @@ const PartyBookingDetail = () => {
   };
 
   const handleMarkPaid = async () => {
+    if (paidMode === 'ONLINE') {
+      if (!transactionId.trim()) {
+        showError('Transaction ID is required for online payments');
+        return;
+      }
+      if (!proofFile) {
+        showError('Payment proof image is required for online payments');
+        return;
+      }
+    }
     try {
       setMarkingPaid(true);
-      await markPartyBookingPaid(id, { paymentMode: paidMode });
+      const formData = new FormData();
+      formData.append('paymentMode', paidMode);
+      if (paidMode === 'ONLINE') {
+        formData.append('transactionId', transactionId);
+        formData.append('file', proofFile);
+      }
+      await markPartyBookingPaid(id, formData);
       showSuccess('Booking marked as paid');
       setShowPaidModal(false);
+      setTransactionId('');
+      setProofFile(null);
+      setProofPreview('');
       fetchBooking();
     } catch (err) {
       showError(err.message || 'Failed to mark booking as paid');
@@ -278,6 +301,20 @@ const PartyBookingDetail = () => {
                 {PAYMENT_MODE_LABELS[booking.paymentMode] || booking.paymentMode || '-'}
               </span>
             </div>
+            {booking.transactionId && (
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Transaction ID</span>
+                <span className={styles.infoValue}>{booking.transactionId}</span>
+              </div>
+            )}
+            {booking.paymentProof?.url && (
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Payment Proof</span>
+                <a href={booking.paymentProof.url} target="_blank" rel="noopener noreferrer">
+                  <img src={booking.paymentProof.url} alt="Payment proof" className={styles.proofImage} />
+                </a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -505,7 +542,13 @@ const PartyBookingDetail = () => {
       {/* Mark Paid Modal */}
       <Modal
         isOpen={showPaidModal}
-        onClose={() => setShowPaidModal(false)}
+        onClose={() => {
+          setShowPaidModal(false);
+          setPaidMode('AT_VENUE');
+          setTransactionId('');
+          setProofFile(null);
+          setProofPreview('');
+        }}
         title="Mark as Paid"
         size="sm"
       >
@@ -516,8 +559,60 @@ const PartyBookingDetail = () => {
             value={paidMode}
             onChange={(value) => setPaidMode(value)}
           />
+          {paidMode === 'ONLINE' && (
+            <>
+              <Input
+                label="Transaction ID"
+                placeholder="Enter transaction ID"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+                required
+              />
+              <div className={styles.fileUploadArea}>
+                <label className={styles.fileUploadLabel}>Payment Proof *</label>
+                {!proofPreview ? (
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className={styles.fileUploadInput}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setProofFile(file);
+                        setProofPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className={styles.filePreview}>
+                    <img src={proofPreview} alt="Payment proof preview" className={styles.filePreviewImg} />
+                    <button
+                      type="button"
+                      className={styles.fileRemoveBtn}
+                      onClick={() => {
+                        setProofFile(null);
+                        setProofPreview('');
+                      }}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
           <div className={styles.cancelFormActions}>
-            <Button variant="ghost" onClick={() => setShowPaidModal(false)} disabled={markingPaid}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowPaidModal(false);
+                setPaidMode('AT_VENUE');
+                setTransactionId('');
+                setProofFile(null);
+                setProofPreview('');
+              }}
+              disabled={markingPaid}
+            >
               Cancel
             </Button>
             <Button onClick={handleMarkPaid} loading={markingPaid}>

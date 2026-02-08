@@ -22,7 +22,9 @@ export const updateBookingStatus = async (id, status) => {
 };
 
 export const markBookingPaid = async (id, data) => {
-  const response = await api.patch(API_ENDPOINTS.BOOKING_PAYMENT(id), data);
+  const response = await api.patch(API_ENDPOINTS.BOOKING_PAYMENT(id), data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  });
   return response.data;
 };
 

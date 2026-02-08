@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '@/utils/constants';
 import styles from './bookings.module.css';
 
 const STATUS_CONFIG = {
-  PENDING: { label: 'Pending', className: 'statusPending' },
+  PENDING: { label: 'Awaiting Confirmation', className: 'statusPending' },
   CONFIRMED: { label: 'Confirmed', className: 'statusConfirmed' },
   COMPLETED: { label: 'Completed', className: 'statusCompleted' },
   CANCELLED: { label: 'Cancelled', className: 'statusCancelled' },
@@ -16,7 +16,7 @@ const STATUS_CONFIG = {
 };
 
 const PAYMENT_STATUS_LABELS = {
-  PENDING: 'Pending',
+  PENDING: 'Awaiting Payment',
   PAID: 'Paid',
   ADVANCE_PAID: 'Advance Paid',
   FULLY_PAID: 'Fully Paid',
@@ -356,96 +356,106 @@ export default function MyBookingsPage() {
                   </div>
                 </div>
 
-                {/* Cancel Confirmation Dialog */}
-                {showCancelDialog === booking.id && (
-                  <div className={styles.cancelDialog}>
-                    <div className={styles.cancelDialogContent}>
-                      <h4 className={styles.cancelDialogTitle}>Cancel Booking?</h4>
-                      <p className={styles.cancelDialogText}>
-                        Are you sure you want to cancel this booking? Cancellation policy:
-                      </p>
-                      <ul className={styles.cancelPolicyList}>
-                        {isParty ? (
-                          <>
-                            <li>7+ days before: 100% refund</li>
-                            <li>3-7 days before: 50% refund</li>
-                            <li>Less than 3 days: No refund</li>
-                          </>
-                        ) : (
-                          <>
-                            <li>24+ hours before: 100% refund</li>
-                            <li>12-24 hours before: 50% refund</li>
-                            <li>Less than 12 hours: No refund</li>
-                          </>
-                        )}
-                      </ul>
-                      <textarea
-                        className={styles.cancelReasonInput}
-                        placeholder="Reason for cancellation (optional)"
-                        value={cancelReason}
-                        onChange={(e) => setCancelReason(e.target.value)}
-                        rows={2}
-                      />
-                      <div className={styles.cancelDialogActions}>
-                        <button
-                          className={styles.cancelConfirmButton}
-                          onClick={() => handleCancel(booking.id)}
-                          disabled={cancelLoading}
-                        >
-                          {cancelLoading ? 'Cancelling...' : 'Yes, Cancel'}
-                        </button>
-                        <button
-                          className={styles.cancelDismissButton}
-                          onClick={() => { setShowCancelDialog(null); setCancelReason(''); }}
-                        >
-                          Keep Booking
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Modify Date Dialog */}
-                {showModifyDialog === booking.id && (
-                  <div className={styles.cancelDialog}>
-                    <div className={styles.cancelDialogContent}>
-                      <h4 className={styles.cancelDialogTitle}>Modify Booking Date</h4>
-                      <p className={styles.cancelDialogText}>
-                        Select a new date for your booking. You have{' '}
-                        <strong>{2 - (booking.dateModificationCount || 0)}</strong> modification(s) remaining.
-                      </p>
-                      <input
-                        type="date"
-                        className={styles.cancelReasonInput}
-                        value={modifyDate}
-                        onChange={(e) => setModifyDate(e.target.value)}
-                        min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
-                        max={new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0]}
-                        style={{ padding: '10px 12px' }}
-                      />
-                      <div className={styles.cancelDialogActions}>
-                        <button
-                          className={styles.modifyConfirmButton}
-                          onClick={() => handleModifyDate(booking.id)}
-                          disabled={modifyLoading || !modifyDate}
-                        >
-                          {modifyLoading ? 'Modifying...' : 'Confirm Change'}
-                        </button>
-                        <button
-                          className={styles.cancelDismissButton}
-                          onClick={() => { setShowModifyDialog(null); setModifyDate(''); }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Cancel Confirmation Dialog (full-screen overlay) */}
+      {showCancelDialog && (() => {
+        const booking = bookings.find((b) => b.id === showCancelDialog);
+        if (!booking) return null;
+        const isPartyBooking = booking.bookingType === 'PARTY_BOAT';
+        return (
+          <div className={styles.cancelDialog}>
+            <div className={styles.cancelDialogContent}>
+              <h4 className={styles.cancelDialogTitle}>Cancel Booking?</h4>
+              <p className={styles.cancelDialogText}>
+                Are you sure you want to cancel <strong>{booking.bookingNumber}</strong>? Cancellation policy:
+              </p>
+              <ul className={styles.cancelPolicyList}>
+                {isPartyBooking ? (
+                  <>
+                    <li>7+ days before: 100% refund</li>
+                    <li>3-7 days before: 50% refund</li>
+                    <li>Less than 3 days: No refund</li>
+                  </>
+                ) : (
+                  <>
+                    <li>24+ hours before: 100% refund</li>
+                    <li>12-24 hours before: 50% refund</li>
+                    <li>Less than 12 hours: No refund</li>
+                  </>
+                )}
+              </ul>
+              <textarea
+                className={styles.cancelReasonInput}
+                placeholder="Reason for cancellation (optional)"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={2}
+              />
+              <div className={styles.cancelDialogActions}>
+                <button
+                  className={styles.cancelConfirmButton}
+                  onClick={() => handleCancel(booking.id)}
+                  disabled={cancelLoading}
+                >
+                  {cancelLoading ? 'Cancelling...' : 'Yes, Cancel'}
+                </button>
+                <button
+                  className={styles.cancelDismissButton}
+                  onClick={() => { setShowCancelDialog(null); setCancelReason(''); }}
+                >
+                  Keep Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modify Date Dialog (full-screen overlay) */}
+      {showModifyDialog && (() => {
+        const booking = bookings.find((b) => b.id === showModifyDialog);
+        if (!booking) return null;
+        return (
+          <div className={styles.cancelDialog}>
+            <div className={styles.cancelDialogContent}>
+              <h4 className={styles.cancelDialogTitle}>Modify Booking Date</h4>
+              <p className={styles.cancelDialogText}>
+                Change date for <strong>{booking.bookingNumber}</strong>. You have{' '}
+                <strong>{2 - (booking.dateModificationCount || 0)}</strong> modification(s) remaining.
+              </p>
+              <input
+                type="date"
+                className={styles.cancelReasonInput}
+                value={modifyDate}
+                onChange={(e) => setModifyDate(e.target.value)}
+                min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                max={new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0]}
+                style={{ padding: '10px 12px' }}
+              />
+              <div className={styles.cancelDialogActions}>
+                <button
+                  className={styles.modifyConfirmButton}
+                  onClick={() => handleModifyDate(booking.id)}
+                  disabled={modifyLoading || !modifyDate}
+                >
+                  {modifyLoading ? 'Modifying...' : 'Confirm Change'}
+                </button>
+                <button
+                  className={styles.cancelDismissButton}
+                  onClick={() => { setShowModifyDialog(null); setModifyDate(''); }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

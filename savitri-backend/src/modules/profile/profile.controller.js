@@ -31,6 +31,15 @@ class ProfileController {
     }
   }
 
+  async removeAvatar(req, res, next) {
+    try {
+      const profile = await profileService.removeAvatar(req.customerId);
+      res.status(200).json(ApiResponse.success('Avatar removed successfully', profile));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async changePassword(req, res, next) {
     try {
       const { currentPassword, newPassword } = req.body;

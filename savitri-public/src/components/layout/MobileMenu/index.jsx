@@ -105,9 +105,17 @@ const MobileMenu = () => {
         {/* User Info */}
         {isAuthenticated && user && (
           <div className={styles.userInfo}>
-            <div className={styles.avatar}>
-              {user.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            {user.avatar ? (
+              <img
+                src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${user.avatar}`}
+                alt={user.name}
+                className={styles.avatarImage}
+              />
+            ) : (
+              <div className={styles.avatar}>
+                {user.name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )}
             <div>
               <div className={styles.userName}>{user.name}</div>
               <div className={styles.userEmail}>{user.email}</div>

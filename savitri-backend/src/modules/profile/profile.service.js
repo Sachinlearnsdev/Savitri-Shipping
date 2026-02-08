@@ -7,9 +7,7 @@ const { sendEmailVerificationOTP, sendPasswordChangedEmail } = require('../../ut
 const { sendPhoneVerificationOTP } = require('../../utils/sms');
 const { OTP_TYPE } = require('../../config/constants');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
-const path = require('path');
-const fs = require('fs');
-const config = require('../../config/env');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../../utils/cloudinaryUpload');
 
 class ProfileService {
   /**
@@ -62,20 +60,50 @@ class ProfileService {
     // Get current customer
     const customer = await Customer.findById(customerId);
 
-    // Delete old avatar if exists
-    if (customer.avatar) {
-      const oldAvatarPath = path.join(config.uploadPath, path.basename(customer.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
+    // Delete old avatar from Cloudinary if exists
+    if (customer.avatarPublicId) {
+      try {
+        await deleteFromCloudinary(customer.avatarPublicId);
+      } catch (err) {
+        console.error('Failed to delete old avatar from Cloudinary:', err.message);
       }
     }
 
-    // Update avatar URL
-    const avatarUrl = `/uploads/${file.filename}`;
+    // Upload new avatar to Cloudinary
+    const { url, publicId } = await uploadToCloudinary(file.buffer, 'savitri-shipping/avatars');
 
     const updatedCustomer = await Customer.findByIdAndUpdate(
       customerId,
-      { avatar: avatarUrl },
+      { avatar: url, avatarPublicId: publicId },
+      { new: true }
+    )
+      .select('id name avatar')
+      .lean();
+
+    return formatDocument(updatedCustomer);
+  }
+
+  /**
+   * Remove avatar (revert to initials)
+   */
+  async removeAvatar(customerId) {
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      throw ApiError.notFound('Customer not found');
+    }
+
+    // Delete from Cloudinary if exists
+    if (customer.avatarPublicId) {
+      try {
+        await deleteFromCloudinary(customer.avatarPublicId);
+      } catch (err) {
+        console.error('Failed to delete avatar from Cloudinary:', err.message);
+      }
+    }
+
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      customerId,
+      { $unset: { avatar: 1, avatarPublicId: 1 } },
       { new: true }
     )
       .select('id name avatar')

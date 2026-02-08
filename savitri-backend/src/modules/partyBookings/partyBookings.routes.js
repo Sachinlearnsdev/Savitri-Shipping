@@ -4,10 +4,10 @@ const partyBookingsController = require('./partyBookings.controller');
 const adminAuth = require('../../middleware/adminAuth');
 const { roleCheck } = require('../../middleware/roleCheck');
 const { validate, validateQuery } = require('../../middleware/validate');
+const { uploadSingleImage } = require('../../middleware/upload');
 const {
   adminCreatePartyBookingSchema,
   updatePartyBookingStatusSchema,
-  markPaidSchema,
   cancelPartyBookingSchema,
   partyBookingQuerySchema,
 } = require('./partyBookings.validator');
@@ -19,7 +19,7 @@ router.get('/', roleCheck('bookings', 'view'), validateQuery(partyBookingQuerySc
 router.get('/:id', roleCheck('bookings', 'view'), partyBookingsController.getById);
 router.post('/', roleCheck('bookings', 'create'), validate(adminCreatePartyBookingSchema), partyBookingsController.adminCreate);
 router.patch('/:id/status', roleCheck('bookings', 'edit'), validate(updatePartyBookingStatusSchema), partyBookingsController.updateStatus);
-router.patch('/:id/payment', roleCheck('bookings', 'edit'), validate(markPaidSchema), partyBookingsController.markPaid);
+router.patch('/:id/payment', roleCheck('bookings', 'edit'), uploadSingleImage, partyBookingsController.markPaid);
 router.post('/:id/cancel', roleCheck('bookings', 'cancel'), validate(cancelPartyBookingSchema), partyBookingsController.adminCancel);
 
 module.exports = router;

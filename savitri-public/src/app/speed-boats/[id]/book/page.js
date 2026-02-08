@@ -456,6 +456,11 @@ export default function SpeedBoatBookPage() {
 
   // Success state
   if (bookingSuccess) {
+    const isOnlinePayment = paymentMode === 'ONLINE';
+    const displayPaymentStatus = (bookingSuccess.paymentStatus === 'PENDING')
+      ? 'Awaiting Payment'
+      : bookingSuccess.paymentStatus;
+
     return (
       <div className={styles.page}>
         <div className={styles.successContainer}>
@@ -465,10 +470,25 @@ export default function SpeedBoatBookPage() {
                 <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <h1 className={styles.successTitle}>Booking Confirmed!</h1>
+            <h1 className={styles.successTitle}>Booking Created!</h1>
             <p className={styles.successText}>
               Your speed boat booking has been created successfully.
             </p>
+
+            <div className={styles.successPaymentNote}>
+              <div className={styles.successPaymentNoteIcon}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <p className={styles.successPaymentNoteText}>
+                {isOnlinePayment
+                  ? 'Your booking has been created. Payment status will be updated once payment is verified by our team.'
+                  : 'Your booking has been created. Please pay at the venue on the day of your booking.'}
+              </p>
+            </div>
 
             <div className={styles.successDetails}>
               <div className={styles.successRow}>
@@ -498,8 +518,12 @@ export default function SpeedBoatBookPage() {
                 <strong>{effectiveDuration} hour{effectiveDuration > 1 ? 's' : ''}</strong>
               </div>
               <div className={styles.successRow}>
-                <span>Status</span>
-                <strong className={styles.successStatus}>{bookingSuccess.status || 'PENDING'}</strong>
+                <span>Payment</span>
+                <strong className={styles.successStatus}>{displayPaymentStatus}</strong>
+              </div>
+              <div className={styles.successRow}>
+                <span>Payment Mode</span>
+                <strong>{isOnlinePayment ? 'Online' : 'At Venue'}</strong>
               </div>
               <div className={styles.successRow}>
                 <span>Total</span>

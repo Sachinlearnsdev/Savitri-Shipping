@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
+import Modal from '@/components/common/Modal';
 import { profileService } from '@/services/profile.service';
-import { validateName, validatePassword } from '@/utils/validators';
+import { validateName, validatePassword, validateEmail } from '@/utils/validators';
 import { getErrorMessage, getInitials } from '@/utils/helpers';
 import styles from './profile.module.css';
 
@@ -41,6 +42,9 @@ export default function ProfilePage() {
   // Profile data from API
   const [profile, setProfile] = useState(null);
 
+  // Avatar file input ref
+  const avatarInputRef = useRef(null);
+
   // Personal Information form state
   const [personalInfo, setPersonalInfo] = useState({
     name: '',
@@ -66,7 +70,7 @@ export default function ProfilePage() {
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     smsNotifications: true,
-    promotionalEmails: false,
+    promotionalEmails: true,
   });
   const [notificationsLoading, setNotificationsLoading] = useState(false);
 
@@ -81,6 +85,22 @@ export default function ProfilePage() {
 
   // Avatar state
   const [avatarLoading, setAvatarLoading] = useState(false);
+
+  // Email verification state
+  const [emailVerifyModal, setEmailVerifyModal] = useState(false);
+  const [emailVerifyStep, setEmailVerifyStep] = useState('email'); // 'email' or 'otp'
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyOtp, setVerifyOtp] = useState('');
+  const [emailVerifyLoading, setEmailVerifyLoading] = useState(false);
+  const [emailVerifyError, setEmailVerifyError] = useState('');
+
+  // Phone verification state (commented out - enable when SMS is configured)
+  // const [phoneVerifyModal, setPhoneVerifyModal] = useState(false);
+  // const [phoneVerifyStep, setPhoneVerifyStep] = useState('phone'); // 'phone' or 'otp'
+  // const [verifyPhone, setVerifyPhone] = useState('');
+  // const [phoneVerifyOtp, setPhoneVerifyOtp] = useState('');
+  // const [phoneVerifyLoading, setPhoneVerifyLoading] = useState(false);
+  // const [phoneVerifyError, setPhoneVerifyError] = useState('');
 
   /**
    * Fetch profile data on mount
@@ -113,7 +133,7 @@ export default function ProfilePage() {
       setNotifications({
         emailNotifications: data.emailNotifications ?? true,
         smsNotifications: data.smsNotifications ?? true,
-        promotionalEmails: data.promotionalEmails ?? false,
+        promotionalEmails: data.promotionalEmails ?? true,
       });
     } catch (error) {
       showError(getErrorMessage(error));
@@ -127,7 +147,19 @@ export default function ProfilePage() {
   }, [fetchProfile]);
 
   /**
-   * Format date for display
+   * Format date for display (e.g., "Feb 2026")
+   */
+  const formatMemberSince = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  /**
+   * Format full date for display
    */
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -137,6 +169,14 @@ export default function ProfilePage() {
       month: 'long',
       year: 'numeric',
     });
+  };
+
+  /**
+   * Format account ID as short form
+   */
+  const formatAccountId = (id) => {
+    if (!id) return 'N/A';
+    return `#${id.slice(-8).toUpperCase()}`;
   };
 
   /**
@@ -164,11 +204,15 @@ export default function ProfilePage() {
       const updatedAvatar = response.data?.avatar;
       setProfile((prev) => ({ ...prev, avatar: updatedAvatar }));
       updateUser({ avatar: updatedAvatar });
-      showSuccess('Avatar updated successfully!');
+      showSuccess('Profile photo updated successfully!');
     } catch (error) {
       showError(getErrorMessage(error));
     } finally {
       setAvatarLoading(false);
+      // Reset file input so same file can be re-selected
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
     }
   };
 
@@ -316,6 +360,129 @@ export default function ProfilePage() {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  /**
+   * Open email verification modal
+   */
+  const openEmailVerification = () => {
+    setVerifyEmail(profile?.email || '');
+    setVerifyOtp('');
+    setEmailVerifyStep('email');
+    setEmailVerifyError('');
+    setEmailVerifyModal(true);
+  };
+
+  /**
+   * Handle email verification step 1: Send OTP
+   */
+  const handleEmailVerifySendOtp = async () => {
+    if (!validateEmail(verifyEmail)) {
+      setEmailVerifyError('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      setEmailVerifyLoading(true);
+      setEmailVerifyError('');
+      await profileService.updateEmail(verifyEmail);
+      setEmailVerifyStep('otp');
+      showSuccess('Verification code sent to your email!');
+    } catch (error) {
+      setEmailVerifyError(getErrorMessage(error));
+    } finally {
+      setEmailVerifyLoading(false);
+    }
+  };
+
+  /**
+   * Handle email verification step 2: Verify OTP
+   */
+  const handleEmailVerifyOtp = async () => {
+    if (!verifyOtp || verifyOtp.length !== 6) {
+      setEmailVerifyError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    try {
+      setEmailVerifyLoading(true);
+      setEmailVerifyError('');
+      await profileService.verifyEmailChange(verifyEmail, verifyOtp);
+      setProfile((prev) => ({ ...prev, email: verifyEmail, emailVerified: true }));
+      updateUser({ email: verifyEmail, emailVerified: true });
+      setEmailVerifyModal(false);
+      showSuccess('Email verified successfully!');
+    } catch (error) {
+      setEmailVerifyError(getErrorMessage(error));
+    } finally {
+      setEmailVerifyLoading(false);
+    }
+  };
+
+  // TODO: Enable when SMS is configured
+  // const openPhoneVerification = () => {
+  //   setVerifyPhone(profile?.phone || '');
+  //   setPhoneVerifyOtp('');
+  //   setPhoneVerifyStep('phone');
+  //   setPhoneVerifyError('');
+  //   setPhoneVerifyModal(true);
+  // };
+  //
+  // const handlePhoneVerifySendOtp = async () => {
+  //   const cleaned = verifyPhone.replace(/\D/g, '');
+  //   if (!/^[6-9]\d{9}$/.test(cleaned)) {
+  //     setPhoneVerifyError('Please enter a valid 10-digit Indian phone number');
+  //     return;
+  //   }
+  //   try {
+  //     setPhoneVerifyLoading(true);
+  //     setPhoneVerifyError('');
+  //     await profileService.updatePhone(cleaned);
+  //     setPhoneVerifyStep('otp');
+  //     showSuccess('Verification code sent to your phone!');
+  //   } catch (error) {
+  //     setPhoneVerifyError(getErrorMessage(error));
+  //   } finally {
+  //     setPhoneVerifyLoading(false);
+  //   }
+  // };
+  //
+  // const handlePhoneVerifyOtp = async () => {
+  //   if (!phoneVerifyOtp || phoneVerifyOtp.length !== 6) {
+  //     setPhoneVerifyError('Please enter a valid 6-digit OTP');
+  //     return;
+  //   }
+  //   try {
+  //     setPhoneVerifyLoading(true);
+  //     setPhoneVerifyError('');
+  //     const cleaned = verifyPhone.replace(/\D/g, '');
+  //     await profileService.verifyPhoneChange(cleaned, phoneVerifyOtp);
+  //     setProfile((prev) => ({ ...prev, phone: cleaned, phoneVerified: true }));
+  //     updateUser({ phone: cleaned, phoneVerified: true });
+  //     setPhoneVerifyModal(false);
+  //     showSuccess('Phone number verified successfully!');
+  //   } catch (error) {
+  //     setPhoneVerifyError(getErrorMessage(error));
+  //   } finally {
+  //     setPhoneVerifyLoading(false);
+  //   }
+  // };
+
+  /**
+   * Handle avatar removal
+   */
+  const handleAvatarRemove = async () => {
+    try {
+      setAvatarLoading(true);
+      await profileService.removeAvatar();
+      setProfile((prev) => ({ ...prev, avatar: null }));
+      updateUser({ avatar: null });
+      showSuccess('Profile photo removed successfully!');
+    } catch (error) {
+      showError(getErrorMessage(error));
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
   // Loading state
   if (pageLoading) {
     return (
@@ -328,8 +495,11 @@ export default function ProfilePage() {
     );
   }
 
+  // Cloudinary URLs are absolute; legacy /uploads/ paths need backend prefix
   const avatarUrl = profile?.avatar
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${profile.avatar}`
+    ? profile.avatar.startsWith('http')
+      ? profile.avatar
+      : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'}${profile.avatar}`
     : null;
 
   return (
@@ -343,74 +513,126 @@ export default function ProfilePage() {
       {/* Section 1: Profile Header Card */}
       <div className={styles.card}>
         <div className={styles.profileHeader}>
-          <div className={styles.avatarSection}>
-            <div className={styles.avatarWrapper}>
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={profile?.name} className={styles.avatarImage} />
+          {/* Avatar */}
+          <div className={styles.avatarWrapper}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={profile?.name} className={styles.avatarImage} />
+            ) : (
+              <div className={styles.avatarPlaceholder}>
+                {getInitials(profile?.name)}
+              </div>
+            )}
+            <label
+              className={`${styles.avatarUploadBtn} ${avatarLoading ? styles.avatarUploading : ''}`}
+              title="Change photo"
+            >
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={handleAvatarUpload}
+                className={styles.avatarInput}
+                disabled={avatarLoading}
+              />
+              {avatarLoading ? (
+                <span className={styles.avatarSpinner} />
               ) : (
-                <div className={styles.avatarPlaceholder}>
-                  {getInitials(profile?.name)}
-                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
+                </svg>
               )}
-              <label className={styles.avatarUploadBtn} title="Change photo">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/jpg"
-                  onChange={handleAvatarUpload}
-                  className={styles.avatarInput}
-                  disabled={avatarLoading}
-                />
-                {avatarLoading ? (
-                  <span className={styles.avatarSpinner} />
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M12 2L14 4L8 10H6V8L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 14H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                )}
-              </label>
-            </div>
-            <div className={styles.profileInfo}>
-              <h2 className={styles.profileName}>{profile?.name || 'User'}</h2>
-              <p className={styles.profileEmail}>{profile?.email}</p>
-              <p className={styles.profileMemberSince}>
-                Member since {formatDate(profile?.createdAt)}
-              </p>
-            </div>
+            </label>
+            {avatarUrl && !avatarLoading && (
+              <button
+                type="button"
+                className={styles.avatarRemoveBtn}
+                title="Remove photo"
+                onClick={handleAvatarRemove}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
           </div>
-          <div className={styles.verificationBadges}>
-            <span
-              className={`${styles.verificationBadge} ${
-                profile?.emailVerified ? styles.verified : styles.unverified
-              }`}
-            >
-              {profile?.emailVerified ? (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 4V7.5M7 10H7.005" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              )}
-              Email {profile?.emailVerified ? 'Verified' : 'Not Verified'}
+
+          {/* Profile Info */}
+          <div className={styles.profileInfo}>
+            <h2 className={styles.profileName}>{profile?.name || 'User'}</h2>
+            <span className={styles.accountId}>Account {formatAccountId(profile?.id)}</span>
+            <span className={styles.memberSince}>
+              Member since {formatMemberSince(profile?.createdAt)}
             </span>
-            <span
-              className={`${styles.verificationBadge} ${
-                profile?.phoneVerified ? styles.verified : styles.unverified
-              }`}
-            >
-              {profile?.phoneVerified ? (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Contact with verification badges */}
+            <div className={styles.contactBadges}>
+              {/* Email row */}
+              <div className={styles.contactRow}>
+                <svg className={styles.contactIcon} width="14" height="14" viewBox="0 0 20 20" fill="none">
+                  <path d="M3 5H17V15H3V5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3 5L10 11L17 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 4V7.5M7 10H7.005" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <span className={styles.contactText}>{profile?.email || 'No email'}</span>
+                {profile?.emailVerified ? (
+                  <span className={styles.verifiedBadge} title="Email verified">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                ) : (
+                  <>
+                    <span className={styles.unverifiedBadge} title="Email not verified">
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 4V7.5M7 10H7.005" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.verifyBtn}
+                      onClick={openEmailVerification}
+                    >
+                      Verify
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Phone row */}
+              <div className={styles.contactRow}>
+                <svg className={styles.contactIcon} width="14" height="14" viewBox="0 0 20 20" fill="none">
+                  <path d="M14 2H6C5.44772 2 5 2.44772 5 3V17C5 17.5523 5.44772 18 6 18H14C14.5523 18 15 17.5523 15 17V3C15 2.44772 14.5523 2 14 2Z" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M10 15H10.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-              )}
-              Phone {profile?.phoneVerified ? 'Verified' : 'Not Verified'}
-            </span>
+                <span className={styles.contactText}>
+                  {profile?.phone ? `+91 ${profile.phone}` : 'No phone'}
+                </span>
+                {profile?.phoneVerified ? (
+                  <span className={styles.verifiedBadge} title="Phone verified">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                ) : (
+                  <>
+                    <span className={styles.unverifiedBadge} title="Phone not verified">
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 4V7.5M7 10H7.005" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </span>
+                    {/* TODO: Enable when SMS is configured */}
+                    <button
+                      type="button"
+                      className={styles.verifyBtnDisabled}
+                      disabled
+                      title="Coming soon"
+                    >
+                      Verify
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -491,32 +713,51 @@ export default function ProfilePage() {
             <div className={styles.contactLabel}>Email Address</div>
             <div className={styles.contactValue}>
               <span>{profile?.email || 'Not provided'}</span>
-              <span
-                className={`${styles.statusBadge} ${
-                  profile?.emailVerified ? styles.statusVerified : styles.statusUnverified
-                }`}
-              >
-                {profile?.emailVerified ? 'Verified' : 'Not Verified'}
-              </span>
+              <div className={styles.contactActions}>
+                <span
+                  className={`${styles.statusBadge} ${
+                    profile?.emailVerified ? styles.statusVerified : styles.statusUnverified
+                  }`}
+                >
+                  {profile?.emailVerified ? 'Verified' : 'Not Verified'}
+                </span>
+                {!profile?.emailVerified && (
+                  <button
+                    type="button"
+                    className={styles.verifyLink}
+                    onClick={openEmailVerification}
+                  >
+                    Verify now
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <div className={styles.contactItem}>
             <div className={styles.contactLabel}>Phone Number</div>
             <div className={styles.contactValue}>
               <span>{profile?.phone ? `+91 ${profile.phone}` : 'Not provided'}</span>
-              <span
-                className={`${styles.statusBadge} ${
-                  profile?.phoneVerified ? styles.statusVerified : styles.statusUnverified
-                }`}
-              >
-                {profile?.phoneVerified ? 'Verified' : 'Not Verified'}
-              </span>
+              <div className={styles.contactActions}>
+                <span
+                  className={`${styles.statusBadge} ${
+                    profile?.phoneVerified ? styles.statusVerified : styles.statusUnverified
+                  }`}
+                >
+                  {profile?.phoneVerified ? 'Verified' : 'Not Verified'}
+                </span>
+                {/* TODO: Enable when SMS is configured */}
+                {!profile?.phoneVerified && (
+                  <span
+                    className={styles.verifyLinkDisabled}
+                    title="Coming soon"
+                  >
+                    Coming soon
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
-        <p className={styles.contactHint}>
-          To change your email or phone number, please contact support.
-        </p>
       </div>
 
       {/* Section 4: Address */}
@@ -741,33 +982,91 @@ export default function ProfilePage() {
         </form>
       </div>
 
-      {/* Section 7: Account Info */}
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <div className={styles.cardIcon}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M10 6V10.5L13 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+      {/* Email Verification Modal */}
+      <Modal
+        isOpen={emailVerifyModal}
+        onClose={() => setEmailVerifyModal(false)}
+        title={emailVerifyStep === 'email' ? 'Verify Email Address' : 'Enter Verification Code'}
+        size="sm"
+      >
+        {emailVerifyStep === 'email' ? (
+          <div className={styles.verifyModalContent}>
+            <p className={styles.verifyModalDesc}>
+              We will send a verification code to your email address. Please confirm or update your email below.
+            </p>
+            <Input
+              label="Email Address"
+              type="email"
+              value={verifyEmail}
+              onChange={(e) => {
+                setVerifyEmail(e.target.value);
+                if (emailVerifyError) setEmailVerifyError('');
+              }}
+              error={emailVerifyError}
+              placeholder="Enter your email address"
+              required
+            />
+            <div className={styles.verifyModalActions}>
+              <Button
+                variant="outline"
+                onClick={() => setEmailVerifyModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleEmailVerifySendOtp}
+                loading={emailVerifyLoading}
+              >
+                Send Code
+              </Button>
+            </div>
           </div>
-          <h2 className={styles.cardTitle}>Account Information</h2>
-        </div>
-
-        <div className={styles.accountInfoGrid}>
-          <div className={styles.accountInfoItem}>
-            <span className={styles.accountInfoLabel}>Member Since</span>
-            <span className={styles.accountInfoValue}>{formatDate(profile?.createdAt)}</span>
+        ) : (
+          <div className={styles.verifyModalContent}>
+            <p className={styles.verifyModalDesc}>
+              A 6-digit verification code has been sent to <strong>{verifyEmail}</strong>. Please enter it below.
+            </p>
+            <Input
+              label="Verification Code"
+              type="text"
+              value={verifyOtp}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setVerifyOtp(val);
+                if (emailVerifyError) setEmailVerifyError('');
+              }}
+              error={emailVerifyError}
+              placeholder="Enter 6-digit code"
+              maxLength={6}
+              required
+            />
+            <div className={styles.verifyModalActions}>
+              <Button
+                variant="outline"
+                onClick={() => setEmailVerifyStep('email')}
+              >
+                Back
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleEmailVerifyOtp}
+                loading={emailVerifyLoading}
+              >
+                Verify
+              </Button>
+            </div>
+            <button
+              type="button"
+              className={styles.resendLink}
+              onClick={handleEmailVerifySendOtp}
+              disabled={emailVerifyLoading}
+            >
+              Resend code
+            </button>
           </div>
-          <div className={styles.accountInfoItem}>
-            <span className={styles.accountInfoLabel}>Account ID</span>
-            <span className={styles.accountInfoValue}>{profile?.id || 'N/A'}</span>
-          </div>
-          <div className={styles.accountInfoItem}>
-            <span className={styles.accountInfoLabel}>Account Status</span>
-            <span className={`${styles.statusBadge} ${styles.statusVerified}`}>Active</span>
-          </div>
-        </div>
-      </div>
+        )}
+      </Modal>
     </div>
   );
 }

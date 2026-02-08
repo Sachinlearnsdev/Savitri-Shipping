@@ -124,8 +124,8 @@ const useAuthStore = create((set, get) => ({
       return false;
     }
     
-    // Super Admin has all permissions
-    if (user.role.name === 'Super Admin') {
+    // Admin and Super Admin have all permissions
+    if (user.role.name === 'Admin' || user.role.name === 'Super Admin') {
       return true;
     }
     

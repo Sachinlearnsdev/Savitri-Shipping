@@ -54,6 +54,15 @@ import Reviews from '../pages/reviews/Reviews';
 import Coupons from '../pages/coupons/Coupons';
 import CouponDetail from '../pages/coupons/CouponDetail';
 
+// Marketing Pages
+import Marketing from '../pages/marketing/Marketing';
+
+// Reports Pages
+import Reports from '../pages/reports/Reports';
+import RevenueReports from '../pages/reports/RevenueReports';
+import BookingReports from '../pages/reports/BookingReports';
+import BoatPerformance from '../pages/reports/BoatPerformance';
+
 /**
  * App Routes Configuration
  */
@@ -122,6 +131,15 @@ const AppRoutes = () => {
             <Route path="/coupons" element={<Coupons />} />
             <Route path="/coupons/new" element={<CouponDetail />} />
             <Route path="/coupons/:id" element={<CouponDetail />} />
+
+            {/* Marketing */}
+            <Route path="/marketing" element={<Marketing />} />
+
+            {/* Reports */}
+            <Route path="/reports" element={<Navigate to="/reports/revenue" replace />} />
+            <Route path="/reports/revenue" element={<RevenueReports />} />
+            <Route path="/reports/bookings" element={<BookingReports />} />
+            <Route path="/reports/boats" element={<BoatPerformance />} />
           </Route>
         </Route>
 

@@ -36,6 +36,14 @@ export const profileService = {
   },
 
   /**
+   * Remove profile avatar (revert to initials)
+   * @returns {Promise}
+   */
+  removeAvatar: async () => {
+    return api.delete(API_ENDPOINTS.PROFILE.AVATAR);
+  },
+
+  /**
    * Change password
    * @param {object} data - Password data (currentPassword, newPassword, confirmPassword)
    * @returns {Promise}

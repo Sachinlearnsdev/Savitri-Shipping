@@ -1,9 +1,9 @@
 const { PartyBoatBooking, PartyBoat, Customer, Coupon } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
-const { paginate, calculateGST, hashPassword } = require('../../utils/helpers');
+const { paginate, calculateGST, hashPassword, formatCurrency } = require('../../utils/helpers');
 const { PARTY_CANCELLATION_POLICY, GST } = require('../../config/constants');
-const { sendBookingConfirmation, sendBookingCancellation } = require('../../utils/email');
+const { sendBookingConfirmation, sendBookingCancellation, sendPaymentPendingEmail, sendPaymentConfirmedEmail, sendAtVenueBookingEmail } = require('../../utils/email');
 
 class PartyBookingsService {
   /**
@@ -242,6 +242,19 @@ class PartyBookingsService {
           paymentMode: data.paymentMode,
           cancellationPolicy: '7d+ = 100% refund, 3-7d = 50% refund, <3d = No refund',
         }).catch(() => {});
+
+        // Send payment pending email if payment is not yet completed
+        if (booking.paymentStatus === 'PENDING') {
+          sendPaymentPendingEmail(customer.email, {
+            name: customer.name || 'Customer',
+            bookingNumber,
+            boatName: boat.name || 'Party Boat',
+            date: formattedDate,
+            time: data.timeSlot,
+            bookingType: 'Party Boat',
+            total: formatCurrency(pricing.finalAmount),
+          }).catch((err) => console.error('Payment pending email error:', err.message));
+        }
       }
     } catch (emailErr) {
       // Email failure should not fail the booking
@@ -335,22 +348,72 @@ class PartyBookingsService {
   /**
    * Mark booking as paid (admin)
    */
-  async markPaid(id, data) {
+  async markPaid(id, data, file) {
     const booking = await PartyBoatBooking.findOne({ _id: id, isDeleted: false });
 
     if (!booking) {
       throw ApiError.notFound('Booking not found');
     }
 
+    // Validate online payment requires proof
+    if (data.paymentMode === 'ONLINE') {
+      if (!data.transactionId) {
+        throw ApiError.badRequest('Transaction ID is required for online payments');
+      }
+      if (!file) {
+        throw ApiError.badRequest('Payment proof image is required for online payments');
+      }
+    }
+
+    // Upload payment proof if provided
+    if (file) {
+      const { uploadToCloudinary } = require('../../utils/cloudinaryUpload');
+      const uploaded = await uploadToCloudinary(file.buffer, 'savitri-shipping/payment-proofs');
+      booking.paymentProof = { url: uploaded.url, publicId: uploaded.publicId };
+    }
+
+    // Update payment fields
     booking.paymentStatus = 'PAID';
     if (data.paymentMode) booking.paymentMode = data.paymentMode;
+    if (data.transactionId) booking.transactionId = data.transactionId;
 
-    // Auto-confirm if pending
+    // Auto-confirm if booking is still PENDING
     if (booking.status === 'PENDING') {
       booking.status = 'CONFIRMED';
     }
 
     await booking.save();
+
+    // Send payment email based on payment mode (fire-and-forget)
+    try {
+      const customer = await Customer.findById(booking.customerId).lean();
+      if (customer && customer.email) {
+        const boat = await PartyBoat.findById(booking.boatId).lean();
+        const formattedDate = new Date(booking.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const emailData = {
+          name: customer.name || 'Customer',
+          bookingNumber: booking.bookingNumber,
+          boatName: (boat && boat.name) || 'Party Boat',
+          date: formattedDate,
+          time: booking.timeSlot,
+          bookingType: 'Party Boat',
+          total: formatCurrency(booking.pricing?.finalAmount || booking.pricing?.totalAmount),
+          transactionId: booking.transactionId || '',
+          paymentMode: booking.paymentMode,
+        };
+
+        if (booking.paymentMode === 'ONLINE') {
+          sendPaymentConfirmedEmail(customer.email, emailData)
+            .catch((err) => console.error('Payment confirmed email error:', err.message));
+        } else {
+          sendAtVenueBookingEmail(customer.email, emailData)
+            .catch((err) => console.error('At-venue booking email error:', err.message));
+        }
+      }
+    } catch (emailErr) {
+      console.error('Failed to send payment email:', emailErr.message);
+    }
+
     return formatDocument(booking.toObject());
   }
 

@@ -117,6 +117,8 @@ app.use("/api/admin/party-bookings", require("./modules/partyBookings/partyBooki
 app.use("/api/admin/coupons", require("./modules/coupons/coupons.routes"));
 app.use("/api/admin/reviews", require("./modules/reviews/reviews.routes").adminRouter);
 app.use("/api/admin/notifications", require("./modules/notifications/notifications.routes"));
+app.use("/api/admin/marketing", require("./modules/marketing/marketing.routes"));
+app.use("/api/admin/analytics", require("./modules/analytics/analytics.routes"));
 
 // Customer Routes
 app.use("/api/profile", require("./modules/profile/profile.routes"));

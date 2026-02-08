@@ -98,16 +98,10 @@
 .profileHeader {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-}
-
-.avatarSection {
-  display: flex;
-  align-items: center;
   gap: var(--spacing-5);
 }
 
+/* Avatar */
 .avatarWrapper {
   position: relative;
   flex-shrink: 0;
@@ -156,6 +150,10 @@
   background-color: var(--color-primary-dark);
 }
 
+.avatarUploading {
+  cursor: wait;
+}
+
 .avatarInput {
   display: none;
 }
@@ -169,10 +167,39 @@
   animation: spin 0.6s linear infinite;
 }
 
+.avatarRemoveBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--color-error);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid var(--bg-primary);
+  transition: background-color var(--transition-fast);
+  padding: 0;
+}
+
+.avatarRemoveBtn:hover {
+  background-color: var(--color-error-dark);
+}
+
+.avatarRemoveBtn svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Profile Info */
 .profileInfo {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 2px;
+  min-width: 0;
 }
 
 .profileName {
@@ -180,47 +207,101 @@
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin: 0;
+  line-height: 1.3;
 }
 
-.profileEmail {
+.accountId {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin: 0;
+  font-weight: var(--font-weight-medium);
+  font-family: monospace;
+  letter-spacing: 0.02em;
 }
 
-.profileMemberSince {
+.memberSince {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
-  margin: 0;
+  margin-bottom: var(--spacing-2);
 }
 
-/* Verification Badges */
-.verificationBadges {
+/* Contact badges in header */
+.contactBadges {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
   gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+}
+
+.contactIcon {
+  color: var(--text-tertiary);
   flex-shrink: 0;
 }
 
-.verificationBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-full);
+.contactText {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.verificationBadge.verified {
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
   background-color: var(--color-success-light);
   color: var(--color-success-dark);
+  flex-shrink: 0;
 }
 
-.verificationBadge.unverified {
+.unverifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
   background-color: var(--color-warning-light);
   color: var(--color-warning-dark);
+  flex-shrink: 0;
+}
+
+.verifyBtn {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  flex-shrink: 0;
+}
+
+.verifyBtn:hover {
+  color: var(--color-primary-dark);
+}
+
+.verifyBtnDisabled {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  cursor: not-allowed;
+  padding: 0;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 /* ==================== Forms ==================== */
@@ -282,12 +363,33 @@
   font-weight: var(--font-weight-medium);
 }
 
-.contactHint {
-  font-size: var(--font-size-sm);
+.contactActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.verifyLink {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
+}
+
+.verifyLink:hover {
+  background-color: var(--color-primary-50);
+}
+
+.verifyLinkDisabled {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   color: var(--text-tertiary);
-  margin: var(--spacing-4) 0 0;
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border-color);
+  font-style: italic;
 }
 
 /* Status Badges */
@@ -394,36 +496,51 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* ==================== Section 7: Account Info ==================== */
-.accountInfoGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-6);
-}
-
-.accountInfoItem {
+/* ==================== Email Verification Modal ==================== */
+.verifyModalContent {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
+  gap: var(--spacing-4);
 }
 
-.accountInfoLabel {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.accountInfoValue {
+.verifyModalDesc {
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.verifyModalDesc strong {
   color: var(--text-primary);
-  word-break: break-all;
+  font-weight: var(--font-weight-semibold);
+}
+
+.verifyModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-2);
+}
+
+.resendLink {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.resendLink:hover {
+  color: var(--color-primary-dark);
+}
+
+.resendLink:disabled {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
 }
 
 /* ==================== Responsive ==================== */
@@ -443,12 +560,6 @@
 
   /* Profile Header */
   .profileHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-4);
-  }
-
-  .avatarSection {
     gap: var(--spacing-4);
   }
 
@@ -473,20 +584,9 @@
     font-size: var(--font-size-lg);
   }
 
-  .verificationBadges {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
   /* Form Grid */
   .formGrid {
     grid-template-columns: 1fr;
-  }
-
-  /* Account Info Grid */
-  .accountInfoGrid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-3);
   }
 
   /* Card header */
@@ -520,6 +620,15 @@
     align-items: flex-start;
     gap: var(--spacing-2);
   }
+
+  /* Modal actions */
+  .verifyModalActions {
+    flex-direction: column-reverse;
+  }
+
+  .verifyModalActions button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -532,20 +641,23 @@
     border-radius: var(--radius-lg);
   }
 
-  .avatarSection {
+  /* Profile header stacks vertically on very small screens */
+  .profileHeader {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    width: 100%;
   }
 
   .profileInfo {
     align-items: center;
   }
 
-  .verificationBadges {
+  .contactBadges {
+    align-items: center;
+  }
+
+  .contactRow {
     justify-content: center;
-    width: 100%;
   }
 
   .formActions {

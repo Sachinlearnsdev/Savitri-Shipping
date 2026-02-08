@@ -6,6 +6,38 @@ import { getCalendar, updateDay, getWeather } from '../../services/calendar.serv
 import { CALENDAR_STATUS, CLOSE_REASONS } from '../../utils/constants';
 import styles from './Calendar.module.css';
 
+const INDIAN_FESTIVALS_2026 = {
+  '2026-01-01': 'New Year',
+  '2026-01-14': 'Makar Sankranti',
+  '2026-01-26': 'Republic Day',
+  '2026-02-14': "Valentine's Day",
+  '2026-03-10': 'Maha Shivaratri',
+  '2026-03-17': 'Holi',
+  '2026-03-30': 'Ugadi',
+  '2026-03-31': 'Eid ul-Fitr',
+  '2026-04-02': 'Ram Navami',
+  '2026-04-06': 'Mahavir Jayanti',
+  '2026-04-14': 'Ambedkar Jayanti',
+  '2026-05-01': 'May Day',
+  '2026-05-12': 'Buddha Purnima',
+  '2026-06-07': 'Eid ul-Adha',
+  '2026-07-07': 'Muharram',
+  '2026-08-06': 'Raksha Bandhan',
+  '2026-08-15': 'Independence Day',
+  '2026-08-14': 'Janmashtami',
+  '2026-09-05': 'Milad-un-Nabi',
+  '2026-09-17': 'Ganesh Chaturthi',
+  '2026-10-02': 'Gandhi Jayanti',
+  '2026-10-12': 'Dussehra',
+  '2026-10-20': 'Karwa Chauth',
+  '2026-10-31': 'Diwali',
+  '2026-11-02': 'Bhai Dooj',
+  '2026-11-14': "Children's Day",
+  '2026-11-19': 'Guru Nanak Jayanti',
+  '2026-12-25': 'Christmas',
+  '2026-12-31': "New Year's Eve",
+};
+
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -244,6 +276,8 @@ const Calendar = () => {
         .filter(Boolean)
         .join(' ');
 
+      const festival = INDIAN_FESTIVALS_2026[dateKey];
+
       cells.push(
         <div
           key={day}
@@ -256,6 +290,9 @@ const Calendar = () => {
           </span>
           {entry?.reason && (status === CALENDAR_STATUS.CLOSED || status === CALENDAR_STATUS.PARTIAL_CLOSED) && (
             <span className={styles.dayReason}>{CLOSE_REASONS[entry.reason] || entry.reason}</span>
+          )}
+          {festival && (
+            <span className={styles.dayFestival} title={festival}>{festival}</span>
           )}
           {weather && !past && (
             <span className={`${styles.weatherIndicator} ${getWeatherClass(weather.recommendation)}`}>
@@ -319,6 +356,11 @@ const Calendar = () => {
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.legendDotPast}`} />
           <span>Past</span>
+        </div>
+        <span className={styles.legendSeparator}>|</span>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.legendDotFestival}`} />
+          <span>Festival</span>
         </div>
         <span className={styles.legendSeparator}>|</span>
         <div className={styles.legendItem}>
