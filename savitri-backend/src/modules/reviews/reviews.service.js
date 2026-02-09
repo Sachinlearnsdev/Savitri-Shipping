@@ -2,6 +2,7 @@ const { Review, SpeedBoat, PartyBoat } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 const { paginate } = require('../../utils/helpers');
+const { emitToAdmins } = require('../../utils/socket');
 
 class ReviewsService {
   /**
@@ -59,6 +60,25 @@ class ReviewsService {
     }
 
     const review = await Review.create(data);
+
+    // Emit real-time notification to admins
+    try {
+      let boatName = 'Company';
+      if (data.boatId) {
+        const Model = data.boatModel === 'SpeedBoat' ? SpeedBoat : PartyBoat;
+        const boat = await Model.findById(data.boatId).select('name').lean();
+        if (boat) boatName = boat.name;
+      }
+      emitToAdmins('new-review', {
+        type: data.reviewType,
+        boatName,
+        rating: data.rating,
+        customerName: data.customerName || 'Anonymous',
+      });
+    } catch (emitErr) {
+      // Socket emit failure should not affect review creation
+    }
+
     return formatDocument(review.toObject());
   }
 

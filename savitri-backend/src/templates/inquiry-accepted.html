@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Accepted</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .inquiry-box { background: white; border: 2px dashed #059669; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .inquiry-number { font-size: 18px; font-weight: bold; color: #059669; letter-spacing: 2px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 40%; }
+        .details-table td:last-child { font-weight: 500; }
+        .info-box { background: #d1fae5; border-left: 4px solid #059669; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Quote Accepted!</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{name}},</p>
+
+        <p>Thank you for accepting the quote for your party boat event! We are excited to help you celebrate.</p>
+
+        <div class="inquiry-box">
+            <p style="margin: 0 0 5px 0; color: #6b7280;">Inquiry Reference:</p>
+            <div class="inquiry-number">{{inquiryNumber}}</div>
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td>Boat</td>
+                <td>{{boatName}}</td>
+            </tr>
+            <tr>
+                <td>Accepted Amount</td>
+                <td>{{quotedAmount}} + GST</td>
+            </tr>
+        </table>
+
+        <div class="info-box">
+            <strong>What happens next?</strong><br>
+            Our team will now create your official booking and send you the booking confirmation with payment details. You will receive a separate email with your booking number shortly.
+        </div>
+
+        <p>If you have any questions, please don't hesitate to reach out to us.</p>
+
+        <p>Best regards,<br><strong>Team {{companyName}}</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>

@@ -102,6 +102,9 @@ module.exports = {
     PAYMENT_PENDING: 'payment-pending',
     PAYMENT_CONFIRMED: 'payment-confirmed',
     AT_VENUE_BOOKING: 'at-venue-booking',
+    INQUIRY_CONFIRMATION: 'inquiry-confirmation',
+    INQUIRY_QUOTE: 'inquiry-quote',
+    INQUIRY_ACCEPTED: 'inquiry-accepted',
   },
 
   // Boat Status (Speed + Party)
@@ -201,6 +204,17 @@ module.exports = {
   // Booking Number Prefixes
   SPEED_BOOKING_PREFIX: 'SB',
   PARTY_BOOKING_PREFIX: 'PB',
+  INQUIRY_PREFIX: 'INQ',
+
+  // Inquiry Status
+  INQUIRY_STATUS: {
+    PENDING: 'PENDING',
+    QUOTED: 'QUOTED',
+    ACCEPTED: 'ACCEPTED',
+    REJECTED: 'REJECTED',
+    CONVERTED: 'CONVERTED',
+    EXPIRED: 'EXPIRED',
+  },
 
   // Party Boat Cancellation Policy (different from speed boats)
   PARTY_CANCELLATION_POLICY: {

@@ -115,11 +115,19 @@ export const API_ENDPOINTS = {
   MARKETING_SEND: '/admin/marketing/send',
   MARKETING_TEST: '/admin/marketing/test',
 
+  // Inquiries (Admin)
+  INQUIRIES: '/admin/inquiries',
+  INQUIRY_BY_ID: (id) => `/admin/inquiries/${id}`,
+  INQUIRY_QUOTE: (id) => `/admin/inquiries/${id}/quote`,
+  INQUIRY_CONVERT: (id) => `/admin/inquiries/${id}/convert`,
+
   // Reports (backend path is /admin/analytics but frontend uses "reports" to avoid ad blockers)
   REPORTS_OVERVIEW: '/admin/analytics/overview',
   REPORTS_REVENUE: '/admin/analytics/revenue',
   REPORTS_BOOKINGS: '/admin/analytics/bookings',
   REPORTS_TOP_BOATS: '/admin/analytics/top-boats',
+  REPORTS_EXPORT_CSV: '/admin/analytics/export/csv',
+  REPORTS_EXPORT_PDF: '/admin/analytics/export/pdf',
 };
 
 // ==================== USER STATUS ====================
@@ -167,6 +175,12 @@ export const ADD_ON_TYPE_LABELS = { CATERING_VEG: 'Veg Catering', CATERING_NONVE
 
 export const PRICE_TYPE = { FIXED: 'FIXED', PER_PERSON: 'PER_PERSON' };
 export const PRICE_TYPE_LABELS = { FIXED: 'Fixed Price', PER_PERSON: 'Per Person' };
+
+// ==================== INQUIRY STATUS ====================
+
+export const INQUIRY_STATUS = { PENDING: 'PENDING', QUOTED: 'QUOTED', ACCEPTED: 'ACCEPTED', REJECTED: 'REJECTED', CONVERTED: 'CONVERTED', EXPIRED: 'EXPIRED' };
+export const INQUIRY_STATUS_LABELS = { PENDING: 'Pending', QUOTED: 'Quoted', ACCEPTED: 'Accepted', REJECTED: 'Rejected', CONVERTED: 'Converted', EXPIRED: 'Expired' };
+export const INQUIRY_STATUS_COLORS = { PENDING: 'warning', QUOTED: 'info', ACCEPTED: 'success', REJECTED: 'error', CONVERTED: 'success', EXPIRED: 'secondary' };
 
 // ==================== REVIEW TYPE ====================
 
@@ -366,6 +380,7 @@ export const MENU_ITEMS = [
     children: [
       { id: 'speed-bookings', label: 'Speed Boat Bookings', icon: 'speed-bookings', path: '/bookings', permission: 'bookings.view', countKey: 'pendingBookings' },
       { id: 'party-bookings', label: 'Party Boat Bookings', icon: 'party-bookings', path: '/party-bookings', permission: 'bookings.view', countKey: 'pendingPartyBookings' },
+      { id: 'inquiries', label: 'Inquiries', icon: 'inquiries', path: '/inquiries', permission: 'inquiries.view' },
     ],
   },
   {
@@ -457,6 +472,7 @@ export const ROUTE_TITLES = {
   '/party-boats': 'Party Boats',
   '/bookings': 'Speed Boat Bookings',
   '/party-bookings': 'Party Boat Bookings',
+  '/inquiries': 'Inquiries',
   '/reviews/company': 'Company Reviews',
   '/reviews/product': 'Boat Reviews',
   '/settings/general': 'General',
@@ -483,6 +499,7 @@ export const ROUTE_PARENTS = {
   '/party-boats': { label: 'Boats', path: '/speed-boats' },
   '/bookings': { label: 'Bookings', path: '/bookings' },
   '/party-bookings': { label: 'Bookings', path: '/bookings' },
+  '/inquiries': { label: 'Bookings', path: '/bookings' },
   '/reviews/company': { label: 'Reviews', path: '/reviews/company' },
   '/reviews/product': { label: 'Reviews', path: '/reviews/company' },
   '/coupons': { label: 'Marketing', path: '/coupons' },

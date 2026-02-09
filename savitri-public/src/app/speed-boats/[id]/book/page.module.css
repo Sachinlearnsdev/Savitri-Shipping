@@ -1480,3 +1480,79 @@
   background-color: var(--bg-secondary);
   color: var(--text-primary);
 }
+
+/* ==================== ADD MORE BOATS ==================== */
+.addBoatsToggle {
+  background: none;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addBoatsToggle:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.additionalBoatsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.additionalBoatItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.additionalBoatItem:hover {
+  background-color: var(--bg-secondary);
+}
+
+.additionalBoatItemSelected {
+  background-color: rgba(8, 145, 178, 0.06);
+  border-color: var(--color-primary);
+}
+
+.additionalBoatCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.additionalBoatInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.additionalBoatName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.additionalBoatMeta {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}

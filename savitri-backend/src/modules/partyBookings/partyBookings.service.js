@@ -4,6 +4,7 @@ const { formatDocument, formatDocuments } = require('../../utils/responseFormatt
 const { paginate, calculateGST, hashPassword, formatCurrency } = require('../../utils/helpers');
 const { PARTY_CANCELLATION_POLICY, GST } = require('../../config/constants');
 const { sendBookingConfirmation, sendBookingCancellation, sendPaymentPendingEmail, sendPaymentConfirmedEmail, sendAtVenueBookingEmail } = require('../../utils/email');
+const { emitToAdmins } = require('../../utils/socket');
 
 class PartyBookingsService {
   /**
@@ -277,6 +278,19 @@ class PartyBookingsService {
       // Email failure should not fail the booking
     }
 
+    // Emit real-time notification to admins
+    try {
+      const customer = await Customer.findById(customerId).lean();
+      emitToAdmins('new-booking', {
+        type: 'party-boat',
+        bookingNumber,
+        customerName: customer?.name || 'Guest',
+        totalAmount: pricing.finalAmount,
+      });
+    } catch (emitErr) {
+      // Socket emit failure should not affect booking
+    }
+
     return this.getById(booking._id);
   }
 
@@ -438,6 +452,14 @@ class PartyBookingsService {
       console.error('Failed to send payment email:', emailErr.message);
     }
 
+    // Emit real-time notification to admins
+    emitToAdmins('payment-received', {
+      type: 'party-boat',
+      bookingNumber: booking.bookingNumber,
+      amount: booking.pricing?.finalAmount || booking.pricing?.totalAmount,
+      paymentMode: booking.paymentMode,
+    });
+
     return formatDocument(booking.toObject());
   }
 
@@ -513,6 +535,18 @@ class PartyBookingsService {
       }
     } catch (emailErr) {
       // Email failure should not fail the cancellation
+    }
+
+    // Emit real-time notification to admins
+    try {
+      const customer = await Customer.findById(booking.customerId).lean();
+      emitToAdmins('booking-cancelled', {
+        type: 'party-boat',
+        bookingNumber: booking.bookingNumber,
+        customerName: customer?.name || 'Customer',
+      });
+    } catch (emitErr) {
+      // Socket emit failure should not affect cancellation
     }
 
     return formatDocument(booking.toObject());

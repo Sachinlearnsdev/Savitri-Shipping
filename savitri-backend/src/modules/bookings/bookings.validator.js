@@ -5,7 +5,8 @@ const availabilitySchema = z.object({
   date: z.string().min(1, 'Date is required'),
   startTime: z.string().min(1, 'Start time is required'),
   duration: z.number().min(0.5, 'Duration must be at least 0.5 hours'),
-  numberOfBoats: z.number().int().min(1, 'At least 1 boat required'),
+  numberOfBoats: z.number().int().min(1, 'At least 1 boat required').optional(),
+  boatIds: z.array(z.string()).optional(),
 });
 
 // Public: calculate price
@@ -13,7 +14,8 @@ const priceCalcSchema = z.object({
   date: z.string().min(1),
   startTime: z.string().min(1),
   duration: z.number().min(0.5),
-  numberOfBoats: z.number().int().min(1),
+  numberOfBoats: z.number().int().min(1).optional(),
+  boatIds: z.array(z.string()).optional(),
 });
 
 // Public: create booking (customer)
@@ -21,7 +23,8 @@ const createBookingSchema = z.object({
   date: z.string().min(1, 'Date is required'),
   startTime: z.string().min(1, 'Start time is required'),
   duration: z.number().min(0.5, 'Duration must be at least 0.5 hours'),
-  numberOfBoats: z.number().int().min(1, 'At least 1 boat required'),
+  boatIds: z.array(z.string()).min(1, 'At least 1 boat must be selected'),
+  numberOfBoats: z.number().int().min(1).optional(),
   customerNotes: z.string().optional(),
   couponCode: z.string().optional(),
   paymentMode: z.enum(['ONLINE', 'AT_VENUE']),
@@ -40,7 +43,8 @@ const adminCreateBookingSchema = z.object({
   date: z.string().min(1),
   startTime: z.string().min(1),
   duration: z.number().min(0.5),
-  numberOfBoats: z.number().int().min(1),
+  boatIds: z.array(z.string()).min(1, 'At least 1 boat must be selected'),
+  numberOfBoats: z.number().int().min(1).optional(),
   paymentMode: z.enum(['ONLINE', 'AT_VENUE']),
   adminNotes: z.string().optional(),
   adminOverrideAmount: z.number().min(0).optional(),

@@ -5,7 +5,9 @@ import Header from '../Header';
 import Footer from '../Footer';
 import ToastContainer from '../../common/Toast';
 import useUIStore from '../../../store/uiStore';
+import useAuthStore from '../../../store/authStore';
 import useNotificationStore from '../../../store/notificationStore';
+import { connectSocket, disconnectSocket } from '../../../utils/socket';
 import styles from './Layout.module.css';
 
 const POLL_INTERVAL = 60000; // 60 seconds
@@ -13,6 +15,18 @@ const POLL_INTERVAL = 60000; // 60 seconds
 const Layout = () => {
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const fetchCounts = useNotificationStore((s) => s.fetchCounts);
+  const token = useAuthStore((s) => s.token);
+
+  // Connect Socket.io when authenticated
+  useEffect(() => {
+    if (token) {
+      connectSocket(token);
+    }
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [token]);
 
   useEffect(() => {
     fetchCounts();

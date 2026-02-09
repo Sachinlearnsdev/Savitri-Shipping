@@ -163,6 +163,7 @@ const Bookings = () => {
           startTime,
           duration: parsedDuration,
           numberOfBoats: numBoats,
+          boatIds: selectedBoatIds,
         });
         if (response.success) {
           setPriceData(response.data);
@@ -231,6 +232,7 @@ const Bookings = () => {
         date: createForm.date,
         startTime: createForm.startTime,
         duration: Number(createForm.duration),
+        boatIds: selectedBoatIds,
         numberOfBoats: selectedBoatIds.length,
         paymentMode: createForm.paymentMode,
       };
@@ -359,8 +361,10 @@ const Bookings = () => {
                     </td>
                     <td>{formatDate(booking.date)}</td>
                     <td>{booking.startTime || '-'}</td>
-                    <td>
-                      {booking.numberOfBoats || '-'}
+                    <td title={booking.boats && booking.boats.length > 0 ? booking.boats.map(b => b.boatName).join(', ') : ''}>
+                      {booking.boats && booking.boats.length > 0
+                        ? `${booking.boats.length} (${booking.boats.map(b => b.boatName).join(', ')})`
+                        : booking.numberOfBoats || '-'}
                     </td>
                     <td className={styles.amount}>
                       {formatCurrency(booking.pricing?.finalAmount || booking.pricing?.totalAmount)}
@@ -501,10 +505,23 @@ const Bookings = () => {
                 <div className={styles.priceError}>{priceError}</div>
               ) : priceData ? (
                 <>
-                  <div className={styles.priceRow}>
-                    <span className={styles.priceLabel}>Base Rate (per boat/hr)</span>
-                    <span className={styles.priceValue}>{formatCurrency(priceData.baseRate)}</span>
-                  </div>
+                  {priceData.boatPricing && priceData.boatPricing.length > 0 ? (
+                    <>
+                      {priceData.boatPricing.map((bp, idx) => (
+                        <div key={idx} className={styles.priceRow}>
+                          <span className={styles.priceLabel}>
+                            {bp.boatName} ({formatCurrency(bp.adjustedRate)}/hr x {priceData.duration}h)
+                          </span>
+                          <span className={styles.priceValue}>{formatCurrency(bp.subtotal)}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className={styles.priceRow}>
+                      <span className={styles.priceLabel}>Base Rate (per boat/hr)</span>
+                      <span className={styles.priceValue}>{formatCurrency(priceData.baseRate)}</span>
+                    </div>
+                  )}
                   {priceData.appliedRule && (
                     <div className={styles.priceRow}>
                       <span className={styles.priceLabel}>

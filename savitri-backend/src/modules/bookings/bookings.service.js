@@ -7,6 +7,7 @@ const pricingRulesService = require('../pricingRules/pricingRules.service');
 const { BOOKING_LIMITS, CANCELLATION_POLICY, GST, OTP_TYPE } = require('../../config/constants');
 const { sendBookingConfirmation, sendBookingCancellation, sendPaymentPendingEmail, sendPaymentConfirmedEmail, sendAtVenueBookingEmail } = require('../../utils/email');
 const { createOTP, verifyOTP } = require('../../utils/otp');
+const { emitToAdmins } = require('../../utils/socket');
 
 class BookingsService {
   /**
@@ -67,7 +68,7 @@ class BookingsService {
   /**
    * Check availability for a date/time/boats
    */
-  async checkAvailability({ date, startTime, duration, numberOfBoats }) {
+  async checkAvailability({ date, startTime, duration, numberOfBoats, boatIds }) {
     const settings = await this._getBookingSettings();
     const bookingDate = new Date(date);
     bookingDate.setHours(0, 0, 0, 0);
@@ -120,35 +121,73 @@ class BookingsService {
       return { available: false, reason: 'The requested time slot overlaps with a closed period' };
     }
 
-    // 7. Check boat availability (how many boats are already booked at this time)
-    const totalActiveBoats = await SpeedBoat.countDocuments({ status: 'ACTIVE', isDeleted: false });
+    // 7. Get all active boats and booked boat IDs for this time slot
+    const allActiveBoats = await SpeedBoat.find({ status: 'ACTIVE', isDeleted: false }).lean();
+    const totalActiveBoats = allActiveBoats.length;
 
-    if (numberOfBoats > totalActiveBoats) {
+    // Derive numberOfBoats from boatIds if provided
+    const requestedBoatCount = boatIds ? boatIds.length : (numberOfBoats || 1);
+
+    if (requestedBoatCount > totalActiveBoats) {
       return { available: false, reason: `Only ${totalActiveBoats} boats available in fleet` };
     }
 
-    // Check overlapping bookings (with buffer)
+    // Check overlapping bookings (with buffer) - get specific booked boat IDs
     const bufferMinutes = settings.bufferMinutes;
-    const bookedBoats = await this._getBookedBoatCount(bookingDate, startTime, endTime, bufferMinutes);
-    const availableBoats = totalActiveBoats - bookedBoats;
+    const bookedBoatIds = await this._getBookedBoatIds(bookingDate, startTime, endTime, bufferMinutes);
 
-    if (numberOfBoats > availableBoats) {
+    // Determine available boats (all active minus booked)
+    const bookedIdSet = new Set(bookedBoatIds.map(id => id.toString()));
+    const availableBoatList = allActiveBoats.filter(b => !bookedIdSet.has(b._id.toString()));
+    const availableBoatCount = availableBoatList.length;
+
+    // If specific boatIds requested, check if those specific boats are available
+    if (boatIds && boatIds.length > 0) {
+      const unavailableBoats = boatIds.filter(id => bookedIdSet.has(id.toString()));
+      if (unavailableBoats.length > 0) {
+        const unavailableNames = [];
+        for (const uid of unavailableBoats) {
+          const boat = allActiveBoats.find(b => b._id.toString() === uid.toString());
+          unavailableNames.push(boat ? boat.name : uid);
+        }
+        return {
+          available: false,
+          reason: `The following boats are already booked for this time slot: ${unavailableNames.join(', ')}`,
+          availableBoats: availableBoatCount,
+          availableBoatList: availableBoatList.map(b => ({
+            id: b._id, name: b.name, registrationNumber: b.registrationNumber,
+            capacity: b.capacity, baseRate: b.baseRate,
+          })),
+        };
+      }
+    } else if (requestedBoatCount > availableBoatCount) {
       return {
         available: false,
-        reason: availableBoats === 0
+        reason: availableBoatCount === 0
           ? 'All boats are booked for this time slot'
-          : `Only ${availableBoats} boats available for this time slot`,
-        availableBoats,
+          : `Only ${availableBoatCount} boats available for this time slot`,
+        availableBoats: availableBoatCount,
+        availableBoatList: availableBoatList.map(b => ({
+          id: b._id, name: b.name, registrationNumber: b.registrationNumber,
+          capacity: b.capacity, baseRate: b.baseRate,
+        })),
       };
     }
 
-    return { available: true, availableBoats };
+    return {
+      available: true,
+      availableBoats: availableBoatCount,
+      availableBoatList: availableBoatList.map(b => ({
+        id: b._id, name: b.name, registrationNumber: b.registrationNumber,
+        capacity: b.capacity, baseRate: b.baseRate,
+      })),
+    };
   }
 
   /**
-   * Get count of boats already booked at a given date/time (considering buffer)
+   * Get array of boat IDs already booked at a given date/time (considering buffer)
    */
-  async _getBookedBoatCount(date, startTime, endTime, bufferMinutes = 30) {
+  async _getBookedBoatIds(date, startTime, endTime, bufferMinutes = 30) {
     // Subtract buffer from start, add buffer to end to find overlaps
     const adjustedStart = this._adjustTime(startTime, -bufferMinutes);
     const adjustedEnd = this._adjustTime(endTime, bufferMinutes);
@@ -162,7 +201,48 @@ class BookingsService {
       endTime: { $gt: adjustedStart },
     }).lean();
 
-    return overlapping.reduce((sum, b) => sum + b.numberOfBoats, 0);
+    // Collect all booked boat IDs from overlapping bookings
+    const bookedIds = [];
+    for (const booking of overlapping) {
+      if (booking.boatIds && booking.boatIds.length > 0) {
+        // New-style booking with specific boat IDs
+        bookedIds.push(...booking.boatIds);
+      } else {
+        // Legacy booking with just numberOfBoats count - count as generic boats
+        // These old bookings don't reserve specific boats, so we can't block specific ones
+        // Instead, reduce available count (handled in checkAvailability)
+      }
+    }
+
+    return bookedIds;
+  }
+
+  /**
+   * Get count of boats already booked at a given date/time (considering buffer)
+   * Kept for backward compatibility with legacy bookings
+   */
+  async _getBookedBoatCount(date, startTime, endTime, bufferMinutes = 30) {
+    const adjustedStart = this._adjustTime(startTime, -bufferMinutes);
+    const adjustedEnd = this._adjustTime(endTime, bufferMinutes);
+
+    const overlapping = await SpeedBoatBooking.find({
+      date,
+      status: { $in: ['PENDING', 'CONFIRMED'] },
+      isDeleted: false,
+      startTime: { $lt: adjustedEnd },
+      endTime: { $gt: adjustedStart },
+    }).lean();
+
+    // Count boat IDs from new bookings + numberOfBoats from legacy bookings
+    let count = 0;
+    for (const booking of overlapping) {
+      if (booking.boatIds && booking.boatIds.length > 0) {
+        count += booking.boatIds.length;
+      } else {
+        count += booking.numberOfBoats || 0;
+      }
+    }
+    return count;
   }
 
   /**
@@ -179,8 +259,72 @@ class BookingsService {
   /**
    * Calculate pricing for a booking
    */
-  async calculatePrice({ date, startTime, duration, numberOfBoats }) {
-    // Get the base rate (average of active boats or use first active boat)
+  async calculatePrice({ date, startTime, duration, numberOfBoats, boatIds }) {
+    // Find matching pricing rule
+    const matchingRule = await pricingRulesService.findMatchingRule(date, startTime);
+
+    let appliedRule = null;
+    if (matchingRule) {
+      appliedRule = {
+        ruleId: matchingRule.id,
+        name: matchingRule.name,
+        adjustmentPercent: matchingRule.adjustmentPercent,
+      };
+    }
+
+    // If specific boatIds provided, calculate per-boat pricing
+    if (boatIds && boatIds.length > 0) {
+      const selectedBoats = await SpeedBoat.find({
+        _id: { $in: boatIds },
+        status: 'ACTIVE',
+        isDeleted: false,
+      }).lean();
+
+      if (selectedBoats.length === 0) {
+        throw ApiError.badRequest('No valid active boats found for the provided IDs');
+      }
+
+      const boatPricing = selectedBoats.map(boat => {
+        let adjustedRate = boat.baseRate;
+        if (matchingRule) {
+          adjustedRate = boat.baseRate * (1 + matchingRule.adjustmentPercent / 100);
+          adjustedRate = Math.round(adjustedRate * 100) / 100;
+        }
+        return {
+          boatId: boat._id,
+          boatName: boat.name,
+          registrationNumber: boat.registrationNumber,
+          pricePerHour: boat.baseRate,
+          adjustedRate,
+          subtotal: adjustedRate * duration,
+        };
+      });
+
+      const subtotal = boatPricing.reduce((sum, bp) => sum + bp.subtotal, 0);
+      // Use average as the display base rate
+      const baseRate = Math.round((boatPricing.reduce((sum, bp) => sum + bp.pricePerHour, 0) / boatPricing.length) * 100) / 100;
+      const adjustedRate = Math.round((boatPricing.reduce((sum, bp) => sum + bp.adjustedRate, 0) / boatPricing.length) * 100) / 100;
+      const gst = calculateGST(subtotal, GST.PERCENTAGE, GST.IS_INCLUSIVE);
+
+      return {
+        baseRate,
+        appliedRule,
+        adjustedRate,
+        numberOfBoats: selectedBoats.length,
+        duration,
+        subtotal,
+        gstPercent: GST.PERCENTAGE,
+        gstAmount: gst.gstAmount,
+        cgst: gst.cgst,
+        sgst: gst.sgst,
+        totalAmount: gst.totalAmount,
+        finalAmount: gst.totalAmount,
+        boatPricing,
+      };
+    }
+
+    // Fallback: generic pricing (legacy behavior)
+    const resolvedCount = numberOfBoats || 1;
     const activeBoats = await SpeedBoat.find({ status: 'ACTIVE', isDeleted: false })
       .select('baseRate')
       .lean();
@@ -192,30 +336,20 @@ class BookingsService {
     // Use the minimum base rate across active boats
     const baseRate = Math.min(...activeBoats.map(b => b.baseRate));
 
-    // Find matching pricing rule
-    const matchingRule = await pricingRulesService.findMatchingRule(date, startTime);
-
     let adjustedRate = baseRate;
-    let appliedRule = null;
-
     if (matchingRule) {
       adjustedRate = baseRate * (1 + matchingRule.adjustmentPercent / 100);
       adjustedRate = Math.round(adjustedRate * 100) / 100;
-      appliedRule = {
-        ruleId: matchingRule.id,
-        name: matchingRule.name,
-        adjustmentPercent: matchingRule.adjustmentPercent,
-      };
     }
 
-    const subtotal = adjustedRate * numberOfBoats * duration;
+    const subtotal = adjustedRate * resolvedCount * duration;
     const gst = calculateGST(subtotal, GST.PERCENTAGE, GST.IS_INCLUSIVE);
 
     return {
       baseRate,
       appliedRule,
       adjustedRate,
-      numberOfBoats,
+      numberOfBoats: resolvedCount,
       duration,
       subtotal,
       gstPercent: GST.PERCENTAGE,
@@ -264,13 +398,42 @@ class BookingsService {
       }
     }
 
+    // Resolve boatIds and numberOfBoats
+    const boatIds = data.boatIds || [];
+    const numberOfBoats = boatIds.length || data.numberOfBoats || 1;
+
+    // Validate that all specified boats exist and are active
+    let boatsSnapshot = [];
+    if (boatIds.length > 0) {
+      const selectedBoats = await SpeedBoat.find({
+        _id: { $in: boatIds },
+        status: 'ACTIVE',
+        isDeleted: false,
+      }).lean();
+
+      if (selectedBoats.length !== boatIds.length) {
+        const foundIds = selectedBoats.map(b => b._id.toString());
+        const missingIds = boatIds.filter(id => !foundIds.includes(id.toString()));
+        throw ApiError.badRequest(`Some selected boats are not available: ${missingIds.join(', ')}`);
+      }
+
+      // Create pricing snapshot for each boat
+      boatsSnapshot = selectedBoats.map(boat => ({
+        boatId: boat._id,
+        boatName: boat.name,
+        registrationNumber: boat.registrationNumber,
+        pricePerHour: boat.baseRate,
+      }));
+    }
+
     // Check availability
     const endTime = this._calculateEndTime(data.startTime, data.duration);
     const availability = await this.checkAvailability({
       date: data.date,
       startTime: data.startTime,
       duration: data.duration,
-      numberOfBoats: data.numberOfBoats,
+      numberOfBoats,
+      boatIds: boatIds.length > 0 ? boatIds : undefined,
     });
 
     if (!availability.available) {
@@ -282,7 +445,8 @@ class BookingsService {
       date: data.date,
       startTime: data.startTime,
       duration: data.duration,
-      numberOfBoats: data.numberOfBoats,
+      numberOfBoats,
+      boatIds: boatIds.length > 0 ? boatIds : undefined,
     });
 
     // Apply admin override if provided
@@ -334,7 +498,9 @@ class BookingsService {
       startTime: data.startTime,
       endTime,
       duration: data.duration,
-      numberOfBoats: data.numberOfBoats,
+      numberOfBoats,
+      boatIds: boatIds.length > 0 ? boatIds : undefined,
+      boats: boatsSnapshot.length > 0 ? boatsSnapshot : undefined,
       pricing,
       status: initialStatus,
       paymentStatus: initialPaymentStatus,
@@ -356,10 +522,13 @@ class BookingsService {
       const customer = await Customer.findById(resolvedCustomerId).lean();
       if (customer && customer.email) {
         const formattedDate = bookingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const boatNameDisplay = boatsSnapshot.length > 0
+          ? boatsSnapshot.map(b => b.boatName).join(', ')
+          : 'Speed Boat';
         sendBookingConfirmation(customer.email, {
           name: customer.name || 'Customer',
           bookingNumber,
-          boatName: 'Speed Boat',
+          boatName: boatNameDisplay,
           date: formattedDate,
           time: data.startTime,
           duration: `${data.duration} hour${data.duration > 1 ? 's' : ''}`,
@@ -377,7 +546,7 @@ class BookingsService {
           sendPaymentPendingEmail(customer.email, {
             name: customer.name || 'Customer',
             bookingNumber,
-            boatName: 'Speed Boat',
+            boatName: boatNameDisplay,
             date: formattedDate,
             time: `${data.startTime} - ${endTime}`,
             bookingType: 'Speed Boat',
@@ -387,6 +556,19 @@ class BookingsService {
       }
     } catch (emailErr) {
       console.error('📧 Booking email setup error:', emailErr.message);
+    }
+
+    // Emit real-time notification to admins
+    try {
+      const customer = await Customer.findById(resolvedCustomerId).lean();
+      emitToAdmins('new-booking', {
+        type: 'speed-boat',
+        bookingNumber,
+        customerName: customer?.name || 'Guest',
+        totalAmount: pricing.finalAmount,
+      });
+    } catch (emitErr) {
+      // Socket emit failure should not affect booking
     }
 
     return formatDocument(booking.toObject());
@@ -491,6 +673,7 @@ class BookingsService {
   async getById(id) {
     const booking = await SpeedBoatBooking.findOne({ _id: id, isDeleted: false })
       .populate('customerId', 'name email phone')
+      .populate('boatIds', 'name registrationNumber capacity baseRate status images')
       .lean();
 
     if (!booking) {
@@ -649,6 +832,14 @@ class BookingsService {
       console.error('Failed to send payment email:', emailErr.message);
     }
 
+    // Emit real-time notification to admins
+    emitToAdmins('payment-received', {
+      type: 'speed-boat',
+      bookingNumber: booking.bookingNumber,
+      amount: booking.pricing?.finalAmount || booking.pricing?.totalAmount,
+      paymentMode: booking.paymentMode,
+    });
+
     return formatDocument(booking.toObject());
   }
 
@@ -728,6 +919,18 @@ class BookingsService {
       console.error('📧 Cancellation email setup error:', emailErr.message);
     }
 
+    // Emit real-time notification to admins
+    try {
+      const customer = await Customer.findById(booking.customerId).lean();
+      emitToAdmins('booking-cancelled', {
+        type: 'speed-boat',
+        bookingNumber: booking.bookingNumber,
+        customerName: customer?.name || 'Customer',
+      });
+    } catch (emitErr) {
+      // Socket emit failure should not affect cancellation
+    }
+
     return formatDocument(booking.toObject());
   }
 
@@ -745,7 +948,8 @@ class BookingsService {
       return { open: false, slots: [] };
     }
 
-    const totalBoats = await SpeedBoat.countDocuments({ status: 'ACTIVE', isDeleted: false });
+    const allActiveBoats = await SpeedBoat.find({ status: 'ACTIVE', isDeleted: false }).lean();
+    const totalBoats = allActiveBoats.length;
     const [startH] = settings.operatingStartTime.split(':').map(Number);
     const [endH] = settings.operatingEndTime.split(':').map(Number);
 
@@ -754,14 +958,28 @@ class BookingsService {
       const time = `${String(h).padStart(2, '0')}:00`;
       const endTime = `${String(h + 1).padStart(2, '0')}:00`;
 
+      const bookedBoatIds = await this._getBookedBoatIds(
+        bookingDate, time, endTime, settings.bufferMinutes
+      );
+      // Also count legacy bookings
       const bookedCount = await this._getBookedBoatCount(
         bookingDate, time, endTime, settings.bufferMinutes
       );
       const available = totalBoats - bookedCount;
 
+      // Determine which specific boats are available
+      const bookedIdSet = new Set(bookedBoatIds.map(id => id.toString()));
+      const availableBoatList = allActiveBoats
+        .filter(b => !bookedIdSet.has(b._id.toString()))
+        .map(b => ({
+          id: b._id, name: b.name, registrationNumber: b.registrationNumber,
+          capacity: b.capacity, baseRate: b.baseRate,
+        }));
+
       slots.push({
         time,
         availableBoats: Math.max(0, available),
+        availableBoatList,
         isAvailable: available >= numberOfBoats,
       });
     }
@@ -861,6 +1079,12 @@ class BookingsService {
     } catch (emailErr) {
       console.error('📧 Modification email setup error:', emailErr.message);
     }
+
+    // Emit real-time notification to admins
+    emitToAdmins('booking-modified', {
+      type: 'speed-boat',
+      bookingNumber: booking.bookingNumber,
+    });
 
     return formatDocument(booking.toObject());
   }
@@ -1060,6 +1284,12 @@ class BookingsService {
       newTime: newStartTime || '',
       remainingModifications: String(2 - booking.dateModificationCount),
     }).catch((err) => console.error('Modification email error:', err.message));
+
+    // Emit real-time notification to admins
+    emitToAdmins('booking-modified', {
+      type: 'speed-boat',
+      bookingNumber: booking.bookingNumber,
+    });
 
     return formatDocument(booking.toObject());
   }

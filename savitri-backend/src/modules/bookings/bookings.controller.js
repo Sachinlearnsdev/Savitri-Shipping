@@ -90,6 +90,26 @@ class BookingsController {
     }
   }
 
+  async getAvailableBoatsForSlot(req, res, next) {
+    try {
+      const { date, startTime, duration } = req.query;
+      if (!date || !startTime || !duration) {
+        throw require('../../utils/ApiError').badRequest('date, startTime, and duration are required');
+      }
+      const result = await bookingsService.checkAvailability({
+        date,
+        startTime,
+        duration: parseFloat(duration),
+      });
+      res.json(ApiResponse.success('Available boats retrieved', {
+        availableBoats: result.availableBoats || 0,
+        availableBoatList: result.availableBoatList || [],
+      }));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async createBooking(req, res, next) {
     try {
       const customerId = req.customer ? req.customer.id : null;

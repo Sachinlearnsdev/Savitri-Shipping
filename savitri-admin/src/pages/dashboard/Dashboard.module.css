@@ -404,8 +404,19 @@
   color: var(--text-secondary);
 }
 
-/* Responsive */
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive - Mobile */
 @media (max-width: 768px) {
+  .container {
+    gap: var(--spacing-6);
+  }
+
   .title {
     font-size: var(--font-size-2xl);
   }
@@ -451,7 +462,21 @@
     font-size: var(--font-size-2xl);
   }
 
+  .sectionTitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .table th,
+  .table td {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-xs);
+  }
+
   .quickActions {
     flex-direction: column;
+  }
+
+  .quickActions > * {
+    width: 100%;
   }
 }

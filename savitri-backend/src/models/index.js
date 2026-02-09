@@ -17,4 +17,5 @@ module.exports = {
   Coupon: require("./Coupon"),
   Review: require("./Review"),
   MarketingCampaign: require("./MarketingCampaign"),
+  Inquiry: require("./Inquiry"),
 };

@@ -44,6 +44,7 @@ publicRouter.get('/calendar-status', bookingsController.getCalendarStatus);
 publicRouter.post('/check-availability', validate(availabilitySchema), bookingsController.checkAvailability);
 publicRouter.post('/calculate-price', validate(priceCalcSchema), bookingsController.calculatePrice);
 publicRouter.get('/available-slots', bookingsController.getAvailableSlots);
+publicRouter.get('/available-boats', bookingsController.getAvailableBoatsForSlot);
 publicRouter.post('/apply-coupon', validate(applyCouponSchema), bookingsController.applyCoupon);
 
 // Optional auth (guest booking with auto-account) - use auth middleware that doesn't throw

@@ -347,6 +347,62 @@ const sendBookingReminder = async (email, data) => {
   });
 };
 
+/**
+ * Send inquiry confirmation email (when customer submits inquiry)
+ */
+const sendInquiryConfirmationEmail = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Inquiry Received - ${data.inquiryNumber}`,
+    templateName: 'inquiry-confirmation',
+    variables: {
+      name: data.name,
+      inquiryNumber: data.inquiryNumber,
+      boatName: data.boatName,
+      eventType: data.eventType,
+      numberOfGuests: data.numberOfGuests,
+      preferredDate: data.preferredDate,
+      preferredTimeSlot: data.preferredTimeSlot,
+    },
+  });
+};
+
+/**
+ * Send inquiry quote email (when admin sends quote)
+ */
+const sendInquiryQuoteEmail = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Your Quote is Ready - ${data.inquiryNumber}`,
+    templateName: 'inquiry-quote',
+    variables: {
+      name: data.name,
+      inquiryNumber: data.inquiryNumber,
+      boatName: data.boatName,
+      eventType: data.eventType,
+      quotedAmount: data.quotedAmount,
+      quotedDetails: data.quotedDetails,
+    },
+  });
+};
+
+/**
+ * Send inquiry accepted email (when customer accepts quote)
+ */
+const sendInquiryAcceptedEmail = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Quote Accepted - ${data.inquiryNumber}`,
+    templateName: 'inquiry-accepted',
+    variables: {
+      name: data.name,
+      inquiryNumber: data.inquiryNumber,
+      boatName: data.boatName,
+      quotedAmount: data.quotedAmount,
+    },
+  });
+};
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
@@ -362,4 +418,7 @@ module.exports = {
   sendPaymentPendingEmail,
   sendPaymentConfirmedEmail,
   sendAtVenueBookingEmail,
+  sendInquiryConfirmationEmail,
+  sendInquiryQuoteEmail,
+  sendInquiryAcceptedEmail,
 };

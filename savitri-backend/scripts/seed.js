@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 const connectDB = require('../src/config/database');
-const { Role, AdminUser, Setting, SpeedBoat, PartyBoat, OperatingCalendar, PricingRule, Coupon } = require('../src/models');
+const { Role, AdminUser, Setting, SpeedBoat, PartyBoat, OperatingCalendar, PricingRule, Coupon, Inquiry } = require('../src/models');
 const bcrypt = require('bcryptjs');
 
 async function seed() {
@@ -21,6 +21,7 @@ async function seed() {
     await OperatingCalendar.deleteMany({});
     await PricingRule.deleteMany({});
     await Coupon.deleteMany({});
+    await Inquiry.deleteMany({});
 
     // ==================== ROLES ====================
     console.log('Creating roles...');
@@ -43,6 +44,7 @@ async function seed() {
         pricingRules: { view: true, create: true, edit: true, delete: true },
         coupons: { view: true, create: true, edit: true, delete: true },
         reviews: { view: true, edit: true, delete: true },
+        inquiries: { view: true, create: true, edit: true, delete: true },
         marketing: { view: true, create: true },
         analytics: { view: true },
       },
@@ -65,6 +67,7 @@ async function seed() {
         pricingRules: { view: true },
         coupons: { view: true },
         reviews: { view: true },
+        inquiries: { view: true },
         marketing: { view: true },
         analytics: { view: true },
       },

@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { getOverview, getRevenueChart } from '../../services/reports.service';
+import Button from '../../components/common/Button';
+import { getOverview, getRevenueChart, exportCSV, exportPDF } from '../../services/reports.service';
+import useUIStore from '../../store/uiStore';
 import { CURRENCY } from '../../utils/constants';
 import styles from './Reports.module.css';
 
@@ -26,8 +28,10 @@ const formatFullCurrency = (amount) => {
 };
 
 const RevenueReports = () => {
+  const { showSuccess, showError } = useUIStore();
   const [period, setPeriod] = useState('30d');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(null); // 'csv' | 'pdf' | null
   const [overview, setOverview] = useState(null);
   const [revenueData, setRevenueData] = useState([]);
 
@@ -49,6 +53,30 @@ const RevenueReports = () => {
 
   useEffect(() => { fetchData(); }, [period]);
 
+  const handleExportCSV = async () => {
+    try {
+      setExporting('csv');
+      await exportCSV(period);
+      showSuccess('CSV report downloaded successfully');
+    } catch (err) {
+      showError('Failed to export CSV report');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setExporting('pdf');
+      await exportPDF(period);
+      showSuccess('PDF report opened in new tab');
+    } catch (err) {
+      showError('Failed to export PDF report');
+    } finally {
+      setExporting(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -61,16 +89,38 @@ const RevenueReports = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Revenue Reports</h1>
-        <div className={styles.periodSelector}>
-          {PERIOD_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              className={`${styles.periodBtn} ${period === opt.value ? styles.periodBtnActive : ''}`}
-              onClick={() => setPeriod(opt.value)}
+        <div className={styles.headerActions}>
+          <div className={styles.exportButtons}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              loading={exporting === 'csv'}
+              disabled={!!exporting}
             >
-              {opt.label}
-            </button>
-          ))}
+              Export CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPDF}
+              loading={exporting === 'pdf'}
+              disabled={!!exporting}
+            >
+              Export PDF
+            </Button>
+          </div>
+          <div className={styles.periodSelector}>
+            {PERIOD_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`${styles.periodBtn} ${period === opt.value ? styles.periodBtnActive : ''}`}
+                onClick={() => setPeriod(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

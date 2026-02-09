@@ -66,6 +66,7 @@ export const API_ENDPOINTS = {
     CHECK_AVAILABILITY: '/bookings/check-availability',
     CALCULATE_PRICE: '/bookings/calculate-price',
     AVAILABLE_SLOTS: '/bookings/available-slots',
+    AVAILABLE_BOATS: '/bookings/available-boats',
     CREATE: '/bookings/create',
     MY_BOOKINGS: '/bookings/my-bookings',
     CANCEL: (id) => `/bookings/${id}/cancel`,
@@ -79,6 +80,14 @@ export const API_ENDPOINTS = {
   REVIEWS: {
     LIST: '/reviews',
     CREATE: '/reviews',
+  },
+
+  // Inquiries (Public)
+  INQUIRIES: {
+    CREATE: '/inquiries',
+    MY_INQUIRIES: '/inquiries/my-inquiries',
+    BY_ID: (id) => `/inquiries/${id}`,
+    RESPOND: (id) => `/inquiries/${id}/respond`,
   },
 
   // Public Stats (no auth)

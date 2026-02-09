@@ -1,8 +1,11 @@
 // Load environment variables
 require("dotenv").config();
+const http = require("http");
 const app = require("./src/app");
 const config = require("./src/config/env");
 const connectDB = require("./src/config/database");
+const { initSocket } = require("./src/utils/socket");
+const scheduler = require("./src/utils/scheduler");
 
 const PORT = config.port;
 
@@ -12,8 +15,15 @@ const startServer = async () => {
     // Connect to database
     await connectDB();
 
+    // Initialize scheduled jobs (cron)
+    scheduler.init();
+
+    // Create HTTP server and initialize Socket.io
+    const server = http.createServer(app);
+    initSocket(server);
+
     // Start server
-    const server = app.listen(PORT, () => {
+    server.listen(PORT, () => {
       if (config.enableLogs) {
         console.log("=".repeat(60));
         console.log("🚢 Savitri Shipping Backend API");
@@ -31,17 +41,19 @@ const startServer = async () => {
 
     // Graceful shutdown
     process.on("SIGTERM", () => {
-      console.log("⚠️  SIGTERM received, shutting down gracefully...");
+      console.log("SIGTERM received, shutting down gracefully...");
+      scheduler.stop();
       server.close(() => {
-        console.log("✅ Server closed");
+        console.log("Server closed");
         process.exit(0);
       });
     });
 
     process.on("SIGINT", () => {
-      console.log("\n⚠️  SIGINT received, shutting down gracefully...");
+      console.log("\nSIGINT received, shutting down gracefully...");
+      scheduler.stop();
       server.close(() => {
-        console.log("✅ Server closed");
+        console.log("Server closed");
         process.exit(0);
       });
     });

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Quote is Ready</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #0891b2 0%, #155e75 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+        .inquiry-box { background: white; border: 2px dashed #0891b2; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .inquiry-number { font-size: 18px; font-weight: bold; color: #0891b2; letter-spacing: 2px; }
+        .quote-box { background: white; border: 2px solid #059669; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .quote-amount { font-size: 32px; font-weight: bold; color: #059669; }
+        .quote-note { color: #6b7280; font-size: 14px; margin-top: 5px; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        .details-table td:first-child { color: #6b7280; font-size: 14px; width: 30%; }
+        .details-table td:last-child { font-weight: 500; }
+        .quote-details { background: white; padding: 15px; margin: 20px 0; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .quote-details h3 { margin-top: 0; color: #374151; }
+        .cta-button { display: inline-block; background: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 10px 5px; }
+        .cta-secondary { display: inline-block; background: #6b7280; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 10px 5px; }
+        .info-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Your Quote is Ready!</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{name}},</p>
+
+        <p>Great news! We have prepared a custom quote for your party boat inquiry.</p>
+
+        <div class="inquiry-box">
+            <p style="margin: 0 0 5px 0; color: #6b7280;">Inquiry Reference:</p>
+            <div class="inquiry-number">{{inquiryNumber}}</div>
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td>Boat</td>
+                <td>{{boatName}}</td>
+            </tr>
+            <tr>
+                <td>Event Type</td>
+                <td>{{eventType}}</td>
+            </tr>
+        </table>
+
+        <div class="quote-box">
+            <p style="margin: 0 0 5px 0; color: #6b7280;">Quoted Amount</p>
+            <div class="quote-amount">{{quotedAmount}}</div>
+            <div class="quote-note">+ 18% GST applicable</div>
+        </div>
+
+        <div class="quote-details">
+            <h3>Quote Details</h3>
+            <p>{{quotedDetails}}</p>
+        </div>
+
+        <div class="info-box">
+            <strong>How to proceed:</strong><br>
+            Log in to your account to accept or reject this quote. If you accept, our team will proceed to create your booking.
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{frontendUrl}}/account/inquiries" class="cta-button">View My Inquiries</a>
+        </p>
+
+        <p>If you have any questions about this quote, please contact us.</p>
+
+        <p>Best regards,<br><strong>Team {{companyName}}</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; {{currentYear}} {{companyName}}. All rights reserved.</p>
+    </div>
+</body>
+</html>

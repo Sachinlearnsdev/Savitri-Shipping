@@ -4,7 +4,9 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
+const rateLimit = require("express-rate-limit");
 const path = require("path");
+const mongoose = require("mongoose");
 const config = require("./config/env");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -70,16 +72,58 @@ if (config.enableLogs) {
   }
 }
 
+// Rate limiting
+const apiLimiter = rateLimit({
+  windowMs: config.rateLimitWindowMs, // 15 minutes default
+  max: config.rateLimitMax, // 100 requests per window default
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+});
+app.use("/api/", apiLimiter);
+
+// Stricter rate limiting for auth endpoints (prevent brute force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 attempts per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many authentication attempts, please try again later.",
+  },
+});
+app.use("/api/auth/", authLimiter);
+
 // Static files for uploads
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
-// Health check endpoint
+// Health check endpoint (enhanced with DB status and memory usage)
 app.get("/health", (req, res) => {
+  const memUsage = process.memoryUsage();
+  const dbState = mongoose.connection.readyState;
+  const dbStateMap = {
+    0: "disconnected",
+    1: "connected",
+    2: "connecting",
+    3: "disconnecting",
+  };
+
   res.json({
-    status: "ok",
+    status: dbState === 1 ? "ok" : "degraded",
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
     isCodespaces: config.isCodespaces,
+    uptime: Math.floor(process.uptime()) + "s",
+    database: dbStateMap[dbState] || "unknown",
+    memory: {
+      rss: Math.round(memUsage.rss / 1024 / 1024) + "MB",
+      heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + "MB",
+      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + "MB",
+    },
   });
 });
 
@@ -119,6 +163,7 @@ app.use("/api/admin/reviews", require("./modules/reviews/reviews.routes").adminR
 app.use("/api/admin/notifications", require("./modules/notifications/notifications.routes"));
 app.use("/api/admin/marketing", require("./modules/marketing/marketing.routes"));
 app.use("/api/admin/analytics", require("./modules/analytics/analytics.routes"));
+app.use("/api/admin/inquiries", require("./modules/inquiries/inquiries.routes").adminRouter);
 
 // Admin Profile Routes
 app.use("/api/admin/profile", require("./modules/adminProfile/adminProfile.routes"));
@@ -131,6 +176,9 @@ app.use("/api/bookings", require("./modules/bookings/bookings.routes").publicRou
 
 // Public Review Routes
 app.use("/api/reviews", require("./modules/reviews/reviews.routes").publicRouter);
+
+// Public Inquiry Routes
+app.use("/api/inquiries", require("./modules/inquiries/inquiries.routes").publicRouter);
 
 // Public Stats Routes (no auth)
 app.use("/api/public", require("./modules/publicStats/publicStats.routes"));

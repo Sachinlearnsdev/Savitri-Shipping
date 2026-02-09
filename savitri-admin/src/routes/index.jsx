@@ -47,6 +47,9 @@ import BookingDetail from '../pages/bookings/BookingDetail';
 import PartyBookings from '../pages/partyBookings/PartyBookings';
 import PartyBookingDetail from '../pages/partyBookings/PartyBookingDetail';
 
+// Inquiries Pages
+import Inquiries from '../pages/inquiries/Inquiries';
+
 // Reviews Pages
 import Reviews from '../pages/reviews/Reviews';
 
@@ -121,6 +124,9 @@ const AppRoutes = () => {
             {/* Party Bookings */}
             <Route path="/party-bookings" element={<PartyBookings />} />
             <Route path="/party-bookings/:id" element={<PartyBookingDetail />} />
+
+            {/* Inquiries */}
+            <Route path="/inquiries" element={<Inquiries />} />
 
             {/* Reviews */}
             <Route path="/reviews" element={<Navigate to="/reviews/company" replace />} />

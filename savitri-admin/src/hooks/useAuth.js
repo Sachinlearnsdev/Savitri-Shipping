@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import useUIStore from "../store/uiStore";
 import useNotificationStore from "../store/notificationStore";
+import { disconnectSocket } from "../utils/socket";
 import api from "../services/api";
 import { API_ENDPOINTS } from "../utils/constants";
 
@@ -135,6 +136,9 @@ const useAuth = () => {
       console.error("Logout API error:", error);
       // Continue with logout even if API call fails
     } finally {
+      // Disconnect socket
+      disconnectSocket();
+
       // Clear auth state
       authStore.logout();
       useNotificationStore.getState().resetCounts();

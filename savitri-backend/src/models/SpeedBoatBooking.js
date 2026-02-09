@@ -33,6 +33,16 @@ const speedBoatBookingSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+  boatIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SpeedBoat',
+  }],
+  boats: [{
+    boatId: { type: mongoose.Schema.Types.ObjectId, ref: 'SpeedBoat' },
+    boatName: String,
+    registrationNumber: String,
+    pricePerHour: Number,
+  }],
   // Pricing snapshot at time of booking
   pricing: {
     baseRate: {
@@ -153,5 +163,6 @@ speedBoatBookingSchema.index({ customerId: 1 });
 speedBoatBookingSchema.index({ date: 1, status: 1 });
 speedBoatBookingSchema.index({ status: 1, isDeleted: 1 });
 speedBoatBookingSchema.index({ date: 1, startTime: 1, endTime: 1 }); // availability queries
+speedBoatBookingSchema.index({ boatIds: 1 }); // per-boat availability queries
 
 module.exports = mongoose.model('SpeedBoatBooking', speedBoatBookingSchema);

@@ -302,9 +302,20 @@ export default function SpeedBoatsPage() {
                         </div>
                       )}
 
-                      <span className={styles.viewButton}>
-                        View Details
-                      </span>
+                      <div className={styles.cardActions}>
+                        <span className={styles.viewButton}>
+                          View Details
+                        </span>
+                        <button
+                          className={styles.bookNowButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/speed-boats/${boatId}/book?date=${selectedDate}`);
+                          }}
+                        >
+                          Book Now
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

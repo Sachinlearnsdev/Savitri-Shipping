@@ -139,19 +139,23 @@ const NotificationSettings = () => {
           />
 
           {/* SMS Notifications */}
-          <h3 className={styles.sectionTitle}>SMS Notifications</h3>
+          <div className={styles.smsSectionHeader}>
+            <h3 className={styles.sectionTitle}>SMS Notifications</h3>
+            <span className={styles.comingSoonBadge}>Coming Soon</span>
+          </div>
 
-          <div className={styles.toggleGroup}>
-            <div className={styles.toggleRow}>
+          <div className={`${styles.toggleGroup} ${styles.smsOverlay}`}>
+            <div className={styles.toggleRow} title="SMS integration coming soon. Register with DLT and configure SMS provider to enable.">
               <Toggle
                 label="Enable SMS Notifications"
                 checked={formData.smsEnabled}
-                onChange={(checked) => handleChange('smsEnabled', checked)}
+                onChange={() => {}}
+                disabled
               />
             </div>
-            {!formData.smsEnabled && (
-              <p className={styles.helperText}>SMS integration is not yet configured</p>
-            )}
+            <p className={styles.helperText}>
+              SMS integration coming soon. Register with DLT and configure SMS provider to enable.
+            </p>
           </div>
 
           {/* Notification Triggers */}

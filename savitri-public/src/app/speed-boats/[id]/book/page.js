@@ -154,6 +154,12 @@ export default function SpeedBoatBookPage() {
   const [paymentMode, setPaymentMode] = useState('ONLINE');
   const [customerNotes, setCustomerNotes] = useState('');
 
+  // Additional boats selection
+  const [selectedBoatIds, setSelectedBoatIds] = useState([params.id]); // primary boat always selected
+  const [additionalBoats, setAdditionalBoats] = useState([]); // other available boats for the slot
+  const [showAddBoats, setShowAddBoats] = useState(false);
+  const [additionalBoatsLoading, setAdditionalBoatsLoading] = useState(false);
+
   // Coupon
   const [couponCode, setCouponCode] = useState(() => searchParams.get('couponCode') || '');
   const [couponApplied, setCouponApplied] = useState(null);
@@ -269,7 +275,7 @@ export default function SpeedBoatBookPage() {
     fetchSlots();
   }, [selectedDayIndex, calendarStatuses]);
 
-  // Fetch pricing when slot + duration are selected
+  // Fetch pricing when slot + duration + boats are selected
   useEffect(() => {
     if (!selectedSlotTime || selectedDayIndex === null || selectedDayIndex < 0 || !calendarDays[selectedDayIndex]) {
       setPricing(null);
@@ -284,7 +290,8 @@ export default function SpeedBoatBookPage() {
           date: dateStr,
           startTime: selectedSlotTime,
           duration: effectiveDuration,
-          numberOfBoats: 1,
+          numberOfBoats: selectedBoatIds.length,
+          boatIds: selectedBoatIds,
         });
         if (response.success) {
           setPricing(response.data);
@@ -297,7 +304,38 @@ export default function SpeedBoatBookPage() {
     };
 
     fetchPricing();
-  }, [selectedSlotTime, selectedDayIndex, effectiveDuration]);
+  }, [selectedSlotTime, selectedDayIndex, effectiveDuration, selectedBoatIds.length]);
+
+  // Fetch available additional boats when a slot is selected
+  useEffect(() => {
+    if (!selectedSlotTime || selectedDayIndex === null || selectedDayIndex < 0 || !calendarDays[selectedDayIndex]) {
+      setAdditionalBoats([]);
+      return;
+    }
+
+    const fetchAdditionalBoats = async () => {
+      try {
+        setAdditionalBoatsLoading(true);
+        const dateStr = calendarDays[selectedDayIndex].dateStr;
+        const response = await api.get(
+          `${API_ENDPOINTS.BOOKINGS.AVAILABLE_BOATS}?date=${dateStr}&startTime=${selectedSlotTime}&duration=${effectiveDuration}`
+        );
+        if (response.success) {
+          // Filter out the primary boat from the list
+          const otherBoats = (response.data.availableBoatList || []).filter(
+            b => (b.id || b._id) !== params.id
+          );
+          setAdditionalBoats(otherBoats);
+        }
+      } catch (err) {
+        setAdditionalBoats([]);
+      } finally {
+        setAdditionalBoatsLoading(false);
+      }
+    };
+
+    fetchAdditionalBoats();
+  }, [selectedSlotTime, selectedDayIndex, effectiveDuration, params.id]);
 
   // Handlers
   const handleDaySelect = (index) => {
@@ -305,6 +343,8 @@ export default function SpeedBoatBookPage() {
       setSelectedDayIndex(index);
       setSelectedSlotTime(null);
       setPricing(null);
+      setSelectedBoatIds([params.id]); // reset to primary boat
+      setShowAddBoats(false);
     }
   };
 
@@ -313,12 +353,16 @@ export default function SpeedBoatBookPage() {
     setDuration(value);
     setSelectedSlotTime(null);
     setPricing(null);
+    setSelectedBoatIds([params.id]);
+    setShowAddBoats(false);
   };
 
   const handleCustomDuration = () => {
     setIsCustomDuration(true);
     setSelectedSlotTime(null);
     setPricing(null);
+    setSelectedBoatIds([params.id]);
+    setShowAddBoats(false);
   };
 
   const handleCustomHoursChange = (val) => {
@@ -326,6 +370,15 @@ export default function SpeedBoatBookPage() {
     setCustomHours(num);
     setSelectedSlotTime(null);
     setPricing(null);
+  };
+
+  const handleToggleAdditionalBoat = (boatId) => {
+    setSelectedBoatIds((prev) => {
+      if (prev.includes(boatId)) {
+        return prev.filter((id) => id !== boatId);
+      }
+      return [...prev, boatId];
+    });
   };
 
   const handleApplyCoupon = async () => {
@@ -406,7 +459,8 @@ export default function SpeedBoatBookPage() {
         date: dateStr,
         startTime: selectedSlotTime,
         duration: effectiveDuration,
-        numberOfBoats: 1,
+        boatIds: selectedBoatIds,
+        numberOfBoats: selectedBoatIds.length,
         paymentMode,
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim().toLowerCase(),
@@ -568,7 +622,7 @@ export default function SpeedBoatBookPage() {
   // Estimated price for display (API pricing when available, fallback to base estimate)
   const estimatedTotal = pricing
     ? (couponApplied ? pricing.totalAmount - couponApplied.discountAmount : pricing.finalAmount)
-    : boat.baseRate * effectiveDuration;
+    : boat.baseRate * effectiveDuration * selectedBoatIds.length;
 
   return (
     <div className={styles.page}>
@@ -821,6 +875,55 @@ export default function SpeedBoatBookPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Add More Boats Section */}
+                  {selectedSlotTime && additionalBoats.length > 0 && (
+                    <div className={styles.formGroup}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <label className={styles.formLabel}>
+                          Boats Selected: {selectedBoatIds.length}
+                        </label>
+                        <button
+                          type="button"
+                          className={styles.addBoatsToggle}
+                          onClick={() => setShowAddBoats(!showAddBoats)}
+                        >
+                          {showAddBoats ? 'Hide' : 'Add More Boats'}
+                        </button>
+                      </div>
+                      {showAddBoats && (
+                        <div className={styles.additionalBoatsList}>
+                          {additionalBoatsLoading ? (
+                            <p className={styles.fieldHint}>Loading available boats...</p>
+                          ) : (
+                            additionalBoats.map((addBoat) => {
+                              const addBoatId = addBoat.id || addBoat._id;
+                              const isSelected = selectedBoatIds.includes(addBoatId);
+                              return (
+                                <label
+                                  key={addBoatId}
+                                  className={`${styles.additionalBoatItem} ${isSelected ? styles.additionalBoatItemSelected : ''}`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleToggleAdditionalBoat(addBoatId)}
+                                    className={styles.additionalBoatCheckbox}
+                                  />
+                                  <div className={styles.additionalBoatInfo}>
+                                    <span className={styles.additionalBoatName}>{addBoat.name}</span>
+                                    <span className={styles.additionalBoatMeta}>
+                                      {addBoat.registrationNumber} &middot; {addBoat.capacity} passengers &middot; {formatCurrency(addBoat.baseRate)}/hr
+                                    </span>
+                                  </div>
+                                </label>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1030,8 +1133,12 @@ export default function SpeedBoatBookPage() {
               {/* Boat */}
               <div className={styles.summarySection}>
                 <div className={styles.summaryRow}>
-                  <span className={styles.summaryLabel}>Boat</span>
-                  <span className={styles.summaryValue}>{boat.name}</span>
+                  <span className={styles.summaryLabel}>{selectedBoatIds.length > 1 ? 'Boats' : 'Boat'}</span>
+                  <span className={styles.summaryValue}>
+                    {selectedBoatIds.length > 1
+                      ? `${boat.name} + ${selectedBoatIds.length - 1} more`
+                      : boat.name}
+                  </span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span className={styles.summaryLabel}>Date</span>
@@ -1104,10 +1211,19 @@ export default function SpeedBoatBookPage() {
               <div className={styles.priceBreakdown}>
                 {pricing ? (
                   <>
-                    <div className={styles.priceRow}>
-                      <span>Base rate ({formatCurrency(pricing.adjustedRate)}/hr x {pricing.duration}h)</span>
-                      <span>{formatCurrency(pricing.subtotal)}</span>
-                    </div>
+                    {pricing.boatPricing && pricing.boatPricing.length > 1 ? (
+                      pricing.boatPricing.map((bp, idx) => (
+                        <div key={idx} className={styles.priceRow}>
+                          <span>{bp.boatName} ({formatCurrency(bp.adjustedRate)}/hr x {pricing.duration}h)</span>
+                          <span>{formatCurrency(bp.subtotal)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.priceRow}>
+                        <span>Base rate ({formatCurrency(pricing.adjustedRate)}/hr x {pricing.duration}h{pricing.numberOfBoats > 1 ? ` x ${pricing.numberOfBoats}` : ''})</span>
+                        <span>{formatCurrency(pricing.subtotal)}</span>
+                      </div>
+                    )}
                     {pricing.appliedRule && (
                       <div className={`${styles.priceRow}`} style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
                         <span>{pricing.appliedRule.name} ({pricing.appliedRule.adjustmentPercent > 0 ? '+' : ''}{pricing.appliedRule.adjustmentPercent}%)</span>
@@ -1137,16 +1253,16 @@ export default function SpeedBoatBookPage() {
                 ) : (
                   <>
                     <div className={styles.priceRow}>
-                      <span>{formatCurrency(boat.baseRate)} x {effectiveDuration} hr{effectiveDuration > 1 ? 's' : ''}</span>
-                      <span>{formatCurrency(boat.baseRate * effectiveDuration)}</span>
+                      <span>{formatCurrency(boat.baseRate)} x {effectiveDuration} hr{effectiveDuration > 1 ? 's' : ''}{selectedBoatIds.length > 1 ? ` x ${selectedBoatIds.length} boats` : ''}</span>
+                      <span>{formatCurrency(boat.baseRate * effectiveDuration * selectedBoatIds.length)}</span>
                     </div>
                     <div className={styles.priceRow}>
                       <span>GST (18%)</span>
-                      <span>{formatCurrency(Math.round(boat.baseRate * effectiveDuration * 0.18))}</span>
+                      <span>{formatCurrency(Math.round(boat.baseRate * effectiveDuration * selectedBoatIds.length * 0.18))}</span>
                     </div>
                     <div className={`${styles.priceRow} ${styles.priceTotal}`}>
                       <span>Estimated Total</span>
-                      <span>{formatCurrency(Math.round(boat.baseRate * effectiveDuration * 1.18))}</span>
+                      <span>{formatCurrency(Math.round(boat.baseRate * effectiveDuration * selectedBoatIds.length * 1.18))}</span>
                     </div>
                     <p className={styles.fieldHint} style={{ marginTop: '4px' }}>
                       Final price may vary based on dynamic pricing. Select a time slot for exact pricing.

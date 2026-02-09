@@ -47,6 +47,26 @@ const BOAT_GRADIENTS = [
 
 const AVATAR_COLORS = ['#dc2626', '#7c3aed', '#0891b2', '#d97706', '#2563eb', '#059669', '#c026d3', '#0d9488'];
 
+const INITIAL_INQUIRY_FORM = {
+  customerName: '',
+  customerEmail: '',
+  customerPhone: '',
+  eventType: '',
+  numberOfGuests: '',
+  preferredDate: '',
+  preferredTimeSlot: '',
+  locationType: '',
+  specialRequests: '',
+  budget: '',
+};
+
+const TIME_SLOT_LABELS_MAP = {
+  MORNING: 'Morning',
+  AFTERNOON: 'Afternoon',
+  EVENING: 'Evening',
+  FULL_DAY: 'Full Day',
+};
+
 // Default policies (standard across all party boats)
 const CANCELLATION_POLICY = { fullRefundDays: 7, partialRefundDays: 3, partialPercent: 50 };
 const PAYMENT_TERMS = { advancePercent: 50, remainderDueBeforeDays: 3 };
@@ -104,6 +124,13 @@ export default function PartyBoatDetailPage() {
   const [reviewName, setReviewName] = useState('');
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+  // Inquiry modal state
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [inquiryForm, setInquiryForm] = useState(INITIAL_INQUIRY_FORM);
+  const [inquirySubmitting, setInquirySubmitting] = useState(false);
+  const [inquiryError, setInquiryError] = useState('');
+  const [inquirySuccess, setInquirySuccess] = useState(null);
 
   // Set review name from auth
   useEffect(() => {
@@ -279,6 +306,69 @@ export default function PartyBoatDetailPage() {
     const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     reviews.forEach((r) => { dist[r.rating] = (dist[r.rating] || 0) + 1; });
     return dist;
+  };
+
+  // Inquiry handlers
+  const openInquiryModal = () => {
+    setInquiryForm({
+      ...INITIAL_INQUIRY_FORM,
+      customerName: isAuthenticated && user?.name ? user.name : '',
+      customerEmail: isAuthenticated && user?.email ? user.email : '',
+      customerPhone: isAuthenticated && user?.phone ? user.phone : '',
+    });
+    setInquiryError('');
+    setInquirySuccess(null);
+    setShowInquiryModal(true);
+  };
+
+  const closeInquiryModal = () => {
+    setShowInquiryModal(false);
+    setInquiryError('');
+    setInquirySuccess(null);
+  };
+
+  const handleInquiryChange = (field, value) => {
+    setInquiryForm(prev => ({ ...prev, [field]: value }));
+    if (inquiryError) setInquiryError('');
+  };
+
+  const handleInquirySubmit = async (e) => {
+    e.preventDefault();
+
+    if (!inquiryForm.customerName.trim() || !inquiryForm.customerEmail.trim() || !inquiryForm.customerPhone.trim() || !inquiryForm.eventType) {
+      setInquiryError('Please fill in all required fields (Name, Email, Phone, Event Type)');
+      return;
+    }
+
+    try {
+      setInquirySubmitting(true);
+      setInquiryError('');
+
+      const payload = {
+        customerName: inquiryForm.customerName.trim(),
+        customerEmail: inquiryForm.customerEmail.trim(),
+        customerPhone: inquiryForm.customerPhone.trim(),
+        boatId: params.id,
+        eventType: inquiryForm.eventType,
+      };
+
+      if (inquiryForm.numberOfGuests) payload.numberOfGuests = parseInt(inquiryForm.numberOfGuests);
+      if (inquiryForm.preferredDate) payload.preferredDate = inquiryForm.preferredDate;
+      if (inquiryForm.preferredTimeSlot) payload.preferredTimeSlot = inquiryForm.preferredTimeSlot;
+      if (inquiryForm.locationType) payload.locationType = inquiryForm.locationType;
+      if (inquiryForm.specialRequests.trim()) payload.specialRequests = inquiryForm.specialRequests.trim();
+      if (inquiryForm.budget) payload.budget = parseFloat(inquiryForm.budget);
+
+      const response = await api.post(API_ENDPOINTS.INQUIRIES.CREATE, payload);
+
+      if (response.success) {
+        setInquirySuccess(response.data);
+      }
+    } catch (err) {
+      setInquiryError(err.message || 'Failed to submit inquiry. Please try again.');
+    } finally {
+      setInquirySubmitting(false);
+    }
   };
 
   // Loading state
@@ -652,9 +742,9 @@ export default function PartyBoatDetailPage() {
                 })()} className={styles.bookNowBtn}>
                   Book Now
                 </Link>
-                <Link href="/contact" className={styles.quoteBtn}>
+                <button onClick={openInquiryModal} className={styles.quoteBtn}>
                   Request Custom Quote
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -895,6 +985,193 @@ export default function PartyBoatDetailPage() {
           </section>
         )}
       </div>
+
+      {/* Inquiry Modal */}
+      {showInquiryModal && (
+        <div className={styles.modalOverlay} onClick={closeInquiryModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.modalClose} onClick={closeInquiryModal}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {inquirySuccess ? (
+              <div className={styles.inquirySuccessContainer}>
+                <div className={styles.successIcon}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#059669" strokeWidth="2" />
+                    <path d="M8 12l3 3 5-6" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <h2 className={styles.successTitle}>Inquiry Submitted!</h2>
+                <p className={styles.successNumber}>
+                  Your inquiry number: <strong>{inquirySuccess.inquiryNumber}</strong>
+                </p>
+                <p className={styles.successMessage}>
+                  Thank you for your interest! Our team will review your inquiry and send you a customized quote within 24-48 hours.
+                </p>
+                <button className={styles.successCloseBtn} onClick={closeInquiryModal}>
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className={styles.modalTitle}>
+                  Request Quote - {boat.name}
+                </h2>
+                <p className={styles.modalSubtitle}>
+                  Fill in your details and we will get back to you with a customized quote.
+                </p>
+
+                <form onSubmit={handleInquirySubmit} className={styles.inquiryForm}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Name *</label>
+                      <input
+                        type="text"
+                        className={styles.formInput}
+                        value={inquiryForm.customerName}
+                        onChange={(e) => handleInquiryChange('customerName', e.target.value)}
+                        placeholder="Your full name"
+                        required
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Phone *</label>
+                      <input
+                        type="tel"
+                        className={styles.formInput}
+                        value={inquiryForm.customerPhone}
+                        onChange={(e) => handleInquiryChange('customerPhone', e.target.value)}
+                        placeholder="10-digit phone number"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Email *</label>
+                    <input
+                      type="email"
+                      className={styles.formInput}
+                      value={inquiryForm.customerEmail}
+                      onChange={(e) => handleInquiryChange('customerEmail', e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Event Type *</label>
+                      <select
+                        className={styles.formSelect}
+                        value={inquiryForm.eventType}
+                        onChange={(e) => handleInquiryChange('eventType', e.target.value)}
+                        required
+                      >
+                        <option value="">Select event type</option>
+                        {Object.entries(EVENT_TYPE_LABELS).map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Number of Guests</label>
+                      <input
+                        type="number"
+                        className={styles.formInput}
+                        value={inquiryForm.numberOfGuests}
+                        onChange={(e) => handleInquiryChange('numberOfGuests', e.target.value)}
+                        placeholder={`${boat.capacityMin}-${boat.capacityMax}`}
+                        min="1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Preferred Date</label>
+                      <input
+                        type="date"
+                        className={styles.formInput}
+                        value={inquiryForm.preferredDate}
+                        onChange={(e) => handleInquiryChange('preferredDate', e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Time Slot</label>
+                      <select
+                        className={styles.formSelect}
+                        value={inquiryForm.preferredTimeSlot}
+                        onChange={(e) => handleInquiryChange('preferredTimeSlot', e.target.value)}
+                      >
+                        <option value="">Select time slot</option>
+                        {Object.entries(TIME_SLOT_LABELS_MAP).map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Location Preference</label>
+                      <select
+                        className={styles.formSelect}
+                        value={inquiryForm.locationType}
+                        onChange={(e) => handleInquiryChange('locationType', e.target.value)}
+                      >
+                        <option value="">Select location</option>
+                        {Object.entries(LOCATION_LABELS).map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Budget (optional)</label>
+                      <input
+                        type="number"
+                        className={styles.formInput}
+                        value={inquiryForm.budget}
+                        onChange={(e) => handleInquiryChange('budget', e.target.value)}
+                        placeholder="Your budget in INR"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Special Requests</label>
+                    <textarea
+                      className={styles.formTextarea}
+                      value={inquiryForm.specialRequests}
+                      onChange={(e) => handleInquiryChange('specialRequests', e.target.value)}
+                      placeholder="Any special requirements or questions..."
+                      rows={3}
+                      maxLength={1000}
+                    />
+                  </div>
+
+                  {inquiryError && (
+                    <p className={styles.formError}>{inquiryError}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    className={styles.submitBtn}
+                    disabled={inquirySubmitting}
+                  >
+                    {inquirySubmitting ? 'Submitting...' : 'Submit Inquiry'}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

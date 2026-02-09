@@ -261,6 +261,30 @@ const BookingDetail = () => {
               <span className={styles.infoLabel}>Number of Boats</span>
               <span className={styles.infoValue}>{booking.numberOfBoats || '-'}</span>
             </div>
+            {booking.boats && booking.boats.length > 0 && (
+              <div className={styles.infoItem} style={{ gridColumn: '1 / -1' }}>
+                <span className={styles.infoLabel}>Selected Boats</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+                  {booking.boats.map((boat, idx) => (
+                    <span key={idx} className={styles.infoValue} style={{ fontSize: 'var(--font-size-sm)' }}>
+                      {boat.boatName} ({boat.registrationNumber}) - {CURRENCY.SYMBOL}{boat.pricePerHour}/hr
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!booking.boats?.length && booking.boatIds && booking.boatIds.length > 0 && (
+              <div className={styles.infoItem} style={{ gridColumn: '1 / -1' }}>
+                <span className={styles.infoLabel}>Selected Boats</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+                  {booking.boatIds.map((boat, idx) => (
+                    <span key={idx} className={styles.infoValue} style={{ fontSize: 'var(--font-size-sm)' }}>
+                      {typeof boat === 'object' ? `${boat.name} (${boat.registrationNumber})` : boat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -313,12 +337,25 @@ const BookingDetail = () => {
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Pricing Breakdown</h2>
           <div className={styles.pricingList}>
-            <div className={styles.pricingRow}>
-              <span className={styles.pricingLabel}>Base Rate</span>
-              <span className={styles.pricingValue}>
-                {formatCurrency(booking.pricing?.baseRate || booking.baseRate)}
-              </span>
-            </div>
+            {booking.boats && booking.boats.length > 0 ? (
+              booking.boats.map((boat, idx) => (
+                <div key={idx} className={styles.pricingRow}>
+                  <span className={styles.pricingLabel}>
+                    {boat.boatName} ({formatCurrency(boat.pricePerHour)}/hr x {booking.duration}h)
+                  </span>
+                  <span className={styles.pricingValue}>
+                    {formatCurrency(boat.pricePerHour * booking.duration)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className={styles.pricingRow}>
+                <span className={styles.pricingLabel}>Base Rate</span>
+                <span className={styles.pricingValue}>
+                  {formatCurrency(booking.pricing?.baseRate || booking.baseRate)}
+                </span>
+              </div>
+            )}
             {booking.pricing?.appliedRule && (
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>

@@ -100,6 +100,40 @@
   color: var(--color-error-600, #dc2626);
 }
 
+/* SMS Coming Soon */
+.smsSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin: var(--spacing-4) 0 var(--spacing-2) 0;
+}
+
+.smsSectionHeader .sectionTitle {
+  margin: 0;
+}
+
+.comingSoonBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: #92400e;
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.smsOverlay {
+  opacity: 0.55;
+  pointer-events: none;
+  position: relative;
+}
+
 @media (max-width: 768px) {
   .formRow {
     grid-template-columns: 1fr;

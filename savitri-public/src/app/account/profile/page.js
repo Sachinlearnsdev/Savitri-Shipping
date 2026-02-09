@@ -867,19 +867,23 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          <div className={styles.notificationItem}>
+          <div className={`${styles.notificationItem} ${styles.notificationItemDisabled}`}>
             <div className={styles.notificationInfo}>
-              <span className={styles.notificationLabel}>SMS Notifications</span>
+              <span className={styles.notificationLabel}>
+                SMS Notifications
+                <span className={styles.comingSoonLabel}>Coming Soon</span>
+              </span>
               <span className={styles.notificationDesc}>
                 Receive booking confirmations and updates via SMS
               </span>
             </div>
             <button
               type="button"
-              className={`${styles.toggle} ${notifications.smsNotifications ? styles.toggleOn : ''}`}
-              onClick={() => toggleNotification('smsNotifications')}
+              className={`${styles.toggle}`}
+              disabled
               role="switch"
-              aria-checked={notifications.smsNotifications}
+              aria-checked={false}
+              title="SMS notifications coming soon"
             >
               <span className={styles.toggleHandle} />
             </button>
