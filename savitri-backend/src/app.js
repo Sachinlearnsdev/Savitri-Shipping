@@ -120,6 +120,9 @@ app.use("/api/admin/notifications", require("./modules/notifications/notificatio
 app.use("/api/admin/marketing", require("./modules/marketing/marketing.routes"));
 app.use("/api/admin/analytics", require("./modules/analytics/analytics.routes"));
 
+// Admin Profile Routes
+app.use("/api/admin/profile", require("./modules/adminProfile/adminProfile.routes"));
+
 // Customer Routes
 app.use("/api/profile", require("./modules/profile/profile.routes"));
 
@@ -128,6 +131,9 @@ app.use("/api/bookings", require("./modules/bookings/bookings.routes").publicRou
 
 // Public Review Routes
 app.use("/api/reviews", require("./modules/reviews/reviews.routes").publicRouter);
+
+// Public Stats Routes (no auth)
+app.use("/api/public", require("./modules/publicStats/publicStats.routes"));
 
 
 // Root / welcome endpoint

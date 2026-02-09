@@ -139,6 +139,38 @@ class BookingsController {
     }
   }
 
+  async sendModificationOTP(req, res, next) {
+    try {
+      const result = await bookingsService.sendModificationOTP(
+        req.params.id, req.customer.id, req.body
+      );
+      res.json(ApiResponse.success(result.message, { email: result.email }));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async confirmModification(req, res, next) {
+    try {
+      const result = await bookingsService.confirmModification(
+        req.params.id, req.customer.id, req.body
+      );
+      res.json(ApiResponse.success('Booking modified successfully', result));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getRecentModifications(req, res, next) {
+    try {
+      const days = parseInt(req.query.days) || 7;
+      const bookings = await bookingsService.getRecentModifications(days);
+      res.json(ApiResponse.success('Recent modifications retrieved', bookings));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getPublicBoats(req, res, next) {
     try {
       const speedBoatsService = require('../speedBoats/speedBoats.service');

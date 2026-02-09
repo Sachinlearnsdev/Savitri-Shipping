@@ -59,6 +59,18 @@ class CustomersController {
       next(error);
     }
   }
+
+  /**
+   * Toggle venue payment allowed
+   */
+  async toggleVenuePayment(req, res, next) {
+    try {
+      const customer = await customersService.toggleVenuePayment(req.params.id, req.body.venuePaymentAllowed);
+      res.status(200).json(ApiResponse.success('Venue payment setting updated successfully', customer));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new CustomersController();

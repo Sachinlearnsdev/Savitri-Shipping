@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
+import Select from '../../components/common/Select';
 import Textarea from '../../components/common/Textarea';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import useUIStore from '../../store/uiStore';
+import useAuthStore from '../../store/authStore';
 import { getCampaigns, sendCampaign, sendTestEmail } from '../../services/marketing.service';
+import { getSettingsByGroup } from '../../services/settings.service';
+import { getCoupons } from '../../services/coupons.service';
 import styles from './Marketing.module.css';
 
 const HOLIDAY_TEMPLATES = [
@@ -311,8 +315,23 @@ const HOLIDAY_TEMPLATES = [
   }
 ];
 
+// Map template IDs to their default coupon code placeholders
+const TEMPLATE_COUPON_PLACEHOLDERS = {
+  diwali: 'DIWALIXX',
+  christmas: 'XMASXX',
+  'new-year': 'NEWYEARXX',
+  holi: 'HOLIXX',
+  valentines: 'LOVEXX',
+  'independence-day': 'FREEDOMXX',
+  eid: 'EIDXX',
+  'ganesh-chaturthi': 'GANPATIXX',
+  navratri: 'NAVRATRIXX',
+  'raksha-bandhan': 'RAKHIXX',
+};
+
 const Marketing = () => {
   const { showSuccess, showError } = useUIStore();
+  const { user } = useAuthStore();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCompose, setShowCompose] = useState(false);
@@ -325,6 +344,34 @@ const Marketing = () => {
   const [testEmail, setTestEmail] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
 
+  // Template variables
+  const [companyName, setCompanyName] = useState('');
+  const [discountPercent, setDiscountPercent] = useState('');
+  const [selectedCoupon, setSelectedCoupon] = useState('');
+
+  // Data for template variables
+  const [coupons, setCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [defaultCompanyName, setDefaultCompanyName] = useState('');
+
+  // Track which template is loaded (for coupon placeholder matching)
+  const [activeTemplateId, setActiveTemplateId] = useState(null);
+
+  // Raw template body (before variable substitution) for re-applying variables
+  const [rawBody, setRawBody] = useState('');
+  const [rawSubject, setRawSubject] = useState('');
+
+  // Preview iframe ref
+  const previewIframeRef = useRef(null);
+
+  // Auto-fill test email with logged-in admin's email
+  useEffect(() => {
+    if (user?.email && !testEmail) {
+      setTestEmail(user.email);
+    }
+  }, [user]);
+
+  // Fetch campaigns
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
@@ -339,7 +386,152 @@ const Marketing = () => {
     }
   };
 
-  useEffect(() => { fetchCampaigns(); }, []);
+  // Fetch general settings for company name
+  const fetchCompanyName = async () => {
+    try {
+      const response = await getSettingsByGroup('general');
+      if (response.success && response.data) {
+        // Settings are stored as { group, key, value } - general group usually has key='config'
+        const settings = response.data;
+        // Could be array or single object
+        const config = Array.isArray(settings)
+          ? settings.find(s => s.key === 'config')?.value
+          : settings.value || settings;
+        const name = config?.companyName || config?.company_name || config?.name || '';
+        if (name) {
+          setDefaultCompanyName(name);
+          setCompanyName(name);
+        }
+      }
+    } catch {
+      // Silently fail - company name is optional
+    }
+  };
+
+  // Fetch coupons for dropdown
+  const fetchCoupons = async () => {
+    try {
+      setLoadingCoupons(true);
+      const response = await getCoupons({ limit: 100 });
+      if (response.success) {
+        const couponList = response.data?.docs || response.data || [];
+        setCoupons(Array.isArray(couponList) ? couponList : []);
+      }
+    } catch {
+      // Silently fail - coupons are optional
+    } finally {
+      setLoadingCoupons(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaigns();
+    fetchCompanyName();
+    fetchCoupons();
+  }, []);
+
+  // Apply template variables to raw body and subject
+  const applyVariables = useCallback((rawBodyText, rawSubjectText, compName, discount, coupon, templateId) => {
+    let processedBody = rawBodyText;
+    let processedSubject = rawSubjectText;
+
+    // Replace {{companyName}}
+    if (compName) {
+      processedBody = processedBody.replace(/\{\{companyName\}\}/g, compName);
+      processedSubject = processedSubject.replace(/\{\{companyName\}\}/g, compName);
+    }
+
+    // Replace X% with discount percentage
+    if (discount) {
+      processedBody = processedBody.replace(/X%/g, `${discount}%`);
+      processedSubject = processedSubject.replace(/X%/g, `${discount}%`);
+    }
+
+    // Replace coupon code placeholder with selected coupon
+    if (coupon && templateId && TEMPLATE_COUPON_PLACEHOLDERS[templateId]) {
+      const placeholder = TEMPLATE_COUPON_PLACEHOLDERS[templateId];
+      processedBody = processedBody.replace(new RegExp(placeholder, 'g'), coupon);
+      processedSubject = processedSubject.replace(new RegExp(placeholder, 'g'), coupon);
+    }
+
+    return { processedBody, processedSubject };
+  }, []);
+
+  // When template variables change, re-apply them to the raw body/subject
+  useEffect(() => {
+    if (!rawBody && !rawSubject) return;
+
+    const { processedBody, processedSubject } = applyVariables(
+      rawBody, rawSubject, companyName, discountPercent, selectedCoupon, activeTemplateId
+    );
+    setBody(processedBody);
+    setSubject(processedSubject);
+  }, [companyName, discountPercent, selectedCoupon, rawBody, rawSubject, activeTemplateId, applyVariables]);
+
+  // Update iframe preview when body changes
+  useEffect(() => {
+    if (previewIframeRef.current && body.trim()) {
+      const iframe = previewIframeRef.current;
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(body);
+        doc.close();
+      }
+    }
+  }, [body]);
+
+  const handleUseTemplate = (template) => {
+    setRawSubject(template.subject);
+    setRawBody(template.body);
+    setActiveTemplateId(template.id);
+
+    // Apply current variable values immediately
+    const { processedBody, processedSubject } = applyVariables(
+      template.body, template.subject, companyName, discountPercent, selectedCoupon, template.id
+    );
+    setSubject(processedSubject);
+    setBody(processedBody);
+    setShowCompose(true);
+  };
+
+  const handleOpenCompose = () => {
+    // Open blank compose
+    setSubject('');
+    setBody('');
+    setRawSubject('');
+    setRawBody('');
+    setActiveTemplateId(null);
+    setShowCompose(true);
+  };
+
+  const handleCloseCompose = () => {
+    setShowCompose(false);
+    setSubject('');
+    setBody('');
+    setRawSubject('');
+    setRawBody('');
+    setActiveTemplateId(null);
+    setDiscountPercent('');
+    setSelectedCoupon('');
+    // Reset test email to admin's email
+    if (user?.email) {
+      setTestEmail(user.email);
+    }
+  };
+
+  const handleBodyChange = (e) => {
+    const newBody = e.target.value;
+    setBody(newBody);
+    // When manually editing, update the raw body too so variable replacement continues to work
+    setRawBody(newBody);
+  };
+
+  const handleSubjectChange = (e) => {
+    const newSubject = e.target.value;
+    setSubject(newSubject);
+    setRawSubject(newSubject);
+  };
 
   const handleSendTest = async () => {
     if (!subject.trim() || !body.trim()) {
@@ -371,10 +563,7 @@ const Marketing = () => {
       const response = await sendCampaign({ subject, body });
       showSuccess(`Email sent to ${response.data?.recipientCount || 0} customers`);
       setShowConfirm(false);
-      setShowCompose(false);
-      setSubject('');
-      setBody('');
-      setTestEmail('');
+      handleCloseCompose();
       fetchCampaigns();
     } catch (err) {
       showError(err.message || 'Failed to send campaign');
@@ -390,14 +579,140 @@ const Marketing = () => {
     });
   };
 
+  // Build coupon options for the Select component
+  const couponOptions = coupons
+    .filter(c => c.isActive !== false)
+    .map(c => ({
+      value: c.code,
+      label: `${c.code}${c.discountType === 'PERCENTAGE' ? ` (${c.discountValue}% off)` : c.discountType === 'FIXED' ? ` (Flat Rs.${c.discountValue} off)` : ''}`,
+    }));
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Marketing</h1>
-        <Button onClick={() => setShowCompose(true)}>
-          Compose Email
-        </Button>
+        {!showCompose && (
+          <Button onClick={handleOpenCompose}>
+            Compose Email
+          </Button>
+        )}
+        {showCompose && (
+          <Button variant="ghost" onClick={handleCloseCompose}>
+            Close Compose
+          </Button>
+        )}
       </div>
+
+      {/* Compose Section - Full page split layout */}
+      {showCompose && (
+        <div className={styles.composeSection}>
+          <div className={styles.composeSplit}>
+            {/* LEFT SIDE: Compose Form */}
+            <div className={styles.composeLeft}>
+              <h2 className={styles.composeSectionTitle}>Compose Email</h2>
+
+              <Input
+                label="Subject"
+                placeholder="Enter email subject..."
+                value={subject}
+                onChange={handleSubjectChange}
+                required
+              />
+
+              {/* Template Variables */}
+              <div className={styles.variablesSection}>
+                <h3 className={styles.variablesTitle}>Template Variables</h3>
+                <p className={styles.variablesHint}>
+                  These values will be auto-replaced in the email body and subject.
+                </p>
+                <div className={styles.variablesGrid}>
+                  <Input
+                    label="Company Name"
+                    placeholder="Enter company name..."
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    hint="Replaces {{companyName}} in template"
+                  />
+                  <Input
+                    label="Discount Percentage"
+                    type="number"
+                    placeholder="e.g. 20"
+                    value={discountPercent}
+                    onChange={(e) => setDiscountPercent(e.target.value)}
+                    hint="Replaces X% in template"
+                    min="0"
+                    max="100"
+                  />
+                  <Select
+                    label="Coupon Code"
+                    options={couponOptions}
+                    value={selectedCoupon}
+                    onChange={(val) => setSelectedCoupon(val)}
+                    placeholder={loadingCoupons ? 'Loading coupons...' : 'Select a coupon code'}
+                    disabled={loadingCoupons}
+                    searchable
+                    hint="Replaces coupon placeholder in template"
+                  />
+                </div>
+              </div>
+
+              <Textarea
+                label="Email Body (HTML supported)"
+                placeholder="Write your email content here... HTML tags are supported for formatting."
+                value={body}
+                onChange={handleBodyChange}
+                rows={14}
+                required
+              />
+
+              {/* Test Email */}
+              <div className={styles.testSection}>
+                <Input
+                  label="Test Email Address"
+                  placeholder="Enter email to send a test..."
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                />
+                <Button variant="outline" onClick={handleSendTest} loading={sendingTest} size="sm">
+                  Send Test
+                </Button>
+              </div>
+
+              {/* Actions */}
+              <div className={styles.composeActions}>
+                <Button variant="ghost" onClick={handleCloseCompose}>
+                  Cancel
+                </Button>
+                <Button onClick={() => setShowConfirm(true)} disabled={!subject.trim() || !body.trim()}>
+                  Send to All Customers
+                </Button>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE: Live Preview */}
+            <div className={styles.composeRight}>
+              <h2 className={styles.composeSectionTitle}>Live Preview</h2>
+              <div className={styles.previewContainer}>
+                {body.trim() ? (
+                  <iframe
+                    ref={previewIframeRef}
+                    className={styles.previewIframe}
+                    title="Email Preview"
+                    sandbox="allow-same-origin"
+                  />
+                ) : (
+                  <div className={styles.previewEmpty}>
+                    <p>Email preview will appear here</p>
+                    <p className={styles.previewEmptyHint}>
+                      Select a template or start typing in the body to see a live preview
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Holiday/Festival Templates */}
       <div className={styles.card}>
@@ -413,11 +728,7 @@ const Marketing = () => {
               <div className={styles.templateDesc}>{template.description}</div>
               <button
                 className={styles.templateBtn}
-                onClick={() => {
-                  setSubject(template.subject);
-                  setBody(template.body);
-                  setShowCompose(true);
-                }}
+                onClick={() => handleUseTemplate(template)}
               >
                 Use Template
               </button>
@@ -457,62 +768,7 @@ const Marketing = () => {
         )}
       </div>
 
-      {/* Compose Modal */}
-      <Modal
-        isOpen={showCompose}
-        onClose={() => { setShowCompose(false); setSubject(''); setBody(''); setTestEmail(''); }}
-        title="Compose Marketing Email"
-        size="lg"
-      >
-        <div className={styles.composeForm}>
-          <Input
-            label="Subject"
-            placeholder="Enter email subject..."
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            required
-          />
-          <Textarea
-            label="Email Body (HTML supported)"
-            placeholder="Write your email content here... HTML tags are supported for formatting."
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={10}
-            required
-          />
-
-          {/* Preview */}
-          {body.trim() && (
-            <div className={styles.previewSection}>
-              <h4 className={styles.previewTitle}>Preview</h4>
-              <div className={styles.previewBox} dangerouslySetInnerHTML={{ __html: body }} />
-            </div>
-          )}
-
-          <div className={styles.testSection}>
-            <Input
-              label="Test Email Address"
-              placeholder="Enter email to send a test..."
-              value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
-            />
-            <Button variant="outline" onClick={handleSendTest} loading={sendingTest} size="sm">
-              Send Test
-            </Button>
-          </div>
-
-          <div className={styles.composeActions}>
-            <Button variant="ghost" onClick={() => setShowCompose(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => setShowConfirm(true)} disabled={!subject.trim() || !body.trim()}>
-              Send to All Customers
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Confirm Send Modal */}
+      {/* Confirm Send Modal - Only modal remaining */}
       <Modal
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}

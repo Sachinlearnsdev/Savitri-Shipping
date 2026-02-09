@@ -37,3 +37,8 @@ export const calculatePrice = async (data) => {
   const response = await api.post('/bookings/calculate-price', data);
   return response.data;
 };
+
+export const getRecentModifications = async (days = 7) => {
+  const response = await api.get(`${API_ENDPOINTS.BOOKINGS}/recent-modifications?days=${days}`);
+  return response.data;
+};

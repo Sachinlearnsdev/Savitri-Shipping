@@ -4,7 +4,7 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Pagination from '../../components/common/Pagination';
 import useUIStore from '../../store/uiStore';
-import { getCustomerById, getCustomerBookings, updateCustomerStatus } from '../../services/customers.service';
+import { getCustomerById, getCustomerBookings, updateCustomerStatus, toggleVenuePayment } from '../../services/customers.service';
 import {
   USER_STATUS,
   USER_STATUS_LABELS,
@@ -46,6 +46,10 @@ const CustomerDetail = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
+  // Venue payment state
+  const [venuePaymentAllowed, setVenuePaymentAllowed] = useState(false);
+  const [updatingVenuePayment, setUpdatingVenuePayment] = useState(false);
+
   const fetchCustomer = async () => {
     try {
       setLoading(true);
@@ -54,6 +58,7 @@ const CustomerDetail = () => {
       if (response.success) {
         setCustomer(response.data);
         setSelectedStatus(response.data.status || USER_STATUS.ACTIVE);
+        setVenuePaymentAllowed(response.data.venuePaymentAllowed || false);
       }
     } catch (err) {
       setError(err.message || 'Failed to load customer details');
@@ -123,6 +128,20 @@ const CustomerDetail = () => {
       showError(err.message || 'Failed to update customer status');
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleVenuePaymentToggle = async () => {
+    try {
+      setUpdatingVenuePayment(true);
+      const newValue = !venuePaymentAllowed;
+      await toggleVenuePayment(id, newValue);
+      setVenuePaymentAllowed(newValue);
+      showSuccess(`Venue payment ${newValue ? 'enabled' : 'disabled'} for this customer`);
+    } catch (err) {
+      showError(err.message || 'Failed to update venue payment setting');
+    } finally {
+      setUpdatingVenuePayment(false);
     }
   };
 
@@ -268,6 +287,47 @@ const CustomerDetail = () => {
               <p className={styles.statValue}>{formatCurrency(totalSpent)}</p>
               <p className={styles.statLabel}>Total Spent</p>
             </div>
+          </div>
+
+          {/* Completed Rides Count */}
+          <div style={{ marginTop: 'var(--spacing-4)', paddingTop: 'var(--spacing-4)', borderTop: '1px solid var(--border-color)' }}>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Completed Rides</span>
+                <span className={styles.infoValue}>{customer.completedRidesCount || 0}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Venue Payment Eligible</span>
+                <span className={styles.infoValue}>
+                  {(customer.venuePaymentAllowed || (customer.completedRidesCount || 0) >= 5) ? 'Yes' : 'No (needs 5+ rides)'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Venue Payment Toggle */}
+          <div style={{ marginTop: 'var(--spacing-4)', paddingTop: 'var(--spacing-4)', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+              Allow Venue Payment:
+            </span>
+            <button
+              onClick={handleVenuePaymentToggle}
+              disabled={updatingVenuePayment}
+              style={{
+                padding: 'var(--spacing-1) var(--spacing-3)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid',
+                borderColor: venuePaymentAllowed ? 'var(--color-success-500, #22c55e)' : 'var(--border-color)',
+                backgroundColor: venuePaymentAllowed ? 'var(--color-success-50, #f0fdf4)' : 'var(--bg-primary)',
+                color: venuePaymentAllowed ? 'var(--color-success-700, #15803d)' : 'var(--text-secondary)',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 'var(--font-weight-medium)',
+                cursor: updatingVenuePayment ? 'not-allowed' : 'pointer',
+                opacity: updatingVenuePayment ? 0.6 : 1,
+              }}
+            >
+              {updatingVenuePayment ? 'Updating...' : (venuePaymentAllowed ? 'Enabled' : 'Disabled')}
+            </button>
           </div>
         </div>
 

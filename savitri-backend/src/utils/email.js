@@ -306,6 +306,47 @@ const sendAtVenueBookingEmail = async (email, data) => {
   });
 };
 
+/**
+ * Send booking modification OTP email
+ */
+const sendBookingModificationOTP = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Confirm Booking Modification - ${data.bookingNumber}`,
+    templateName: 'booking-modification-otp',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      otp: data.otp,
+      currentDate: data.currentDate,
+      currentTime: data.currentTime,
+      newDate: data.newDate,
+      newTime: data.newTime,
+    },
+  });
+};
+
+/**
+ * Send booking reminder email (for future use)
+ */
+const sendBookingReminder = async (email, data) => {
+  return sendEmail({
+    to: email,
+    subject: `Booking Reminder - ${data.bookingNumber}`,
+    templateName: 'booking-reminder',
+    variables: {
+      name: data.name,
+      bookingNumber: data.bookingNumber,
+      boatName: data.boatName,
+      date: data.date,
+      time: data.time,
+      duration: data.duration,
+      bookingType: data.bookingType,
+      hoursUntil: data.hoursUntil,
+    },
+  });
+};
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
@@ -316,6 +357,8 @@ module.exports = {
   sendBookingConfirmation,
   sendBookingCancellation,
   sendBookingModification,
+  sendBookingModificationOTP,
+  sendBookingReminder,
   sendPaymentPendingEmail,
   sendPaymentConfirmedEmail,
   sendAtVenueBookingEmail,

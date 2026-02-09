@@ -85,6 +85,21 @@ const modifyDateSchema = z.object({
   newStartTime: z.string().optional(),
 });
 
+// Send modification OTP
+const modifySendOtpSchema = z.object({
+  newDate: z.string().min(1, 'New date is required'),
+  newStartTime: z.string().optional(),
+  newEndTime: z.string().optional(),
+});
+
+// Confirm modification with OTP
+const modifyConfirmSchema = z.object({
+  otp: z.string().min(4, 'OTP is required').max(8),
+  newDate: z.string().min(1, 'New date is required'),
+  newStartTime: z.string().optional(),
+  newEndTime: z.string().optional(),
+});
+
 module.exports = {
   availabilitySchema,
   priceCalcSchema,
@@ -96,4 +111,6 @@ module.exports = {
   bookingQuerySchema,
   applyCouponSchema,
   modifyDateSchema,
+  modifySendOtpSchema,
+  modifyConfirmSchema,
 };

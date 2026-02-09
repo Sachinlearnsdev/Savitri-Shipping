@@ -15,6 +15,8 @@ const adminRouter = express.Router();
 adminRouter.use(adminAuth);
 
 adminRouter.get('/', roleCheck('reviews', 'view'), validateQuery(adminReviewQuerySchema), reviewsController.getAdminReviews);
+adminRouter.get('/stats', roleCheck('reviews', 'view'), reviewsController.getReviewStats);
+adminRouter.get('/boat-aggregation', roleCheck('reviews', 'view'), reviewsController.getBoatReviewsAggregation);
 adminRouter.get('/:id', roleCheck('reviews', 'view'), reviewsController.getById);
 adminRouter.patch('/:id/approve', roleCheck('reviews', 'edit'), validate(approveReviewSchema), reviewsController.approveReview);
 adminRouter.delete('/:id', roleCheck('reviews', 'delete'), reviewsController.deleteReview);

@@ -24,6 +24,35 @@ const adminUserSchema = new mongoose.Schema(
     avatar: {
       type: String,
     },
+    avatarPublicId: {
+      type: String,
+    },
+    designation: {
+      type: String,
+      trim: true,
+    },
+    department: {
+      type: String,
+      trim: true,
+    },
+    employeeId: {
+      type: String,
+      trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+    joiningDate: {
+      type: Date,
+    },
+    address: {
+      line1: { type: String, trim: true },
+      line2: { type: String, trim: true },
+      city: { type: String, trim: true },
+      state: { type: String, trim: true },
+      pincode: { type: String, trim: true },
+      country: { type: String, default: 'India', trim: true },
+    },
     roleId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",

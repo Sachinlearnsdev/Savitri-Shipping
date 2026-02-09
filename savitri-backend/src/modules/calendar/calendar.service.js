@@ -212,7 +212,7 @@ class CalendarService {
 
     // Fetch marine and forecast data in parallel
     const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wind_wave_height,swell_wave_height&start_date=${startDate}&end_date=${endDate}&timezone=Asia/Kolkata`;
-    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=wind_speed_10m,wind_gusts_10m,weather_code&start_date=${startDate}&end_date=${endDate}&timezone=Asia/Kolkata`;
+    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,weather_code&start_date=${startDate}&end_date=${endDate}&timezone=Asia/Kolkata`;
 
     const [marineRes, forecastRes] = await Promise.all([
       fetch(marineUrl),
@@ -244,6 +244,7 @@ class CalendarService {
           windSpeeds: [],
           windGusts: [],
           weatherCodes: [],
+          temperatures: [],
         };
       }
 
@@ -251,6 +252,9 @@ class CalendarService {
 
       if (marineHourly.wave_height && marineHourly.wave_height[i] != null) {
         day.waveHeights.push(marineHourly.wave_height[i]);
+      }
+      if (forecastHourly.temperature_2m && forecastHourly.temperature_2m[i] != null) {
+        day.temperatures.push(forecastHourly.temperature_2m[i]);
       }
       if (forecastHourly.wind_speed_10m && forecastHourly.wind_speed_10m[i] != null) {
         day.windSpeeds.push(forecastHourly.wind_speed_10m[i]);
@@ -269,6 +273,9 @@ class CalendarService {
       const maxWaveHeight = day.waveHeights.length > 0 ? Math.max(...day.waveHeights) : 0;
       const maxWindSpeed = day.windSpeeds.length > 0 ? Math.max(...day.windSpeeds) : 0;
       const maxWindGusts = day.windGusts.length > 0 ? Math.max(...day.windGusts) : 0;
+      const avgTemperature = day.temperatures.length > 0
+        ? day.temperatures.reduce((a, b) => a + b, 0) / day.temperatures.length
+        : null;
       const weatherCode = this._getDominantWeatherCode(day.weatherCodes);
 
       let recommendation = 'safe';
@@ -282,6 +289,7 @@ class CalendarService {
         waveHeight: maxWaveHeight,
         windSpeed: maxWindSpeed,
         windGusts: maxWindGusts,
+        temperature: avgTemperature !== null ? Math.round(avgTemperature) : null,
         weatherCode,
         recommendation,
       };

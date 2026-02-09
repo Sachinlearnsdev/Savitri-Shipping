@@ -58,6 +58,12 @@
   color: var(--text-primary);
 }
 
+.sectionHint {
+  margin: 0 0 var(--spacing-2) 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
 .loading {
   display: flex;
   align-items: center;

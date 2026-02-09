@@ -193,6 +193,23 @@ class PartyBookingsService {
       pricing.finalAmount = pricing.totalAmount - pricing.discountAmount;
     }
 
+    // 8b. Venue payment eligibility check
+    if (data.paymentMode === 'AT_VENUE') {
+      const customerForCheck = await Customer.findById(customerId);
+      if (customerForCheck && !customerForCheck.venuePaymentAllowed && (customerForCheck.completedRidesCount || 0) < 5) {
+        throw ApiError.badRequest('At-venue payment is available for customers with 5+ completed rides. Please use online payment.');
+      }
+    }
+
+    // Determine initial status based on payment mode
+    let initialStatus = 'PENDING';
+    let initialPaymentStatus = 'PENDING';
+
+    if (data.paymentMode === 'ONLINE') {
+      initialStatus = 'CONFIRMED';
+      initialPaymentStatus = 'PAID';
+    }
+
     // 9. Generate booking number
     const bookingNumber = await this._generateBookingNumber();
 
@@ -208,8 +225,8 @@ class PartyBookingsService {
       locationType: data.locationType,
       selectedAddOns: resolvedAddOns,
       pricing,
-      status: 'PENDING',
-      paymentStatus: 'PENDING',
+      status: initialStatus,
+      paymentStatus: initialPaymentStatus,
       paymentMode: data.paymentMode,
       adminNotes: data.adminNotes,
       createdByType: 'ADMIN',
@@ -341,6 +358,13 @@ class PartyBookingsService {
 
     booking.status = status;
     await booking.save();
+
+    // Increment completed rides count when booking is marked as COMPLETED
+    if (status === 'COMPLETED' && booking.customerId) {
+      await Customer.findByIdAndUpdate(booking.customerId, {
+        $inc: { completedRidesCount: 1 },
+      });
+    }
 
     return formatDocument(booking.toObject());
   }

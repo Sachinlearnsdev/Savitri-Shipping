@@ -35,10 +35,17 @@ export default function MyBookingsPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  // Date modification
+  // Date modification - OTP-based flow
   const [showModifyDialog, setShowModifyDialog] = useState(null);
   const [modifyDate, setModifyDate] = useState('');
+  const [modifyTime, setModifyTime] = useState('');
   const [modifyLoading, setModifyLoading] = useState(false);
+  const [modifyStep, setModifyStep] = useState('select'); // 'select' | 'checking' | 'otp' | 'confirming'
+  const [modifyOtp, setModifyOtp] = useState('');
+  const [modifyMaskedEmail, setModifyMaskedEmail] = useState('');
+  const [modifyError, setModifyError] = useState('');
+  const [modifySuccess, setModifySuccess] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
 
   const fetchBookings = async (type) => {
     try {
@@ -139,26 +146,100 @@ export default function MyBookingsPage() {
       (booking.dateModificationCount || 0) < 2;
   };
 
-  const handleModifyDate = async (bookingId) => {
-    if (!modifyDate) {
-      alert('Please select a new date');
-      return;
-    }
+  // Check available slots when date is selected
+  const handleCheckAvailability = async (bookingId, date) => {
+    if (!date) return;
+    setModifyError('');
     try {
-      setModifyLoading(true);
-      const response = await api.patch(API_ENDPOINTS.BOOKINGS.MODIFY_DATE(bookingId), {
-        newDate: modifyDate,
-      });
-      if (response.success) {
-        setShowModifyDialog(null);
-        setModifyDate('');
-        fetchBookings(activeTab);
+      const booking = bookings.find((b) => b.id === bookingId);
+      const response = await api.get(
+        `${API_ENDPOINTS.BOOKINGS.AVAILABLE_SLOTS}?date=${date}&numberOfBoats=${booking?.numberOfBoats || 1}`
+      );
+      if (response.success && response.data) {
+        if (!response.data.open) {
+          setAvailableSlots([]);
+          setModifyError('Operations are closed on this date. Please select another date.');
+        } else {
+          setAvailableSlots(response.data.slots || []);
+        }
       }
     } catch (err) {
-      alert(err.message || 'Failed to modify booking date');
+      setModifyError(err.message || 'Failed to check availability');
+      setAvailableSlots([]);
+    }
+  };
+
+  // Step 1: Send OTP for modification
+  const handleSendModificationOtp = async (bookingId) => {
+    if (!modifyDate) {
+      setModifyError('Please select a new date');
+      return;
+    }
+    setModifyError('');
+    setModifyStep('checking');
+    setModifyLoading(true);
+    try {
+      const body = { newDate: modifyDate };
+      if (modifyTime) {
+        body.newStartTime = modifyTime;
+      }
+      const response = await api.post(API_ENDPOINTS.BOOKINGS.MODIFY_SEND_OTP(bookingId), body);
+      if (response.success) {
+        setModifyStep('otp');
+        setModifyMaskedEmail(response.data?.email || '');
+        setModifyOtp('');
+      }
+    } catch (err) {
+      setModifyError(err.message || 'Failed to send OTP');
+      setModifyStep('select');
     } finally {
       setModifyLoading(false);
     }
+  };
+
+  // Step 2: Confirm modification with OTP
+  const handleConfirmModification = async (bookingId) => {
+    if (!modifyOtp || modifyOtp.length < 4) {
+      setModifyError('Please enter a valid OTP');
+      return;
+    }
+    setModifyError('');
+    setModifyStep('confirming');
+    setModifyLoading(true);
+    try {
+      const body = {
+        otp: modifyOtp,
+        newDate: modifyDate,
+      };
+      if (modifyTime) {
+        body.newStartTime = modifyTime;
+      }
+      const response = await api.put(API_ENDPOINTS.BOOKINGS.MODIFY_CONFIRM(bookingId), body);
+      if (response.success) {
+        setModifySuccess('Booking modified successfully!');
+        setTimeout(() => {
+          setShowModifyDialog(null);
+          resetModifyState();
+          fetchBookings(activeTab);
+        }, 2000);
+      }
+    } catch (err) {
+      setModifyError(err.message || 'Failed to confirm modification');
+      setModifyStep('otp');
+    } finally {
+      setModifyLoading(false);
+    }
+  };
+
+  const resetModifyState = () => {
+    setModifyDate('');
+    setModifyTime('');
+    setModifyStep('select');
+    setModifyOtp('');
+    setModifyMaskedEmail('');
+    setModifyError('');
+    setModifySuccess('');
+    setAvailableSlots([]);
   };
 
   const tabs = [
@@ -340,7 +421,7 @@ export default function MyBookingsPage() {
                     {canModifyDate(booking) && (
                       <button
                         className={styles.modifyButton}
-                        onClick={() => { setShowModifyDialog(booking.id); setModifyDate(''); }}
+                        onClick={() => { setShowModifyDialog(booking.id); resetModifyState(); }}
                       >
                         Modify Date
                       </button>
@@ -416,42 +497,251 @@ export default function MyBookingsPage() {
         );
       })()}
 
-      {/* Modify Date Dialog (full-screen overlay) */}
+      {/* Modify Date Dialog - OTP-based flow (full-screen overlay) */}
       {showModifyDialog && (() => {
         const booking = bookings.find((b) => b.id === showModifyDialog);
         if (!booking) return null;
         return (
           <div className={styles.cancelDialog}>
-            <div className={styles.cancelDialogContent}>
+            <div className={styles.cancelDialogContent} style={{ maxWidth: '480px' }}>
+              {/* Header */}
               <h4 className={styles.cancelDialogTitle}>Modify Booking Date</h4>
               <p className={styles.cancelDialogText}>
-                Change date for <strong>{booking.bookingNumber}</strong>. You have{' '}
-                <strong>{2 - (booking.dateModificationCount || 0)}</strong> modification(s) remaining.
+                {modifyStep === 'otp' || modifyStep === 'confirming'
+                  ? `Enter the OTP sent to ${modifyMaskedEmail} to confirm your modification.`
+                  : (
+                    <>
+                      Change date for <strong>{booking.bookingNumber}</strong>. You have{' '}
+                      <strong>{2 - (booking.dateModificationCount || 0)}</strong> modification(s) remaining.
+                    </>
+                  )
+                }
               </p>
-              <input
-                type="date"
-                className={styles.cancelReasonInput}
-                value={modifyDate}
-                onChange={(e) => setModifyDate(e.target.value)}
-                min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
-                max={new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0]}
-                style={{ padding: '10px 12px' }}
-              />
-              <div className={styles.cancelDialogActions}>
-                <button
-                  className={styles.modifyConfirmButton}
-                  onClick={() => handleModifyDate(booking.id)}
-                  disabled={modifyLoading || !modifyDate}
-                >
-                  {modifyLoading ? 'Modifying...' : 'Confirm Change'}
-                </button>
-                <button
-                  className={styles.cancelDismissButton}
-                  onClick={() => { setShowModifyDialog(null); setModifyDate(''); }}
-                >
-                  Cancel
-                </button>
-              </div>
+
+              {/* Success Message */}
+              {modifySuccess && (
+                <div style={{
+                  padding: '12px 16px',
+                  backgroundColor: '#dcfce7',
+                  border: '1px solid #86efac',
+                  borderRadius: '8px',
+                  color: '#166534',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  textAlign: 'center',
+                }}>
+                  {modifySuccess}
+                </div>
+              )}
+
+              {/* Error Message */}
+              {modifyError && (
+                <div style={{
+                  padding: '12px 16px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#991b1b',
+                  fontSize: '14px',
+                  marginBottom: '12px',
+                }}>
+                  {modifyError}
+                </div>
+              )}
+
+              {/* Step 1: Select Date & Time */}
+              {(modifyStep === 'select' || modifyStep === 'checking') && !modifySuccess && (
+                <>
+                  {/* Current booking info */}
+                  <div style={{
+                    padding: '10px 14px',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '13px',
+                    color: '#374151',
+                  }}>
+                    <strong>Current:</strong> {formatLongDate(booking.date)} at {formatTime(booking.startTime)} ({booking.duration}h)
+                  </div>
+
+                  {/* Date Picker */}
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    New Date
+                  </label>
+                  <input
+                    type="date"
+                    className={styles.cancelReasonInput}
+                    value={modifyDate}
+                    onChange={(e) => {
+                      setModifyDate(e.target.value);
+                      setModifyTime('');
+                      setModifyError('');
+                      if (e.target.value) {
+                        handleCheckAvailability(booking.id, e.target.value);
+                      }
+                    }}
+                    min={new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]}
+                    max={new Date(Date.now() + 45 * 86400000).toISOString().split('T')[0]}
+                    style={{ padding: '10px 12px', marginBottom: '12px' }}
+                  />
+
+                  {/* Time Slot Selection */}
+                  {modifyDate && availableSlots.length > 0 && (
+                    <>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                        Select Time Slot (optional)
+                      </label>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+                        gap: '8px',
+                        marginBottom: '16px',
+                      }}>
+                        {availableSlots.map((slot) => (
+                          <button
+                            key={slot.time}
+                            type="button"
+                            disabled={!slot.isAvailable}
+                            onClick={() => {
+                              setModifyTime(slot.time === modifyTime ? '' : slot.time);
+                              setModifyError('');
+                            }}
+                            style={{
+                              padding: '8px 6px',
+                              border: modifyTime === slot.time ? '2px solid #2563eb' : '1px solid #d1d5db',
+                              borderRadius: '8px',
+                              backgroundColor: !slot.isAvailable ? '#f3f4f6' : modifyTime === slot.time ? '#eff6ff' : 'white',
+                              color: !slot.isAvailable ? '#9ca3af' : modifyTime === slot.time ? '#2563eb' : '#374151',
+                              fontSize: '13px',
+                              fontWeight: modifyTime === slot.time ? '600' : '400',
+                              cursor: slot.isAvailable ? 'pointer' : 'not-allowed',
+                              textAlign: 'center',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <div>{slot.time}</div>
+                            <div style={{ fontSize: '11px', color: slot.isAvailable ? '#059669' : '#ef4444' }}>
+                              {slot.isAvailable ? `${slot.availableBoats} avail.` : 'Full'}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <div className={styles.cancelDialogActions}>
+                    <button
+                      className={styles.modifyConfirmButton}
+                      onClick={() => handleSendModificationOtp(booking.id)}
+                      disabled={modifyLoading || !modifyDate}
+                    >
+                      {modifyLoading ? 'Checking...' : 'Send OTP to Confirm'}
+                    </button>
+                    <button
+                      className={styles.cancelDismissButton}
+                      onClick={() => { setShowModifyDialog(null); resetModifyState(); }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: Enter OTP */}
+              {(modifyStep === 'otp' || modifyStep === 'confirming') && !modifySuccess && (
+                <>
+                  {/* Change summary */}
+                  <div style={{
+                    padding: '12px 14px',
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '13px',
+                    color: '#1e40af',
+                  }}>
+                    <div style={{ marginBottom: '4px' }}>
+                      <strong>Date:</strong>{' '}
+                      <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>{formatLongDate(booking.date)}</span>
+                      {' '}&rarr;{' '}
+                      <span style={{ color: '#059669', fontWeight: '600' }}>{formatLongDate(modifyDate + 'T00:00:00')}</span>
+                    </div>
+                    {modifyTime && (
+                      <div>
+                        <strong>Time:</strong>{' '}
+                        <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>{formatTime(booking.startTime)}</span>
+                        {' '}&rarr;{' '}
+                        <span style={{ color: '#059669', fontWeight: '600' }}>{formatTime(modifyTime)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                    Enter OTP
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    className={styles.cancelReasonInput}
+                    value={modifyOtp}
+                    onChange={(e) => {
+                      setModifyOtp(e.target.value.replace(/\D/g, ''));
+                      setModifyError('');
+                    }}
+                    placeholder="Enter 6-digit OTP"
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: '20px',
+                      textAlign: 'center',
+                      letterSpacing: '8px',
+                      fontWeight: '600',
+                      marginBottom: '12px',
+                    }}
+                    autoFocus
+                  />
+
+                  <div className={styles.cancelDialogActions}>
+                    <button
+                      className={styles.modifyConfirmButton}
+                      onClick={() => handleConfirmModification(booking.id)}
+                      disabled={modifyLoading || modifyOtp.length < 4}
+                    >
+                      {modifyLoading ? 'Confirming...' : 'Confirm Modification'}
+                    </button>
+                    <button
+                      className={styles.cancelDismissButton}
+                      onClick={() => {
+                        setModifyStep('select');
+                        setModifyOtp('');
+                        setModifyError('');
+                      }}
+                    >
+                      Back
+                    </button>
+                  </div>
+
+                  <div style={{ textAlign: 'center', marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSendModificationOtp(booking.id)}
+                      disabled={modifyLoading}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#2563eb',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Resend OTP
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         );

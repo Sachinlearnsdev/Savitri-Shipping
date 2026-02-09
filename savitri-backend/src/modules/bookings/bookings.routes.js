@@ -16,6 +16,8 @@ const {
   bookingQuerySchema,
   applyCouponSchema,
   modifyDateSchema,
+  modifySendOtpSchema,
+  modifyConfirmSchema,
 } = require('./bookings.validator');
 
 // ===== ADMIN ROUTES =====
@@ -23,6 +25,7 @@ const adminRouter = express.Router();
 adminRouter.use(adminAuth);
 
 adminRouter.get('/', roleCheck('bookings', 'view'), validateQuery(bookingQuerySchema), bookingsController.getAll);
+adminRouter.get('/recent-modifications', roleCheck('bookings', 'view'), bookingsController.getRecentModifications);
 adminRouter.get('/:id', roleCheck('bookings', 'view'), bookingsController.getById);
 adminRouter.post('/', roleCheck('bookings', 'create'), validate(adminCreateBookingSchema), bookingsController.adminCreate);
 adminRouter.patch('/:id/status', roleCheck('bookings', 'edit'), validate(updateStatusSchema), bookingsController.updateStatus);
@@ -57,5 +60,7 @@ publicRouter.post('/create', (req, res, next) => {
 publicRouter.get('/my-bookings', auth, bookingsController.getMyBookings);
 publicRouter.post('/:id/cancel', auth, validate(cancelBookingSchema), bookingsController.cancelMyBooking);
 publicRouter.patch('/:id/modify-date', auth, validate(modifyDateSchema), bookingsController.modifyBookingDate);
+publicRouter.post('/:id/modify/send-otp', auth, validate(modifySendOtpSchema), bookingsController.sendModificationOTP);
+publicRouter.put('/:id/modify/confirm', auth, validate(modifyConfirmSchema), bookingsController.confirmModification);
 
 module.exports = { adminRouter, publicRouter };

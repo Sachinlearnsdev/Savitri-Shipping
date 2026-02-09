@@ -54,3 +54,14 @@ export const updateCustomerStatus = async (id, status) => {
   const response = await api.patch(API_ENDPOINTS.CUSTOMER_STATUS(id), { status });
   return response.data;
 };
+
+/**
+ * Toggle venue payment allowed
+ * @param {string} id - Customer ID
+ * @param {boolean} venuePaymentAllowed - Whether venue payment is allowed
+ * @returns {Promise<object>} Response data
+ */
+export const toggleVenuePayment = async (id, venuePaymentAllowed) => {
+  const response = await api.patch(API_ENDPOINTS.CUSTOMER_VENUE_PAYMENT(id), { venuePaymentAllowed });
+  return response.data;
+};

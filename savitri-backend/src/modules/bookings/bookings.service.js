@@ -4,8 +4,9 @@ const { formatDocument, formatDocuments } = require('../../utils/responseFormatt
 const { paginate, calculateGST, hashPassword, formatCurrency } = require('../../utils/helpers');
 const calendarService = require('../calendar/calendar.service');
 const pricingRulesService = require('../pricingRules/pricingRules.service');
-const { BOOKING_LIMITS, CANCELLATION_POLICY, GST } = require('../../config/constants');
+const { BOOKING_LIMITS, CANCELLATION_POLICY, GST, OTP_TYPE } = require('../../config/constants');
 const { sendBookingConfirmation, sendBookingCancellation, sendPaymentPendingEmail, sendPaymentConfirmedEmail, sendAtVenueBookingEmail } = require('../../utils/email');
+const { createOTP, verifyOTP } = require('../../utils/otp');
 
 class BookingsService {
   /**
@@ -303,6 +304,23 @@ class BookingsService {
       pricing.finalAmount = pricing.totalAmount - pricing.discountAmount;
     }
 
+    // Venue payment eligibility check
+    if (data.paymentMode === 'AT_VENUE') {
+      const customerForCheck = await Customer.findById(resolvedCustomerId);
+      if (customerForCheck && !customerForCheck.venuePaymentAllowed && (customerForCheck.completedRidesCount || 0) < 5) {
+        throw ApiError.badRequest('At-venue payment is available for customers with 5+ completed rides. Please use online payment.');
+      }
+    }
+
+    // Determine initial status based on payment mode
+    let initialStatus = 'PENDING';
+    let initialPaymentStatus = 'PENDING';
+
+    if (data.paymentMode === 'ONLINE') {
+      initialStatus = 'CONFIRMED';
+      initialPaymentStatus = 'PAID';
+    }
+
     // Generate booking number
     const bookingNumber = await this._generateBookingNumber();
 
@@ -318,8 +336,8 @@ class BookingsService {
       duration: data.duration,
       numberOfBoats: data.numberOfBoats,
       pricing,
-      status: 'PENDING',
-      paymentStatus: 'PENDING',
+      status: initialStatus,
+      paymentStatus: initialPaymentStatus,
       paymentMode: data.paymentMode,
       customerNotes: data.customerNotes,
       adminNotes: data.adminNotes,
@@ -552,6 +570,13 @@ class BookingsService {
 
     booking.status = status;
     await booking.save();
+
+    // Increment completed rides count when booking is marked as COMPLETED
+    if (status === 'COMPLETED' && booking.customerId) {
+      await Customer.findByIdAndUpdate(booking.customerId, {
+        $inc: { completedRidesCount: 1 },
+      });
+    }
 
     return formatDocument(booking.toObject());
   }
@@ -838,6 +863,225 @@ class BookingsService {
     }
 
     return formatDocument(booking.toObject());
+  }
+
+  /**
+   * Send OTP for booking modification (step 1 of OTP-based flow)
+   */
+  async sendModificationOTP(bookingId, customerId, data) {
+    const { sendBookingModificationOTP } = require('../../utils/email');
+    const booking = await SpeedBoatBooking.findOne({ _id: bookingId, isDeleted: false });
+
+    if (!booking) {
+      throw ApiError.notFound('Booking not found');
+    }
+
+    const custId = booking.customerId?.toString();
+    if (custId !== customerId) {
+      throw ApiError.forbidden('Not your booking');
+    }
+
+    if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+      throw ApiError.badRequest('Only pending or confirmed bookings can be modified');
+    }
+
+    if (booking.dateModificationCount >= 2) {
+      throw ApiError.badRequest('Maximum date modifications (2) reached. Please cancel and rebook.');
+    }
+
+    // Block modifications within 48 hours of the booking date
+    const bookingDateTime = new Date(booking.date);
+    const [bh, bm] = booking.startTime.split(':').map(Number);
+    bookingDateTime.setHours(bh, bm, 0, 0);
+    const hoursUntilBooking = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+    if (hoursUntilBooking < 48) {
+      throw ApiError.badRequest('Modifications are not allowed within 48 hours of the booking date');
+    }
+
+    // Validate new date
+    const newDate = new Date(data.newDate);
+    newDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (newDate <= today) {
+      throw ApiError.badRequest('New date must be in the future');
+    }
+
+    // Check if new date is open
+    const dayOpen = await calendarService.isDayOpen(newDate);
+    if (!dayOpen) {
+      throw ApiError.badRequest('Selected date is not available for bookings');
+    }
+
+    // Check slot availability
+    const newStartTime = data.newStartTime || booking.startTime;
+    const endTime = this._calculateEndTime(newStartTime, booking.duration);
+    const settings = await this._getBookingSettings();
+    const bookedCount = await this._getBookedBoatCount(newDate, newStartTime, endTime, settings.bufferMinutes);
+    const totalBoats = await SpeedBoat.countDocuments({ status: 'ACTIVE', isDeleted: false });
+    if (totalBoats - bookedCount < booking.numberOfBoats) {
+      throw ApiError.badRequest('Selected time slot is not available on the new date. Please check other available slots.');
+    }
+
+    // Get customer email and send OTP
+    const customer = await Customer.findById(customerId).lean();
+    if (!customer || !customer.email) {
+      throw ApiError.badRequest('Customer email not found. Cannot send OTP.');
+    }
+
+    // Create OTP with a unique identifier combining email + bookingId
+    const otpIdentifier = `${customer.email}:booking_mod:${bookingId}`;
+    const otp = await createOTP(otpIdentifier, OTP_TYPE.BOOKING_MODIFICATION);
+
+    // Format dates for email
+    const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    // Send OTP email (fire-and-forget)
+    sendBookingModificationOTP(customer.email, {
+      name: customer.name || 'Customer',
+      bookingNumber: booking.bookingNumber,
+      otp,
+      currentDate: formatDate(booking.date),
+      currentTime: booking.startTime,
+      newDate: formatDate(newDate),
+      newTime: newStartTime,
+    }).catch((err) => console.error('Modification OTP email error:', err.message));
+
+    return {
+      message: 'OTP sent to your registered email address',
+      email: customer.email.replace(/(.{2}).+(@.+)/, '$1***$2'), // Mask email
+    };
+  }
+
+  /**
+   * Confirm booking modification with OTP (step 2 of OTP-based flow)
+   */
+  async confirmModification(bookingId, customerId, data) {
+    const { sendBookingModification } = require('../../utils/email');
+    const booking = await SpeedBoatBooking.findOne({ _id: bookingId, isDeleted: false });
+
+    if (!booking) {
+      throw ApiError.notFound('Booking not found');
+    }
+
+    const custId = booking.customerId?.toString();
+    if (custId !== customerId) {
+      throw ApiError.forbidden('Not your booking');
+    }
+
+    if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+      throw ApiError.badRequest('Only pending or confirmed bookings can be modified');
+    }
+
+    if (booking.dateModificationCount >= 2) {
+      throw ApiError.badRequest('Maximum date modifications (2) reached. Please cancel and rebook.');
+    }
+
+    // Block modifications within 48 hours of the booking date
+    const bookingDateTime = new Date(booking.date);
+    const [bh, bm] = booking.startTime.split(':').map(Number);
+    bookingDateTime.setHours(bh, bm, 0, 0);
+    const hoursUntilBooking = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+    if (hoursUntilBooking < 48) {
+      throw ApiError.badRequest('Modifications are not allowed within 48 hours of the booking date');
+    }
+
+    // Get customer
+    const customer = await Customer.findById(customerId).lean();
+    if (!customer || !customer.email) {
+      throw ApiError.badRequest('Customer email not found');
+    }
+
+    // Verify OTP
+    const otpIdentifier = `${customer.email}:booking_mod:${bookingId}`;
+    const otpResult = await verifyOTP(otpIdentifier, data.otp, OTP_TYPE.BOOKING_MODIFICATION);
+    if (!otpResult.success) {
+      throw ApiError.badRequest(otpResult.message);
+    }
+
+    // Validate new date
+    const newDate = new Date(data.newDate);
+    newDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (newDate <= today) {
+      throw ApiError.badRequest('New date must be in the future');
+    }
+
+    // Check if new date is open
+    const dayOpen = await calendarService.isDayOpen(newDate);
+    if (!dayOpen) {
+      throw ApiError.badRequest('Selected date is not available for bookings');
+    }
+
+    // Check slot availability again (could have changed since OTP was sent)
+    const newStartTime = data.newStartTime || booking.startTime;
+    const endTime = data.newEndTime || this._calculateEndTime(newStartTime, booking.duration);
+    const settings = await this._getBookingSettings();
+    const bookedCount = await this._getBookedBoatCount(newDate, newStartTime, endTime, settings.bufferMinutes);
+    const totalBoats = await SpeedBoat.countDocuments({ status: 'ACTIVE', isDeleted: false });
+    if (totalBoats - bookedCount < booking.numberOfBoats) {
+      throw ApiError.badRequest('Selected time slot is no longer available. Please try a different slot.');
+    }
+
+    // Store previous values
+    const previousDate = booking.date;
+    const previousStartTime = booking.startTime;
+
+    // Push modification record
+    booking.dateModifications.push({
+      previousDate: booking.date,
+      previousStartTime: booking.startTime,
+      newDate: newDate,
+      newStartTime: newStartTime,
+      modifiedAt: new Date(),
+    });
+    booking.dateModificationCount += 1;
+
+    // Update booking
+    booking.date = newDate;
+    booking.startTime = newStartTime;
+    booking.endTime = endTime;
+
+    await booking.save();
+
+    // Send modification confirmation email (fire-and-forget)
+    const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    sendBookingModification(customer.email, {
+      name: customer.name || 'Customer',
+      bookingNumber: booking.bookingNumber,
+      boatName: 'Speed Boat',
+      bookingType: 'Speed Boat',
+      previousDate: formatDate(previousDate),
+      previousTime: previousStartTime || '',
+      newDate: formatDate(newDate),
+      newTime: newStartTime || '',
+      remainingModifications: String(2 - booking.dateModificationCount),
+    }).catch((err) => console.error('Modification email error:', err.message));
+
+    return formatDocument(booking.toObject());
+  }
+
+  /**
+   * Get recently modified bookings (admin - for dashboard)
+   */
+  async getRecentModifications(days = 7) {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const bookings = await SpeedBoatBooking.find({
+      isDeleted: false,
+      dateModificationCount: { $gte: 1 },
+      'dateModifications.modifiedAt': { $gte: since },
+    })
+      .populate('customerId', 'name email phone')
+      .sort({ 'dateModifications.modifiedAt': -1 })
+      .limit(10)
+      .lean();
+
+    return formatDocuments(bookings);
   }
 }
 

@@ -17,6 +17,7 @@ module.exports = {
     PASSWORD_RESET: 'PASSWORD_RESET',
     EMAIL_CHANGE: 'EMAIL_CHANGE',
     PHONE_CHANGE: 'PHONE_CHANGE',
+    BOOKING_MODIFICATION: 'BOOKING_MODIFICATION',
   },
 
   // OTP Configuration
@@ -95,7 +96,12 @@ module.exports = {
     PASSWORD_CHANGED: 'password-changed',
     BOOKING_CONFIRMATION: 'booking-confirmation',
     BOOKING_CANCELLATION: 'booking-cancellation',
+    BOOKING_MODIFICATION: 'booking-modification',
+    BOOKING_MODIFICATION_OTP: 'booking-modification-otp',
     BOOKING_REMINDER: 'booking-reminder',
+    PAYMENT_PENDING: 'payment-pending',
+    PAYMENT_CONFIRMED: 'payment-confirmed',
+    AT_VENUE_BOOKING: 'at-venue-booking',
   },
 
   // Boat Status (Speed + Party)

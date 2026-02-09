@@ -82,6 +82,14 @@ const customerSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  venuePaymentAllowed: {
+    type: Boolean,
+    default: false,
+  },
+  completedRidesCount: {
+    type: Number,
+    default: 0,
+  },
   deletedAt: {
     type: Date,
   },

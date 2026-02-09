@@ -215,6 +215,24 @@ const BookingDetail = () => {
         </div>
       </div>
 
+      {/* Modification Count Badge */}
+      {booking.dateModificationCount > 0 && (
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '6px 14px',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: '8px',
+          fontSize: 'var(--font-size-sm)',
+          color: '#1e40af',
+          fontWeight: 'var(--font-weight-semibold)',
+        }}>
+          Date Modified {booking.dateModificationCount} time{booking.dateModificationCount > 1 ? 's' : ''}
+        </div>
+      )}
+
       {/* Cards */}
       <div className={styles.cardsGrid}>
         {/* Booking Info */}
@@ -446,6 +464,60 @@ const BookingDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Modification History */}
+        {booking.dateModifications && booking.dateModifications.length > 0 && (
+          <div className={`${styles.card} ${styles.cardFull}`}>
+            <h2 className={styles.cardTitle}>
+              Modification History ({booking.dateModificationCount || booking.dateModifications.length})
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+              {booking.dateModifications.map((mod, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: 'var(--spacing-3) var(--spacing-4)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-lg)',
+                    borderLeft: '4px solid var(--color-primary-600, #2563eb)',
+                    flexWrap: 'wrap',
+                    gap: 'var(--spacing-2)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
+                    <span style={{
+                      fontSize: 'var(--font-size-xs)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      color: 'var(--text-secondary)',
+                      backgroundColor: 'var(--bg-primary)',
+                      padding: '2px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                    }}>
+                      #{index + 1}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: '#ef4444', textDecoration: 'line-through' }}>
+                        {formatDate(mod.previousDate)} {mod.previousStartTime || ''}
+                      </span>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>&rarr;</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: '#059669', fontWeight: 'var(--font-weight-semibold)' }}>
+                        {formatDate(mod.newDate)} {mod.newStartTime || ''}
+                      </span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
+                    {mod.modifiedAt ? new Date(mod.modifiedAt).toLocaleDateString('en-IN', {
+                      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                    }) : '-'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Cancel Modal */}

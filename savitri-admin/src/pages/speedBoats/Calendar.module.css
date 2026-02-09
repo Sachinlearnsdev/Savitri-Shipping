@@ -231,6 +231,133 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/* Weather Dot with Tooltip */
+.weatherDotWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3px;
+}
+
+.weatherDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: help;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
+}
+
+.weatherDotSafe {
+  background-color: #22c55e;
+}
+
+.weatherDotCaution {
+  background-color: #f59e0b;
+}
+
+.weatherDotDangerous {
+  background-color: #ef4444;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Tooltip */
+.weatherTooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  min-width: 180px;
+  padding: var(--spacing-3);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+}
+
+.weatherTooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--bg-primary);
+}
+
+.weatherTooltip::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--border-color);
+}
+
+.weatherDotWrapper:hover .weatherTooltip {
+  display: block;
+}
+
+.weatherTooltipHeader {
+  margin-bottom: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.weatherTooltipBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.weatherTooltipBadge.weatherSafe {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.weatherTooltipBadge.weatherCaution {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.weatherTooltipBadge.weatherDangerous {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.weatherTooltipRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.weatherTooltipLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.weatherTooltipValue {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
 .dayOpen {
   background-color: #f0fdf4;
   border-color: #bbf7d0;
@@ -534,6 +661,10 @@
   }
 
   .weatherIndicator {
+    display: none;
+  }
+
+  .weatherDotWrapper {
     display: none;
   }
 

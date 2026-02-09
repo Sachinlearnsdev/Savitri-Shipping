@@ -139,6 +139,27 @@ class CustomersService {
   }
 
   /**
+   * Toggle venue payment allowed
+   */
+  async toggleVenuePayment(id, venuePaymentAllowed) {
+    const customer = await Customer.findById(id);
+
+    if (!customer) {
+      throw ApiError.notFound("Customer not found");
+    }
+
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      id,
+      { venuePaymentAllowed: !!venuePaymentAllowed },
+      { new: true }
+    )
+      .select("id name email venuePaymentAllowed completedRidesCount")
+      .lean();
+
+    return formatDocument(updatedCustomer);
+  }
+
+  /**
    * Update customer status
    */
   async updateStatus(id, status) {

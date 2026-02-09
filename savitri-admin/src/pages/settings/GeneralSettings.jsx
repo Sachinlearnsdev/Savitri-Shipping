@@ -46,6 +46,8 @@ const GeneralSettings = () => {
     facebookUrl: '',
     instagramUrl: '',
     twitterUrl: '',
+    yearsExperience: '',
+    eventsHostedOverride: '',
   });
 
   useEffect(() => {
@@ -69,6 +71,8 @@ const GeneralSettings = () => {
             facebookUrl: config.facebookUrl || '',
             instagramUrl: config.instagramUrl || '',
             twitterUrl: config.twitterUrl || '',
+            yearsExperience: config.yearsExperience || '',
+            eventsHostedOverride: config.eventsHostedOverride || '',
           });
         }
       } catch (err) {
@@ -102,6 +106,8 @@ const GeneralSettings = () => {
           facebookUrl: formData.facebookUrl,
           instagramUrl: formData.instagramUrl,
           twitterUrl: formData.twitterUrl,
+          yearsExperience: formData.yearsExperience ? Number(formData.yearsExperience) : undefined,
+          eventsHostedOverride: formData.eventsHostedOverride ? Number(formData.eventsHostedOverride) : undefined,
         },
       };
       await updateSettings(SETTINGS_GROUPS.GENERAL, payload);
@@ -240,6 +246,29 @@ const GeneralSettings = () => {
             value={formData.twitterUrl}
             onChange={(e) => handleChange('twitterUrl', e.target.value)}
           />
+
+          {/* Website Statistics */}
+          <h3 className={styles.sectionTitle}>Website Statistics</h3>
+          <p className={styles.sectionHint}>
+            These values are displayed on the public homepage. Leave &quot;Events Hosted Override&quot; blank to use the actual count from the database.
+          </p>
+
+          <div className={styles.formRow}>
+            <Input
+              label="Years of Experience"
+              type="number"
+              placeholder="e.g. 10"
+              value={formData.yearsExperience}
+              onChange={(e) => handleChange('yearsExperience', e.target.value)}
+            />
+            <Input
+              label="Events Hosted Override"
+              type="number"
+              placeholder="Leave blank to use actual DB count"
+              value={formData.eventsHostedOverride}
+              onChange={(e) => handleChange('eventsHostedOverride', e.target.value)}
+            />
+          </div>
 
           {/* Save */}
           <div className={styles.formActions}>

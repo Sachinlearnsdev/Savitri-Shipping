@@ -247,6 +247,18 @@ const Calendar = () => {
     return styles.weatherSafe;
   };
 
+  const getWeatherDotClass = (recommendation) => {
+    if (recommendation === 'dangerous') return styles.weatherDotDangerous;
+    if (recommendation === 'caution') return styles.weatherDotCaution;
+    return styles.weatherDotSafe;
+  };
+
+  const getRecommendationLabel = (recommendation) => {
+    if (recommendation === 'dangerous') return 'Dangerous';
+    if (recommendation === 'caution') return 'Caution';
+    return 'Safe';
+  };
+
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
     const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
@@ -295,9 +307,30 @@ const Calendar = () => {
             <span className={styles.dayFestival} title={festival}>{festival}</span>
           )}
           {weather && !past && (
-            <span className={`${styles.weatherIndicator} ${getWeatherClass(weather.recommendation)}`}>
-              {weather.waveHeight.toFixed(1)}m / {Math.round(weather.windSpeed)}km/h
-            </span>
+            <div className={styles.weatherDotWrapper}>
+              <span className={`${styles.weatherDot} ${getWeatherDotClass(weather.recommendation)}`} />
+              <div className={styles.weatherTooltip}>
+                <div className={styles.weatherTooltipHeader}>
+                  <span className={`${styles.weatherTooltipBadge} ${getWeatherClass(weather.recommendation)}`}>
+                    {getRecommendationLabel(weather.recommendation)}
+                  </span>
+                </div>
+                {weather.temperature !== null && weather.temperature !== undefined && (
+                  <div className={styles.weatherTooltipRow}>
+                    <span className={styles.weatherTooltipLabel}>Temperature</span>
+                    <span className={styles.weatherTooltipValue}>{weather.temperature}&deg;C</span>
+                  </div>
+                )}
+                <div className={styles.weatherTooltipRow}>
+                  <span className={styles.weatherTooltipLabel}>Wind Speed</span>
+                  <span className={styles.weatherTooltipValue}>{Math.round(weather.windSpeed)} km/h</span>
+                </div>
+                <div className={styles.weatherTooltipRow}>
+                  <span className={styles.weatherTooltipLabel}>Wave Height</span>
+                  <span className={styles.weatherTooltipValue}>{weather.waveHeight.toFixed(1)} m</span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       );
@@ -413,6 +446,12 @@ const Calendar = () => {
           {/* Weather Info */}
           {selectedWeather && (
             <dl className={styles.modalWeather}>
+              {selectedWeather.temperature !== null && selectedWeather.temperature !== undefined && (
+                <>
+                  <dt>Temperature</dt>
+                  <dd>{selectedWeather.temperature}&deg;C</dd>
+                </>
+              )}
               <dt>Wave Height</dt>
               <dd>{selectedWeather.waveHeight.toFixed(1)} m</dd>
               <dt>Wind Speed</dt>

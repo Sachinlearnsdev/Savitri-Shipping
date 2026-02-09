@@ -68,6 +68,24 @@ class ReviewsController {
       next(error);
     }
   }
+
+  async getReviewStats(req, res, next) {
+    try {
+      const stats = await reviewsService.getReviewStats(req.query);
+      res.json(ApiResponse.success('Review stats retrieved', stats));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getBoatReviewsAggregation(req, res, next) {
+    try {
+      const boats = await reviewsService.getBoatReviewsAggregation(req.query);
+      res.json(ApiResponse.success('Boat review stats retrieved', boats));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ReviewsController();

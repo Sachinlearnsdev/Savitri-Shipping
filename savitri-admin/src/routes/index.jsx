@@ -20,7 +20,7 @@ import Customers from '../pages/users/Customers';
 import CustomerDetail from '../pages/users/CustomerDetail';
 
 // Profile Page
-import Profile from '../pages/profile/Profile';
+import AdminProfile from '../pages/profile/AdminProfile';
 
 // Settings Pages
 import GeneralSettings from '../pages/settings/GeneralSettings';
@@ -95,7 +95,7 @@ const AppRoutes = () => {
             <Route path="/users/customers/:id" element={<CustomerDetail />} />
             
             {/* Profile */}
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<AdminProfile />} />
             
             {/* Settings */}
             <Route path="/settings/general" element={<GeneralSettings />} />

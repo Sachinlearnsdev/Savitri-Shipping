@@ -969,7 +969,20 @@ export default function SpeedBoatBookPage() {
 
                   {bookingError && (
                     <div className={styles.bookingErrorBox}>
-                      <p>{bookingError}</p>
+                      <p>
+                        {bookingError.includes('5+ completed rides') || bookingError.includes('venue payment')
+                          ? 'At-venue payment is available for customers with 5 or more completed rides. Please use online payment.'
+                          : bookingError}
+                      </p>
+                      {(bookingError.includes('5+ completed rides') || bookingError.includes('venue payment')) && (
+                        <button
+                          className={styles.backButton}
+                          onClick={() => setPaymentMode('ONLINE')}
+                          style={{ marginTop: '0.75rem' }}
+                        >
+                          Switch to Online Payment
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

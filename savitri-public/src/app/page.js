@@ -30,7 +30,7 @@ const HERO_SLIDES = [
   },
 ];
 
-const STATS = [
+const DEFAULT_STATS = [
   { value: '10+', label: 'Years Experience' },
   { value: '5,000+', label: 'Happy Customers' },
   { value: '10+', label: 'Boats in Fleet' },
@@ -54,16 +54,48 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+/**
+ * Format a stat number for display with '+' suffix
+ * e.g., 5000 -> "5,000+", 10 -> "10+"
+ */
+const formatStatValue = (num) => {
+  if (num == null || num === 0) return '0';
+  return new Intl.NumberFormat('en-IN').format(num) + '+';
+};
+
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [testimonials, setTestimonials] = useState([]);
   const [testimonialsLoading, setTestimonialsLoading] = useState(true);
+  const [stats, setStats] = useState(DEFAULT_STATS);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch public stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get(API_ENDPOINTS.PUBLIC.STATS);
+        if (response.success && response.data) {
+          const d = response.data;
+          setStats([
+            { value: formatStatValue(d.yearsExperience), label: 'Years Experience' },
+            { value: formatStatValue(d.happyCustomers), label: 'Happy Customers' },
+            { value: formatStatValue(d.boatsInFleet), label: 'Boats in Fleet' },
+            { value: formatStatValue(d.eventsHosted), label: 'Events Hosted' },
+          ]);
+        }
+      } catch {
+        // Silently fail - keep default stats
+      }
+    };
+
+    fetchStats();
   }, []);
 
   // Fetch company reviews for testimonials
@@ -128,7 +160,7 @@ export default function HomePage() {
       <section className={styles.statsBar}>
         <div className={styles.container}>
           <div className={styles.statsGrid}>
-            {STATS.map((stat, index) => (
+            {stats.map((stat, index) => (
               <div key={index} className={styles.statItem}>
                 <span className={styles.statValue}>{stat.value}</span>
                 <span className={styles.statLabel}>{stat.label}</span>

@@ -21,6 +21,7 @@ const publicReviewQuerySchema = z.object({
 
 const adminReviewQuerySchema = z.object({
   type: z.string().optional(),
+  boatId: z.string().optional(),
   isApproved: z.enum(['true', 'false']).optional(),
   search: z.string().optional(),
   page: z.string().optional(),

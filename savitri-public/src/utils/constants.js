@@ -70,6 +70,8 @@ export const API_ENDPOINTS = {
     MY_BOOKINGS: '/bookings/my-bookings',
     CANCEL: (id) => `/bookings/${id}/cancel`,
     MODIFY_DATE: (id) => `/bookings/${id}/modify-date`,
+    MODIFY_SEND_OTP: (id) => `/bookings/${id}/modify/send-otp`,
+    MODIFY_CONFIRM: (id) => `/bookings/${id}/modify/confirm`,
     APPLY_COUPON: '/bookings/apply-coupon',
   },
 
@@ -77,6 +79,11 @@ export const API_ENDPOINTS = {
   REVIEWS: {
     LIST: '/reviews',
     CREATE: '/reviews',
+  },
+
+  // Public Stats (no auth)
+  PUBLIC: {
+    STATS: '/public/stats',
   },
 };
 

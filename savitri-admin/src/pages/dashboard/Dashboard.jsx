@@ -4,7 +4,7 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import useAuth from '../../hooks/useAuth';
 import useUIStore from '../../store/uiStore';
-import { getAllBookings } from '../../services/bookings.service';
+import { getAllBookings, getRecentModifications } from '../../services/bookings.service';
 import { getAllBoats } from '../../services/speedBoats.service';
 import { getAllCustomers } from '../../services/customers.service';
 import { getCurrentWeather, getCalendar } from '../../services/calendar.service';
@@ -82,6 +82,7 @@ const Dashboard = () => {
   const [recentBookings, setRecentBookings] = useState([]);
   const [weatherInfo, setWeatherInfo] = useState(null);
   const [todayCalendarStatus, setTodayCalendarStatus] = useState(null);
+  const [recentMods, setRecentMods] = useState([]);
 
   const formatCurrency = (amount) => {
     if (amount == null) return `${CURRENCY.SYMBOL}0`;
@@ -195,12 +196,17 @@ const Dashboard = () => {
         setTodaySchedule(Array.isArray(todayItems) ? todayItems : []);
         setRecentBookings(Array.isArray(recent) ? recent.slice(0, 5) : []);
 
-        // Fetch weather and calendar status (non-critical)
+        // Fetch weather, calendar status, and recent modifications (non-critical)
         try {
-          const [weatherRes, calendarRes] = await Promise.all([
+          const [weatherRes, calendarRes, modsRes] = await Promise.all([
             getCurrentWeather().catch(() => null),
             getCalendar({ month: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}` }).catch(() => null),
+            getRecentModifications(7).catch(() => null),
           ]);
+
+          if (modsRes?.data) {
+            setRecentMods(Array.isArray(modsRes.data) ? modsRes.data : []);
+          }
 
           if (weatherRes?.success) {
             setWeatherInfo(weatherRes.data);
@@ -477,6 +483,59 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Recent Modifications */}
+      {recentMods.length > 0 && (
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Recent Modifications (Last 7 Days)</h2>
+          <div className={styles.tableCard}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Booking #</th>
+                    <th>Customer</th>
+                    <th>Old Date</th>
+                    <th>New Date</th>
+                    <th>Modified At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentMods.map((booking) => {
+                    // Get the most recent modification
+                    const mods = booking.dateModifications || [];
+                    const latestMod = mods[mods.length - 1];
+                    if (!latestMod) return null;
+                    return (
+                      <tr
+                        key={booking.id || booking._id}
+                        className={styles.clickableRow}
+                        onClick={() => navigate(`/bookings/${booking.id || booking._id}`)}
+                      >
+                        <td className={styles.bookingNumber}>
+                          {booking.bookingNumber || booking.id || booking._id}
+                        </td>
+                        <td>{booking.customerId?.name || '-'}</td>
+                        <td style={{ color: '#ef4444', textDecoration: 'line-through' }}>
+                          {formatDate(latestMod.previousDate)} {latestMod.previousStartTime || ''}
+                        </td>
+                        <td style={{ color: '#059669', fontWeight: 'var(--font-weight-semibold)' }}>
+                          {formatDate(latestMod.newDate)} {latestMod.newStartTime || ''}
+                        </td>
+                        <td style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)' }}>
+                          {latestMod.modifiedAt ? new Date(latestMod.modifiedAt).toLocaleDateString('en-IN', {
+                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                          }) : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className={styles.section}>

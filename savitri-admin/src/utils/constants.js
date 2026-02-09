@@ -34,8 +34,14 @@ export const API_ENDPOINTS = {
   CUSTOMER_BY_ID: (id) => `/admin/customers/${id}`,
   CUSTOMER_BOOKINGS: (id) => `/admin/customers/${id}/bookings`,
   CUSTOMER_STATUS: (id) => `/admin/customers/${id}/status`,
+  CUSTOMER_VENUE_PAYMENT: (id) => `/admin/customers/${id}/venue-payment`,
   
-  // Profile
+  // Admin Profile
+  ADMIN_PROFILE: '/admin/profile',
+  ADMIN_PROFILE_AVATAR: '/admin/profile/avatar',
+  ADMIN_PROFILE_PASSWORD: '/admin/profile/password',
+
+  // Customer Profile
   PROFILE: '/profile',
   PROFILE_CHANGE_PASSWORD: '/profile/change-password',
   PROFILE_UPDATE_EMAIL: '/profile/update-email',
@@ -86,6 +92,8 @@ export const API_ENDPOINTS = {
 
   // Reviews (Admin)
   REVIEWS: '/admin/reviews',
+  REVIEW_STATS: '/admin/reviews/stats',
+  REVIEW_BOAT_AGGREGATION: '/admin/reviews/boat-aggregation',
   REVIEW_BY_ID: (id) => `/admin/reviews/${id}`,
   REVIEW_APPROVE: (id) => `/admin/reviews/${id}/approve`,
 

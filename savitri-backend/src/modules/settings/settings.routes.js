@@ -32,43 +32,10 @@ router.get(
   settingsController.getByGroup
 );
 
-// Update general settings
+// Update settings by group (group validated in service)
 router.put(
-  '/general',
+  '/:group',
   roleCheck('settings', 'edit'),
-  validate(generalSettingsSchema),
-  settingsController.updateByGroup
-);
-
-// Update billing settings
-router.put(
-  '/billing',
-  roleCheck('settings', 'edit'),
-  validate(billingSettingsSchema),
-  settingsController.updateByGroup
-);
-
-// Update booking settings
-router.put(
-  '/booking',
-  roleCheck('settings', 'edit'),
-  validate(bookingSettingsSchema),
-  settingsController.updateByGroup
-);
-
-// Update notification settings
-router.put(
-  '/notification',
-  roleCheck('settings', 'edit'),
-  validate(notificationSettingsSchema),
-  settingsController.updateByGroup
-);
-
-// Update content settings
-router.put(
-  '/content',
-  roleCheck('settings', 'edit'),
-  validate(contentSettingsSchema),
   settingsController.updateByGroup
 );
 
