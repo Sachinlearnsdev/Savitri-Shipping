@@ -28,7 +28,7 @@ const config = {
   
   // JWT
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-change-this',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   

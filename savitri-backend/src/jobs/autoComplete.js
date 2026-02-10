@@ -1,5 +1,6 @@
 // src/jobs/autoComplete.js
 const { SpeedBoatBooking, PartyBoatBooking, Customer } = require('../models');
+const config = require('../config/env');
 
 /**
  * Auto-Complete Job
@@ -60,7 +61,7 @@ const AutoCompleteJob = {
       autoCompleted += partyBookings.length;
     }
 
-    if (autoCompleted > 0) {
+    if (autoCompleted > 0 && config.enableLogs) {
       console.log(`Auto-completed ${autoCompleted} bookings (${speedBookings.length} speed, ${partyBookings.length} party)`);
     }
 

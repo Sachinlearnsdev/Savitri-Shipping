@@ -1,5 +1,6 @@
 // src/utils/scheduler.js
 const cron = require('node-cron');
+const config = require('../config/env');
 
 class Scheduler {
   constructor() {
@@ -24,7 +25,7 @@ class Scheduler {
         const result = await OTP.deleteMany({
           expiresAt: { $lt: new Date() },
         });
-        if (result.deletedCount > 0) {
+        if (result.deletedCount > 0 && config.enableLogs) {
           console.log(`Cleaned up ${result.deletedCount} expired OTPs`);
         }
       } catch (error) {
@@ -42,7 +43,9 @@ class Scheduler {
       }
     });
 
-    console.log(`Scheduler initialized with ${this.jobs.length} jobs`);
+    if (config.enableLogs) {
+      console.log(`Scheduler initialized with ${this.jobs.length} jobs`);
+    }
   }
 
   addJob(name, schedule, handler) {

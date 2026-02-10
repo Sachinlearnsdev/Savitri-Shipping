@@ -37,7 +37,7 @@ module.exports = {
   SESSION: {
     COOKIE_NAME: 'savitri_token',
     ADMIN_COOKIE_NAME: 'savitri_admin_token',
-    COOKIE_MAX_AGE: 7 * 24 * 60 * 60 * 1000, // 7 days
+    COOKIE_MAX_AGE: 1 * 24 * 60 * 60 * 1000, // 1 day
   },
 
   // Pagination

@@ -7,6 +7,20 @@ import { authService } from "@/services/auth.service";
 import { getErrorMessage } from "@/utils/helpers";
 
 /**
+ * Sanitize redirect URL to prevent open redirect attacks.
+ * Only allows relative paths (starting with /). Rejects absolute URLs, protocol-relative URLs, etc.
+ */
+const sanitizeRedirectUrl = (url) => {
+  if (!url || typeof url !== 'string') return '/';
+  const trimmed = url.trim();
+  // Must start with / and must NOT start with // (protocol-relative)
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return '/';
+  // Must not contain :// anywhere (no absolute URLs disguised with encoded chars)
+  if (trimmed.includes('://')) return '/';
+  return trimmed;
+};
+
+/**
  * useAuth Hook
  * Provides authentication methods and state
  */
@@ -69,7 +83,7 @@ export const useAuth = () => {
 
         // Use window.location.assign for full page reload
         // This ensures middleware sees the new cookie
-        window.location.assign(redirectTo);
+        window.location.assign(sanitizeRedirectUrl(redirectTo));
         
         return response;
       } else {
@@ -125,8 +139,8 @@ export const useAuth = () => {
         await login(response.data.customer, response.data.token);
         showSuccess("Login successful! Redirecting...");
 
-        window.location.assign(redirectTo);
-        
+        window.location.assign(sanitizeRedirectUrl(redirectTo));
+
         return response;
       } else {
         throw new Error('Invalid response from server');

@@ -1,6 +1,7 @@
 // src/jobs/bookingReminder.js
 const { SpeedBoatBooking, PartyBoatBooking } = require('../models');
 const { sendBookingReminder } = require('../utils/email');
+const config = require('../config/env');
 
 /**
  * Booking Reminder Job
@@ -103,7 +104,7 @@ const BookingReminderJob = {
       }
     }
 
-    if (remindersSent > 0) {
+    if (remindersSent > 0 && config.enableLogs) {
       console.log(`Booking reminders sent: ${remindersSent} (${speedBookings.length} speed, ${partyBookings.length} party)`);
     }
 
