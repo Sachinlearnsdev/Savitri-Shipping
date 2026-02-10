@@ -111,6 +111,5 @@ const inquirySchema = new mongoose.Schema({
 inquirySchema.index({ status: 1, isDeleted: 1 });
 inquirySchema.index({ customerId: 1 });
 inquirySchema.index({ boatId: 1 });
-inquirySchema.index({ inquiryNumber: 1 });
 
 module.exports = mongoose.model('Inquiry', inquirySchema);
