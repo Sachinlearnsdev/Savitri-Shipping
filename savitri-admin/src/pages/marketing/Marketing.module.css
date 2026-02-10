@@ -95,6 +95,7 @@
   gap: var(--spacing-2);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  flex-wrap: wrap;
 }
 
 .dot {
@@ -139,32 +140,48 @@
   color: var(--text-primary);
 }
 
-/* ==================== Template Variables ==================== */
+/* ==================== Greeting Row ==================== */
 
-.variablesSection {
+.greetingRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+  align-items: end;
+}
+
+/* ==================== Offer Section ==================== */
+
+.offerSection {
   padding: var(--spacing-4);
   background-color: var(--bg-secondary);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
 }
 
-.variablesTitle {
-  margin: 0 0 var(--spacing-1);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+.offerToggle {
+  margin-bottom: var(--spacing-1);
 }
 
-.variablesHint {
-  margin: 0 0 var(--spacing-3);
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  line-height: 1.4;
+.offerFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border-color);
 }
 
-.variablesGrid {
+.offerRow {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+/* ==================== Closing Row ==================== */
+
+.closingRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-3);
 }
 
@@ -194,7 +211,7 @@
 
 .previewContainer {
   flex: 1;
-  min-height: 500px;
+  min-height: 600px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   background-color: #ffffff;
@@ -204,7 +221,7 @@
 .previewIframe {
   width: 100%;
   height: 100%;
-  min-height: 500px;
+  min-height: 600px;
   border: none;
   display: block;
 }
@@ -215,7 +232,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 500px;
+  min-height: 600px;
   padding: var(--spacing-8);
   text-align: center;
   color: var(--text-secondary);
@@ -231,27 +248,22 @@
   margin-top: var(--spacing-2) !important;
 }
 
-/* ==================== Confirm Modal ==================== */
+/* ==================== Schedule Modal ==================== */
 
-.confirmContent {
+.scheduleContent {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
 }
 
-.confirmContent p {
+.scheduleHint {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
-.confirmSubject {
-  padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-}
-
-.confirmActions {
+.scheduleActions {
   display: flex;
   justify-content: flex-end;
   gap: var(--spacing-3);
@@ -342,8 +354,14 @@
 /* ==================== Responsive ==================== */
 
 @media (max-width: 1280px) {
-  .variablesGrid {
-    grid-template-columns: 1fr 1fr;
+  .greetingRow {
+    grid-template-columns: 1fr;
+  }
+  .offerRow {
+    grid-template-columns: 1fr;
+  }
+  .closingRow {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -357,15 +375,15 @@
   }
 
   .previewContainer {
-    min-height: 400px;
+    min-height: 500px;
   }
 
   .previewIframe {
-    min-height: 400px;
+    min-height: 500px;
   }
 
   .previewEmpty {
-    min-height: 400px;
+    min-height: 500px;
   }
 
   .templateGrid {
@@ -384,8 +402,8 @@
     align-items: stretch;
   }
 
-  .variablesGrid {
-    grid-template-columns: 1fr;
+  .composeActions {
+    flex-direction: column;
   }
 
   .templateGrid {

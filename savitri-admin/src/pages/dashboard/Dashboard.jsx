@@ -352,6 +352,14 @@ const Dashboard = () => {
         {/* Today's Calendar & Festivals Card */}
         <div className={styles.festivalCard}>
           <h2 className={styles.sectionTitle}>Today's Calendar</h2>
+          <div className={styles.todayDateDisplay}>
+            <span className={styles.todayDayOfWeek}>
+              {new Date().toLocaleDateString('en-IN', { weekday: 'long' })}
+            </span>
+            <span className={styles.todayFullDate}>
+              {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
           <div className={styles.calendarStatusRow}>
             <span className={styles.calendarStatusLabel}>Operations Status:</span>
             <span className={`${styles.calendarStatusBadge} ${

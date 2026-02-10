@@ -36,16 +36,17 @@
   font-weight: var(--font-weight-normal);
   color: var(--text-primary);
   background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1.5px solid var(--border-color);
   border-radius: var(--radius-lg);
   cursor: pointer;
   outline: none;
-  transition: var(--transition-colors);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   text-align: left;
 }
 
 .select:hover:not(:disabled) {
-  border-color: var(--border-color-dark);
+  border-color: var(--color-primary-300, #67e8f9);
+  background-color: var(--bg-primary);
 }
 
 .select:focus {
@@ -86,8 +87,7 @@
   white-space: nowrap;
 }
 
-.select:not(:disabled) .selectedText:empty::before {
-  content: attr(data-placeholder);
+.placeholder {
   color: var(--text-tertiary);
 }
 
@@ -96,55 +96,87 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
   color: var(--text-tertiary);
-  transition: transform var(--transition-fast);
+  transition: transform 0.25s ease, color 0.2s ease;
+  flex-shrink: 0;
 }
 
 .arrowUp {
   transform: rotate(180deg);
+  color: var(--color-primary);
 }
 
 /* Dropdown */
 .dropdown {
   position: absolute;
-  top: calc(100% + var(--spacing-1));
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border: 1.5px solid var(--color-primary-200, #a5f3fc);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: var(--z-dropdown);
   max-height: 300px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: dropdownSlideIn 0.15s ease-out;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Search Input */
 .searchWrapper {
   padding: var(--spacing-2);
   border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.searchInputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-2);
+  color: var(--text-tertiary);
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .searchInput {
   width: 100%;
   height: 36px;
-  padding: 0 var(--spacing-3);
+  padding: 0 var(--spacing-3) 0 calc(var(--spacing-2) + 20px);
   font-family: var(--font-primary);
   font-size: var(--font-size-sm);
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   outline: none;
-  transition: var(--transition-colors);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .searchInput:focus {
   border-color: var(--color-primary);
-  background-color: var(--bg-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-50);
+}
+
+.searchInput::placeholder {
+  color: var(--text-tertiary);
 }
 
 /* Options List */
@@ -166,11 +198,12 @@
   color: var(--text-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .option:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--color-primary-50, #ecfeff);
+  color: var(--color-primary-700, #0e7490);
 }
 
 .option.selected {
@@ -179,15 +212,20 @@
   font-weight: var(--font-weight-medium);
 }
 
+.option.selected:hover {
+  background-color: var(--color-primary-100, #cffafe);
+}
+
 /* Checkmark */
 .checkmark {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
 }
 
 /* No Options */
 .noOptions {
-  padding: var(--spacing-4);
+  padding: var(--spacing-6);
   text-align: center;
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
@@ -218,6 +256,7 @@
 /* Open State */
 .open {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 /* Scrollbar for Options List */
@@ -236,4 +275,15 @@
 
 .optionsList::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-400);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dropdown {
+    max-height: 250px;
+  }
+
+  .optionsList {
+    max-height: 200px;
+  }
 }

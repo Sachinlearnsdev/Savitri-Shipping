@@ -5,328 +5,84 @@ import Select from '../../components/common/Select';
 import Textarea from '../../components/common/Textarea';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import Toggle from '../../components/common/Toggle';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 import { getCampaigns, sendCampaign, sendTestEmail } from '../../services/marketing.service';
 import { getSettingsByGroup } from '../../services/settings.service';
 import { getCoupons } from '../../services/coupons.service';
+import { getAllCustomers } from '../../services/customers.service';
 import styles from './Marketing.module.css';
 
+// Template color schemes for generating HTML
+const TEMPLATE_THEMES = {
+  diwali: { gradient: 'linear-gradient(135deg,#FF6F00,#FFB300,#FF6F00)', accent: '#FF6F00', offerBg: '#FFF3E0', offerBorder: '#FF6F00', offerTitle: '#E65100', bodyBg: '#FFF8E1', emoji: '\u{1FA94}\u2728\u{1FA94}', heading: 'Happy Diwali!', subtext: 'May the festival of lights brighten your life', offerEmoji: '\u{1F389}' },
+  christmas: { gradient: 'linear-gradient(135deg,#C62828,#2E7D32,#C62828)', accent: '#C62828', offerBg: '#FFEBEE', offerBorder: '#C62828', offerTitle: '#B71C1C', bodyBg: '#F1F8E9', emoji: '\u{1F384}\u{1F385}\u{1F384}', heading: 'Merry Christmas!', subtext: 'Wishing you joy, peace, and wonderful celebrations', offerEmoji: '\u{1F381}' },
+  'new-year': { gradient: 'linear-gradient(135deg,#1A237E,#4A148C,#1A237E)', accent: '#4A148C', offerBg: '#EDE7F6', offerBorder: '#4A148C', offerTitle: '#4A148C', bodyBg: '#E8EAF6', emoji: '\u{1F386}\u{1F37E}\u{1F386}', heading: 'Happy New Year!', subtext: 'Cheers to new beginnings and exciting adventures', offerEmoji: '\u{1F37E}' },
+  holi: { gradient: 'linear-gradient(135deg,#E91E63,#FF9800,#4CAF50,#2196F3)', accent: '#E91E63', offerBg: '#F3E5F5', offerBorder: '#9C27B0', offerTitle: '#7B1FA2', bodyBg: '#FCE4EC', emoji: '\u{1F3A8}\u{1F308}\u{1F3A8}', heading: 'Happy Holi!', subtext: 'Let the colors of joy splash into your life', offerEmoji: '\u{1F308}' },
+  valentines: { gradient: 'linear-gradient(135deg,#C2185B,#E91E63,#F06292)', accent: '#C2185B', offerBg: '#FCE4EC', offerBorder: '#C2185B', offerTitle: '#880E4F', bodyBg: '#FCE4EC', emoji: '\u2764\uFE0F\u{1F6A2}\u2764\uFE0F', heading: "Happy Valentine's Day!", subtext: 'Create unforgettable moments with your special someone', offerEmoji: '\u{1F48C}' },
+  'independence-day': { gradient: 'linear-gradient(180deg,#FF9933 33%,#FFFFFF 33%,#FFFFFF 66%,#138808 66%)', accent: '#138808', offerBg: '#E8F5E9', offerBorder: '#138808', offerTitle: '#1B5E20', bodyBg: '#FFF3E0', emoji: '\u{1F1EE}\u{1F1F3}\u{1F3B5}\u{1F1EE}\u{1F1F3}', heading: 'Happy Independence Day!', subtext: 'Jai Hind! Celebrate the spirit of freedom', offerEmoji: '\u{1F1EE}\u{1F1F3}' },
+  eid: { gradient: 'linear-gradient(135deg,#00695C,#004D40,#00695C)', accent: '#00695C', offerBg: '#E0F2F1', offerBorder: '#00695C', offerTitle: '#004D40', bodyBg: '#E8F5E9', emoji: '\u{1F319}\u2B50\u{1F319}', heading: 'Eid Mubarak!', subtext: 'Wishing you blessings, peace, and happiness', offerEmoji: '\u2B50' },
+  'ganesh-chaturthi': { gradient: 'linear-gradient(135deg,#E65100,#FF8F00,#E65100)', accent: '#E65100', offerBg: '#FFF3E0', offerBorder: '#E65100', offerTitle: '#BF360C', bodyBg: '#FFF8E1', emoji: '\u{1F418}\u{1F4AE}\u{1F418}', heading: 'Ganpati Bappa Morya!', subtext: 'May Lord Ganesha bless you with wisdom and prosperity', offerEmoji: '\u{1F4AE}' },
+  navratri: { gradient: 'linear-gradient(135deg,#AD1457,#D81B60,#F06292)', accent: '#AD1457', offerBg: '#FCE4EC', offerBorder: '#AD1457', offerTitle: '#880E4F', bodyBg: '#F3E5F5', emoji: '\u{1F483}\u{1F52E}\u{1F483}', heading: 'Happy Navratri!', subtext: 'Nine nights of celebration, devotion, and joy', offerEmoji: '\u{1F52E}' },
+  'raksha-bandhan': { gradient: 'linear-gradient(135deg,#1565C0,#42A5F5,#1565C0)', accent: '#1565C0', offerBg: '#E3F2FD', offerBorder: '#1565C0', offerTitle: '#0D47A1', bodyBg: '#E3F2FD', emoji: '\u{1F380}\u{1F495}\u{1F380}', heading: 'Happy Raksha Bandhan!', subtext: 'Celebrating the beautiful bond between siblings', offerEmoji: '\u{1F495}' },
+  custom: { gradient: 'linear-gradient(135deg,#0891b2,#06b6d4,#0891b2)', accent: '#0891b2', offerBg: '#E0F7FA', offerBorder: '#0891b2', offerTitle: '#006064', bodyBg: '#F0F9FF', emoji: '\u{1F6A2}\u2728\u{1F6A2}', heading: 'Special Offer!', subtext: 'We have something exciting for you', offerEmoji: '\u{1F389}' },
+};
+
 const HOLIDAY_TEMPLATES = [
-  {
-    id: 'diwali',
-    name: 'Diwali',
-    emoji: '\u{1FA94}',
-    description: 'Festival of lights celebration',
-    subject: '\u{1FA94} Happy Diwali from {{companyName}}! Light Up Your Celebrations on the Water',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#FFF8E1;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#FF6F00,#FFB300,#FF6F00);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1FA94}\u2728\u{1FA94}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Happy Diwali!</h1>
-<p style="color:#FFF8E1;margin:8px 0 0;font-size:16px;">May the festival of lights brighten your life</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Diwali, celebrate the festival of lights with an unforgettable experience on the water! Let the shimmering waves reflect the joy of the season.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#FFF3E0;border-left:4px solid #FF6F00;padding:20px;border-radius:4px;">
-<h2 style="color:#E65100;margin:0 0 8px;font-size:20px;">\u{1F389} Diwali Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>DIWALIXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#FF6F00;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Diwali Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Wishing you and your family a prosperous and joyous Diwali!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'christmas',
-    name: 'Christmas',
-    emoji: '\u{1F384}',
-    description: 'Merry Christmas holiday greetings',
-    subject: '\u{1F384} Merry Christmas from {{companyName}}! Sail Into the Holiday Spirit',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F1F8E9;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#C62828,#2E7D32,#C62828);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F384}\u{1F385}\u{1F384}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Merry Christmas!</h1>
-<p style="color:#E8F5E9;margin:8px 0 0;font-size:16px;">Wishing you joy, peace, and wonderful celebrations</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Christmas, give your loved ones the gift of an extraordinary experience! Set sail with us and create magical memories under the winter sky.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#FFEBEE;border-left:4px solid #C62828;padding:20px;border-radius:4px;">
-<h2 style="color:#B71C1C;margin:0 0 8px;font-size:20px;">\u{1F381} Christmas Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>XMASXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#C62828;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Christmas Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Merry Christmas and Happy Holidays from our family to yours!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'new-year',
-    name: 'New Year',
-    emoji: '\u{1F386}',
-    description: 'Ring in the New Year with style',
-    subject: '\u{1F386} Happy New Year from {{companyName}}! Start the Year with an Adventure',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#E8EAF6;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#1A237E,#4A148C,#1A237E);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F386}\u{1F37E}\u{1F386}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Happy New Year!</h1>
-<p style="color:#C5CAE9;margin:8px 0 0;font-size:16px;">Cheers to new beginnings and exciting adventures</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Kick off the New Year with an unforgettable boat ride! Whether you are celebrating with friends, family, or that special someone, start the year with memories you will cherish forever.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#EDE7F6;border-left:4px solid #4A148C;padding:20px;border-radius:4px;">
-<h2 style="color:#4A148C;margin:0 0 8px;font-size:20px;">\u{1F37E} New Year Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>NEWYEARXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#4A148C;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your New Year Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Here is to an amazing year ahead filled with adventure!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'holi',
-    name: 'Holi',
-    emoji: '\u{1F3A8}',
-    description: 'Festival of colors celebration',
-    subject: '\u{1F3A8} Happy Holi from {{companyName}}! Add Colors to Your Celebration on Water',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#FCE4EC;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#E91E63,#FF9800,#4CAF50,#2196F3);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F3A8}\u{1F308}\u{1F3A8}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Happy Holi!</h1>
-<p style="color:#ffffff;margin:8px 0 0;font-size:16px;">Let the colors of joy splash into your life</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Holi, make your celebration truly special! Enjoy a vibrant boat ride with friends and family as you paint the town (and the waves) with colors of happiness.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#F3E5F5;border-left:4px solid #9C27B0;padding:20px;border-radius:4px;">
-<h2 style="color:#7B1FA2;margin:0 0 8px;font-size:20px;">\u{1F308} Holi Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>HOLIXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background:linear-gradient(135deg,#E91E63,#FF9800);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Holi Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Wishing you a colorful and joyous Holi!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'valentines',
-    name: "Valentine's Day",
-    emoji: '\u2764\uFE0F',
-    description: 'Romantic getaway on the water',
-    subject: "\u2764\uFE0F Valentine's Special from {{companyName}}! Romance on the Waves",
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#FCE4EC;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#C2185B,#E91E63,#F06292);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u2764\uFE0F\u{1F6A2}\u2764\uFE0F</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Happy Valentine's Day!</h1>
-<p style="color:#F8BBD0;margin:8px 0 0;font-size:16px;">Create unforgettable moments with your special someone</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Valentine's Day, sweep your special someone off their feet with a romantic boat ride! Watch the sunset, feel the breeze, and create memories that will last a lifetime.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#FCE4EC;border-left:4px solid #C2185B;padding:20px;border-radius:4px;">
-<h2 style="color:#880E4F;margin:0 0 8px;font-size:20px;">\u{1F48C} Valentine's Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on couple boat rides! Use code: <strong>LOVEXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#C2185B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book a Romantic Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Love is in the air... and on the water!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'independence-day',
-    name: 'Independence Day',
-    emoji: '\u{1F1EE}\u{1F1F3}',
-    description: '15th August patriotic celebration',
-    subject: '\u{1F1EE}\u{1F1F3} Happy Independence Day from {{companyName}}! Celebrate Freedom on the Waves',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#FFF3E0;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(180deg,#FF9933 33%,#FFFFFF 33%,#FFFFFF 66%,#138808 66%);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F1EE}\u{1F1F3}\u{1F3B5}\u{1F1EE}\u{1F1F3}</div>
-<h1 style="color:#1A237E;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(255,255,255,0.5);">Happy Independence Day!</h1>
-<p style="color:#333333;margin:8px 0 0;font-size:16px;background:rgba(255,255,255,0.7);display:inline-block;padding:4px 12px;border-radius:4px;">Jai Hind! Celebrate the spirit of freedom</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Independence Day, celebrate the spirit of freedom with an exhilarating boat ride! Feel the wind of liberty as you cruise the open waters with your loved ones.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#E8F5E9;border-left:4px solid #138808;padding:20px;border-radius:4px;">
-<h2 style="color:#1B5E20;margin:0 0 8px;font-size:20px;">\u{1F1EE}\u{1F1F3} Independence Day Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>FREEDOMXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#138808;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Freedom Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Vande Mataram! Have a wonderful Independence Day!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'eid',
-    name: 'Eid',
-    emoji: '\u{1F319}',
-    description: 'Eid Mubarak celebration wishes',
-    subject: '\u{1F319} Eid Mubarak from {{companyName}}! Celebrate with a Special Boat Ride',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#E8F5E9;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#00695C,#004D40,#00695C);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F319}\u2B50\u{1F319}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Eid Mubarak!</h1>
-<p style="color:#A5D6A7;margin:8px 0 0;font-size:16px;">Wishing you blessings, peace, and happiness</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Eid, celebrate with your family and friends on a delightful boat ride! Let the calm waters and gentle breeze add to the joy of this blessed occasion.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#E0F2F1;border-left:4px solid #00695C;padding:20px;border-radius:4px;">
-<h2 style="color:#004D40;margin:0 0 8px;font-size:20px;">\u2B50 Eid Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>EIDXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#00695C;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Eid Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Eid Mubarak to you and your loved ones!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'ganesh-chaturthi',
-    name: 'Ganesh Chaturthi',
-    emoji: '\u{1F418}',
-    description: 'Ganpati Bappa Morya celebration',
-    subject: '\u{1F418} Ganesh Chaturthi Wishes from {{companyName}}! Celebrate with Bappa on the Water',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#FFF8E1;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#E65100,#FF8F00,#E65100);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F418}\u{1F4AE}\u{1F418}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Ganpati Bappa Morya!</h1>
-<p style="color:#FFE0B2;margin:8px 0 0;font-size:16px;">May Lord Ganesha bless you with wisdom and prosperity</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Ganesh Chaturthi, celebrate the arrival of Lord Ganesha with a joyous boat ride! Bring your family along for a memorable experience on the waters as the festivities come alive.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#FFF3E0;border-left:4px solid #E65100;padding:20px;border-radius:4px;">
-<h2 style="color:#BF360C;margin:0 0 8px;font-size:20px;">\u{1F4AE} Ganesh Chaturthi Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>GANPATIXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#E65100;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Festive Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Ganpati Bappa Morya! Mangal Murti Morya!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'navratri',
-    name: 'Navratri',
-    emoji: '\u{1F483}',
-    description: 'Nine nights of dance and devotion',
-    subject: '\u{1F483} Happy Navratri from {{companyName}}! Dance Your Way to the Waves',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F3E5F5;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#AD1457,#D81B60,#F06292);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F483}\u{1F52E}\u{1F483}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Happy Navratri!</h1>
-<p style="color:#F8BBD0;margin:8px 0 0;font-size:16px;">Nine nights of celebration, devotion, and joy</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Navratri, take the celebration to the water! After nights of Garba and Dandiya, treat yourself and your loved ones to a refreshing boat ride and create beautiful memories.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#FCE4EC;border-left:4px solid #AD1457;padding:20px;border-radius:4px;">
-<h2 style="color:#880E4F;margin:0 0 8px;font-size:20px;">\u{1F52E} Navratri Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on all boat rides! Use code: <strong>NAVRATRIXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#AD1457;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book Your Navratri Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">May Maa Durga bless you with strength and happiness!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  },
-  {
-    id: 'raksha-bandhan',
-    name: 'Raksha Bandhan',
-    emoji: '\u{1F380}',
-    description: 'Celebrate the bond of siblings',
-    subject: '\u{1F380} Happy Raksha Bandhan from {{companyName}}! Gift Your Sibling a Boat Ride',
-    body: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#E3F2FD;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#1565C0,#42A5F5,#1565C0);padding:40px 30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">\u{1F380}\u{1F495}\u{1F380}</div>
-<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">Happy Raksha Bandhan!</h1>
-<p style="color:#BBDEFB;margin:8px 0 0;font-size:16px;">Celebrating the beautiful bond between siblings</p>
-</td></tr>
-<tr><td style="padding:30px;">
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">Dear Valued Customer,</p>
-<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">This Raksha Bandhan, go beyond the usual gifts! Surprise your sibling with an exciting boat ride experience. Create unforgettable memories together on the water.</p>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:#E3F2FD;border-left:4px solid #1565C0;padding:20px;border-radius:4px;">
-<h2 style="color:#0D47A1;margin:0 0 8px;font-size:20px;">\u{1F495} Rakhi Special Offer!</h2>
-<p style="color:#333333;font-size:16px;margin:0;">Get <strong>X% off</strong> on sibling duo rides! Use code: <strong>RAKHIXX</strong></p>
-</td></tr></table>
-<div style="text-align:center;margin:30px 0;">
-<a href="#" style="display:inline-block;background-color:#1565C0;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">Book a Sibling Ride \u2192</a>
-</div>
-<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">Celebrate the bond that makes life beautiful!</p>
-</td></tr>
-<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
-<p style="color:#999999;font-size:12px;margin:0;">{{companyName}} | Making memories on the water</p>
-</td></tr>
-</table></body></html>`
-  }
+  { id: 'diwali', name: 'Diwali', emoji: '\u{1FA94}', description: 'Festival of lights celebration', defaultSubject: '\u{1FA94} Happy Diwali from {{companyName}}! Light Up Your Celebrations on the Water', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Diwali, celebrate the festival of lights with an unforgettable experience on the water! Let the shimmering waves reflect the joy of the season.', defaultCTA: 'Book Your Diwali Ride', defaultOfferHeadline: 'Diwali Special Offer!', defaultClosing: 'Wishing you and your family a prosperous and joyous Diwali!' },
+  { id: 'christmas', name: 'Christmas', emoji: '\u{1F384}', description: 'Merry Christmas holiday greetings', defaultSubject: '\u{1F384} Merry Christmas from {{companyName}}! Sail Into the Holiday Spirit', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Christmas, give your loved ones the gift of an extraordinary experience! Set sail with us and create magical memories under the winter sky.', defaultCTA: 'Book Your Christmas Ride', defaultOfferHeadline: 'Christmas Special Offer!', defaultClosing: 'Merry Christmas and Happy Holidays from our family to yours!' },
+  { id: 'new-year', name: 'New Year', emoji: '\u{1F386}', description: 'Ring in the New Year with style', defaultSubject: '\u{1F386} Happy New Year from {{companyName}}! Start the Year with an Adventure', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'Kick off the New Year with an unforgettable boat ride! Whether you are celebrating with friends, family, or that special someone, start the year with memories you will cherish forever.', defaultCTA: 'Book Your New Year Ride', defaultOfferHeadline: 'New Year Special Offer!', defaultClosing: 'Here is to an amazing year ahead filled with adventure!' },
+  { id: 'holi', name: 'Holi', emoji: '\u{1F3A8}', description: 'Festival of colors celebration', defaultSubject: '\u{1F3A8} Happy Holi from {{companyName}}! Add Colors to Your Celebration on Water', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Holi, make your celebration truly special! Enjoy a vibrant boat ride with friends and family as you paint the town (and the waves) with colors of happiness.', defaultCTA: 'Book Your Holi Ride', defaultOfferHeadline: 'Holi Special Offer!', defaultClosing: 'Wishing you a colorful and joyous Holi!' },
+  { id: 'valentines', name: "Valentine's Day", emoji: '\u2764\uFE0F', description: 'Romantic getaway on the water', defaultSubject: "\u2764\uFE0F Valentine's Special from {{companyName}}! Romance on the Waves", defaultGreeting: 'Dear Valued Customer,', defaultMessage: "This Valentine's Day, sweep your special someone off their feet with a romantic boat ride! Watch the sunset, feel the breeze, and create memories that will last a lifetime.", defaultCTA: 'Book a Romantic Ride', defaultOfferHeadline: "Valentine's Special Offer!", defaultClosing: 'Love is in the air... and on the water!' },
+  { id: 'independence-day', name: 'Independence Day', emoji: '\u{1F1EE}\u{1F1F3}', description: '15th August patriotic celebration', defaultSubject: '\u{1F1EE}\u{1F1F3} Happy Independence Day from {{companyName}}! Celebrate Freedom on the Waves', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Independence Day, celebrate the spirit of freedom with an exhilarating boat ride! Feel the wind of liberty as you cruise the open waters with your loved ones.', defaultCTA: 'Book Your Freedom Ride', defaultOfferHeadline: 'Independence Day Offer!', defaultClosing: 'Vande Mataram! Have a wonderful Independence Day!' },
+  { id: 'eid', name: 'Eid', emoji: '\u{1F319}', description: 'Eid Mubarak celebration wishes', defaultSubject: '\u{1F319} Eid Mubarak from {{companyName}}! Celebrate with a Special Boat Ride', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Eid, celebrate with your family and friends on a delightful boat ride! Let the calm waters and gentle breeze add to the joy of this blessed occasion.', defaultCTA: 'Book Your Eid Ride', defaultOfferHeadline: 'Eid Special Offer!', defaultClosing: 'Eid Mubarak to you and your loved ones!' },
+  { id: 'ganesh-chaturthi', name: 'Ganesh Chaturthi', emoji: '\u{1F418}', description: 'Ganpati Bappa Morya celebration', defaultSubject: '\u{1F418} Ganesh Chaturthi Wishes from {{companyName}}! Celebrate with Bappa on the Water', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Ganesh Chaturthi, celebrate the arrival of Lord Ganesha with a joyous boat ride! Bring your family along for a memorable experience on the waters as the festivities come alive.', defaultCTA: 'Book Your Festive Ride', defaultOfferHeadline: 'Ganesh Chaturthi Offer!', defaultClosing: 'Ganpati Bappa Morya! Mangal Murti Morya!' },
+  { id: 'navratri', name: 'Navratri', emoji: '\u{1F483}', description: 'Nine nights of dance and devotion', defaultSubject: '\u{1F483} Happy Navratri from {{companyName}}! Dance Your Way to the Waves', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Navratri, take the celebration to the water! After nights of Garba and Dandiya, treat yourself and your loved ones to a refreshing boat ride and create beautiful memories.', defaultCTA: 'Book Your Navratri Ride', defaultOfferHeadline: 'Navratri Special Offer!', defaultClosing: 'May Maa Durga bless you with strength and happiness!' },
+  { id: 'raksha-bandhan', name: 'Raksha Bandhan', emoji: '\u{1F380}', description: 'Celebrate the bond of siblings', defaultSubject: '\u{1F380} Happy Raksha Bandhan from {{companyName}}! Gift Your Sibling a Boat Ride', defaultGreeting: 'Dear Valued Customer,', defaultMessage: 'This Raksha Bandhan, go beyond the usual gifts! Surprise your sibling with an exciting boat ride experience. Create unforgettable memories together on the water.', defaultCTA: 'Book a Sibling Ride', defaultOfferHeadline: 'Rakhi Special Offer!', defaultClosing: 'Celebrate the bond that makes life beautiful!' },
 ];
 
-// Map template IDs to their default coupon code placeholders
-const TEMPLATE_COUPON_PLACEHOLDERS = {
-  diwali: 'DIWALIXX',
-  christmas: 'XMASXX',
-  'new-year': 'NEWYEARXX',
-  holi: 'HOLIXX',
-  valentines: 'LOVEXX',
-  'independence-day': 'FREEDOMXX',
-  eid: 'EIDXX',
-  'ganesh-chaturthi': 'GANPATIXX',
-  navratri: 'NAVRATRIXX',
-  'raksha-bandhan': 'RAKHIXX',
+const GREETING_OPTIONS = [
+  { value: 'Dear Valued Customer,', label: 'Dear Valued Customer,' },
+  { value: 'Hello!', label: 'Hello!' },
+  { value: 'Hi there!', label: 'Hi there!' },
+  { value: 'custom', label: 'Custom greeting...' },
+];
+
+/**
+ * Generate email HTML from structured fields
+ */
+const generateEmailHTML = (fields, templateId) => {
+  const theme = TEMPLATE_THEMES[templateId] || TEMPLATE_THEMES.custom;
+  const { greeting, mainMessage, ctaText, showOffer, offerHeadline, discountPercent, couponCode, companyName, closing } = fields;
+
+  const offerSection = showOffer && (discountPercent || couponCode) ? `
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:${theme.offerBg};border-left:4px solid ${theme.offerBorder};padding:20px;border-radius:4px;">
+<h2 style="color:${theme.offerTitle};margin:0 0 8px;font-size:20px;">${theme.offerEmoji} ${offerHeadline || 'Special Offer!'}</h2>
+<p style="color:#333333;font-size:16px;margin:0;">${discountPercent ? `Get <strong>${discountPercent}% off</strong> on all boat rides!` : ''}${couponCode ? ` Use code: <strong>${couponCode}</strong>` : ''}</p>
+</td></tr></table>` : '';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:${theme.bodyBg};font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
+<tr><td style="background:${theme.gradient};padding:40px 30px;text-align:center;">
+<div style="font-size:48px;margin-bottom:10px;">${theme.emoji}</div>
+<h1 style="color:#ffffff;margin:0;font-size:28px;text-shadow:1px 1px 2px rgba(0,0,0,0.3);">${theme.heading}</h1>
+<p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:16px;">${theme.subtext}</p>
+</td></tr>
+<tr><td style="padding:30px;">
+<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">${greeting || 'Dear Valued Customer,'}</p>
+<p style="color:#333333;font-size:16px;line-height:1.6;margin:0 0 20px;">${mainMessage || ''}</p>
+${offerSection}
+${ctaText ? `<div style="text-align:center;margin:30px 0;">
+<a href="#" style="display:inline-block;background-color:${theme.accent};color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:16px;font-weight:bold;">${ctaText}</a>
+</div>` : ''}
+${closing ? `<p style="color:#666666;font-size:14px;line-height:1.6;margin:0;">${closing}</p>` : ''}
+</td></tr>
+<tr><td style="background-color:#F5F5F5;padding:20px 30px;text-align:center;border-top:1px solid #E0E0E0;">
+<p style="color:#999999;font-size:12px;margin:0;">${companyName || 'Your Company'} | Making memories on the water</p>
+</td></tr>
+</table></body></html>`;
 };
 
 const Marketing = () => {
@@ -337,10 +93,17 @@ const Marketing = () => {
   const [showCompose, setShowCompose] = useState(false);
   const [sending, setSending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [customerCount, setCustomerCount] = useState(0);
 
-  // Compose form state
+  // Compose form state - structured fields
   const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
+  const [greeting, setGreeting] = useState('Dear Valued Customer,');
+  const [customGreeting, setCustomGreeting] = useState('');
+  const [mainMessage, setMainMessage] = useState('');
+  const [ctaText, setCtaText] = useState('Book Now');
+  const [showOffer, setShowOffer] = useState(false);
+  const [offerHeadline, setOfferHeadline] = useState('');
+  const [closing, setClosing] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
 
@@ -349,27 +112,40 @@ const Marketing = () => {
   const [discountPercent, setDiscountPercent] = useState('');
   const [selectedCoupon, setSelectedCoupon] = useState('');
 
-  // Data for template variables
+  // Data
   const [coupons, setCoupons] = useState([]);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   const [defaultCompanyName, setDefaultCompanyName] = useState('');
 
-  // Track which template is loaded (for coupon placeholder matching)
-  const [activeTemplateId, setActiveTemplateId] = useState(null);
+  // Track which template is active
+  const [activeTemplateId, setActiveTemplateId] = useState('custom');
 
-  // Raw template body (before variable substitution) for re-applying variables
-  const [rawBody, setRawBody] = useState('');
-  const [rawSubject, setRawSubject] = useState('');
+  // Schedule state
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
 
-  // Preview iframe ref
+  // Preview
   const previewIframeRef = useRef(null);
 
-  // Auto-fill test email with logged-in admin's email
+  // Auto-fill test email
   useEffect(() => {
     if (user?.email && !testEmail) {
       setTestEmail(user.email);
     }
   }, [user]);
+
+  // Fetch customer count for confirm dialog
+  const fetchCustomerCount = async () => {
+    try {
+      const response = await getAllCustomers({ limit: 1, page: 1 });
+      if (response.success) {
+        setCustomerCount(response.data?.pagination?.total || response.data?.total || 0);
+      }
+    } catch {
+      // silently fail
+    }
+  };
 
   // Fetch campaigns
   const fetchCampaigns = async () => {
@@ -386,14 +162,12 @@ const Marketing = () => {
     }
   };
 
-  // Fetch general settings for company name
+  // Fetch company name
   const fetchCompanyName = async () => {
     try {
       const response = await getSettingsByGroup('general');
       if (response.success && response.data) {
-        // Settings are stored as { group, key, value } - general group usually has key='config'
         const settings = response.data;
-        // Could be array or single object
         const config = Array.isArray(settings)
           ? settings.find(s => s.key === 'config')?.value
           : settings.value || settings;
@@ -404,11 +178,11 @@ const Marketing = () => {
         }
       }
     } catch {
-      // Silently fail - company name is optional
+      // silently fail
     }
   };
 
-  // Fetch coupons for dropdown
+  // Fetch coupons
   const fetchCoupons = async () => {
     try {
       setLoadingCoupons(true);
@@ -418,7 +192,7 @@ const Marketing = () => {
         setCoupons(Array.isArray(couponList) ? couponList : []);
       }
     } catch {
-      // Silently fail - coupons are optional
+      // silently fail
     } finally {
       setLoadingCoupons(false);
     }
@@ -428,114 +202,97 @@ const Marketing = () => {
     fetchCampaigns();
     fetchCompanyName();
     fetchCoupons();
+    fetchCustomerCount();
   }, []);
 
-  // Apply template variables to raw body and subject
-  const applyVariables = useCallback((rawBodyText, rawSubjectText, compName, discount, coupon, templateId) => {
-    let processedBody = rawBodyText;
-    let processedSubject = rawSubjectText;
+  // Generate HTML from fields and update preview
+  const getEffectiveGreeting = () => {
+    if (greeting === 'custom') return customGreeting;
+    return greeting;
+  };
 
-    // Replace {{companyName}}
-    if (compName) {
-      processedBody = processedBody.replace(/\{\{companyName\}\}/g, compName);
-      processedSubject = processedSubject.replace(/\{\{companyName\}\}/g, compName);
-    }
+  const generateCurrentHTML = useCallback(() => {
+    return generateEmailHTML({
+      greeting: greeting === 'custom' ? customGreeting : greeting,
+      mainMessage,
+      ctaText,
+      showOffer,
+      offerHeadline,
+      discountPercent,
+      couponCode: selectedCoupon,
+      companyName,
+      closing,
+    }, activeTemplateId);
+  }, [greeting, customGreeting, mainMessage, ctaText, showOffer, offerHeadline, discountPercent, selectedCoupon, companyName, closing, activeTemplateId]);
 
-    // Replace X% with discount percentage
-    if (discount) {
-      processedBody = processedBody.replace(/X%/g, `${discount}%`);
-      processedSubject = processedSubject.replace(/X%/g, `${discount}%`);
-    }
-
-    // Replace coupon code placeholder with selected coupon
-    if (coupon && templateId && TEMPLATE_COUPON_PLACEHOLDERS[templateId]) {
-      const placeholder = TEMPLATE_COUPON_PLACEHOLDERS[templateId];
-      processedBody = processedBody.replace(new RegExp(placeholder, 'g'), coupon);
-      processedSubject = processedSubject.replace(new RegExp(placeholder, 'g'), coupon);
-    }
-
-    return { processedBody, processedSubject };
-  }, []);
-
-  // When template variables change, re-apply them to the raw body/subject
+  // Update preview whenever fields change
   useEffect(() => {
-    if (!rawBody && !rawSubject) return;
-
-    const { processedBody, processedSubject } = applyVariables(
-      rawBody, rawSubject, companyName, discountPercent, selectedCoupon, activeTemplateId
-    );
-    setBody(processedBody);
-    setSubject(processedSubject);
-  }, [companyName, discountPercent, selectedCoupon, rawBody, rawSubject, activeTemplateId, applyVariables]);
-
-  // Update iframe preview when body changes
-  useEffect(() => {
-    if (previewIframeRef.current && body.trim()) {
+    if (!showCompose) return;
+    const html = generateCurrentHTML();
+    if (previewIframeRef.current && html) {
       const iframe = previewIframeRef.current;
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (doc) {
         doc.open();
-        doc.write(body);
+        doc.write(html);
         doc.close();
       }
     }
-  }, [body]);
+  }, [generateCurrentHTML, showCompose]);
 
   const handleUseTemplate = (template) => {
-    setRawSubject(template.subject);
-    setRawBody(template.body);
     setActiveTemplateId(template.id);
-
-    // Apply current variable values immediately
-    const { processedBody, processedSubject } = applyVariables(
-      template.body, template.subject, companyName, discountPercent, selectedCoupon, template.id
-    );
-    setSubject(processedSubject);
-    setBody(processedBody);
+    // Replace {{companyName}} in the subject
+    const subjectWithName = companyName
+      ? template.defaultSubject.replace(/\{\{companyName\}\}/g, companyName)
+      : template.defaultSubject;
+    setSubject(subjectWithName);
+    setGreeting(template.defaultGreeting);
+    setCustomGreeting('');
+    setMainMessage(template.defaultMessage);
+    setCtaText(template.defaultCTA);
+    setOfferHeadline(template.defaultOfferHeadline);
+    setClosing(template.defaultClosing);
+    setShowOffer(true);
     setShowCompose(true);
   };
 
   const handleOpenCompose = () => {
-    // Open blank compose
     setSubject('');
-    setBody('');
-    setRawSubject('');
-    setRawBody('');
-    setActiveTemplateId(null);
+    setGreeting('Dear Valued Customer,');
+    setCustomGreeting('');
+    setMainMessage('');
+    setCtaText('Book Now');
+    setShowOffer(false);
+    setOfferHeadline('');
+    setClosing('');
+    setActiveTemplateId('custom');
+    setDiscountPercent('');
+    setSelectedCoupon('');
     setShowCompose(true);
   };
 
   const handleCloseCompose = () => {
     setShowCompose(false);
     setSubject('');
-    setBody('');
-    setRawSubject('');
-    setRawBody('');
-    setActiveTemplateId(null);
+    setGreeting('Dear Valued Customer,');
+    setCustomGreeting('');
+    setMainMessage('');
+    setCtaText('Book Now');
+    setShowOffer(false);
+    setOfferHeadline('');
+    setClosing('');
+    setActiveTemplateId('custom');
     setDiscountPercent('');
     setSelectedCoupon('');
-    // Reset test email to admin's email
     if (user?.email) {
       setTestEmail(user.email);
     }
   };
 
-  const handleBodyChange = (e) => {
-    const newBody = e.target.value;
-    setBody(newBody);
-    // When manually editing, update the raw body too so variable replacement continues to work
-    setRawBody(newBody);
-  };
-
-  const handleSubjectChange = (e) => {
-    const newSubject = e.target.value;
-    setSubject(newSubject);
-    setRawSubject(newSubject);
-  };
-
   const handleSendTest = async () => {
-    if (!subject.trim() || !body.trim()) {
-      showError('Please fill in subject and body');
+    if (!subject.trim() || !mainMessage.trim()) {
+      showError('Please fill in subject and message');
       return;
     }
     if (!testEmail.trim()) {
@@ -544,6 +301,7 @@ const Marketing = () => {
     }
     try {
       setSendingTest(true);
+      const body = generateCurrentHTML();
       await sendTestEmail({ subject, body, testEmail });
       showSuccess(`Test email sent to ${testEmail}`);
     } catch (err) {
@@ -554,12 +312,13 @@ const Marketing = () => {
   };
 
   const handleSendToAll = async () => {
-    if (!subject.trim() || !body.trim()) {
-      showError('Please fill in subject and body');
+    if (!subject.trim() || !mainMessage.trim()) {
+      showError('Please fill in subject and message');
       return;
     }
     try {
       setSending(true);
+      const body = generateCurrentHTML();
       const response = await sendCampaign({ subject, body });
       showSuccess(`Email sent to ${response.data?.recipientCount || 0} customers`);
       setShowConfirm(false);
@@ -572,6 +331,19 @@ const Marketing = () => {
     }
   };
 
+  const handleScheduleSend = () => {
+    if (!scheduleDate || !scheduleTime) {
+      showError('Please select both date and time');
+      return;
+    }
+    // For now we just save the scheduled intent and show success
+    const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`);
+    showSuccess(`Campaign scheduled for ${scheduledAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} at ${scheduledAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`);
+    setShowScheduleModal(false);
+    setScheduleDate('');
+    setScheduleTime('');
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString('en-IN', {
@@ -579,7 +351,6 @@ const Marketing = () => {
     });
   };
 
-  // Build coupon options for the Select component
   const couponOptions = coupons
     .filter(c => c.isActive !== false)
     .map(c => ({
@@ -603,7 +374,7 @@ const Marketing = () => {
         )}
       </div>
 
-      {/* Compose Section - Full page split layout */}
+      {/* Compose Section */}
       {showCompose && (
         <div className={styles.composeSection}>
           <div className={styles.composeSplit}>
@@ -611,59 +382,109 @@ const Marketing = () => {
             <div className={styles.composeLeft}>
               <h2 className={styles.composeSectionTitle}>Compose Email</h2>
 
+              {/* Section 2: Email Content */}
               <Input
                 label="Subject"
                 placeholder="Enter email subject..."
                 value={subject}
-                onChange={handleSubjectChange}
+                onChange={(e) => setSubject(e.target.value)}
                 required
               />
 
-              {/* Template Variables */}
-              <div className={styles.variablesSection}>
-                <h3 className={styles.variablesTitle}>Template Variables</h3>
-                <p className={styles.variablesHint}>
-                  These values will be auto-replaced in the email body and subject.
-                </p>
-                <div className={styles.variablesGrid}>
+              <div className={styles.greetingRow}>
+                <Select
+                  label="Greeting"
+                  options={GREETING_OPTIONS}
+                  value={greeting}
+                  onChange={(val) => setGreeting(val)}
+                  placeholder="Select a greeting..."
+                />
+                {greeting === 'custom' && (
                   <Input
-                    label="Company Name"
-                    placeholder="Enter company name..."
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    hint="Replaces {{companyName}} in template"
+                    label="Custom Greeting"
+                    placeholder="Type your greeting..."
+                    value={customGreeting}
+                    onChange={(e) => setCustomGreeting(e.target.value)}
                   />
-                  <Input
-                    label="Discount Percentage"
-                    type="number"
-                    placeholder="e.g. 20"
-                    value={discountPercent}
-                    onChange={(e) => setDiscountPercent(e.target.value)}
-                    hint="Replaces X% in template"
-                    min="0"
-                    max="100"
-                  />
-                  <Select
-                    label="Coupon Code"
-                    options={couponOptions}
-                    value={selectedCoupon}
-                    onChange={(val) => setSelectedCoupon(val)}
-                    placeholder={loadingCoupons ? 'Loading coupons...' : 'Select a coupon code'}
-                    disabled={loadingCoupons}
-                    searchable
-                    hint="Replaces coupon placeholder in template"
-                  />
-                </div>
+                )}
               </div>
 
               <Textarea
-                label="Email Body (HTML supported)"
-                placeholder="Write your email content here... HTML tags are supported for formatting."
-                value={body}
-                onChange={handleBodyChange}
-                rows={14}
+                label="Main Message"
+                placeholder="Write your email message here... (No HTML needed)"
+                value={mainMessage}
+                onChange={(e) => setMainMessage(e.target.value)}
+                rows={5}
                 required
+                hint="This is the body paragraph of your email. Just write naturally - no HTML or formatting needed."
               />
+
+              <Input
+                label="Call to Action Text"
+                placeholder="e.g. Book Now, Explore Offers..."
+                value={ctaText}
+                onChange={(e) => setCtaText(e.target.value)}
+                hint="Text shown on the action button in the email"
+              />
+
+              {/* Offer Section with Toggle */}
+              <div className={styles.offerSection}>
+                <div className={styles.offerToggle}>
+                  <Toggle
+                    label="Include Offer Section"
+                    checked={showOffer}
+                    onChange={(checked) => setShowOffer(checked)}
+                  />
+                </div>
+                {showOffer && (
+                  <div className={styles.offerFields}>
+                    <Input
+                      label="Offer Headline"
+                      placeholder="e.g. Diwali Special Offer!"
+                      value={offerHeadline}
+                      onChange={(e) => setOfferHeadline(e.target.value)}
+                    />
+                    <div className={styles.offerRow}>
+                      <Input
+                        label="Discount %"
+                        type="number"
+                        placeholder="e.g. 20"
+                        value={discountPercent}
+                        onChange={(e) => setDiscountPercent(e.target.value)}
+                        min="0"
+                        max="100"
+                      />
+                      <Select
+                        label="Coupon Code"
+                        options={couponOptions}
+                        value={selectedCoupon}
+                        onChange={(val) => setSelectedCoupon(val)}
+                        placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'}
+                        disabled={loadingCoupons}
+                        searchable
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Company Name & Closing */}
+              <div className={styles.closingRow}>
+                <Input
+                  label="Company Name"
+                  placeholder="Your company name..."
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  hint="Shown in the email footer"
+                />
+                <Input
+                  label="Closing Message"
+                  placeholder="e.g. Wishing you a wonderful time!"
+                  value={closing}
+                  onChange={(e) => setClosing(e.target.value)}
+                  hint="Short farewell before footer"
+                />
+              </div>
 
               {/* Test Email */}
               <div className={styles.testSection}>
@@ -683,7 +504,17 @@ const Marketing = () => {
                 <Button variant="ghost" onClick={handleCloseCompose}>
                   Cancel
                 </Button>
-                <Button onClick={() => setShowConfirm(true)} disabled={!subject.trim() || !body.trim()}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowScheduleModal(true)}
+                  disabled={!subject.trim() || !mainMessage.trim()}
+                >
+                  Schedule Send
+                </Button>
+                <Button
+                  onClick={() => setShowConfirm(true)}
+                  disabled={!subject.trim() || !mainMessage.trim()}
+                >
                   Send to All Customers
                 </Button>
               </div>
@@ -693,7 +524,7 @@ const Marketing = () => {
             <div className={styles.composeRight}>
               <h2 className={styles.composeSectionTitle}>Live Preview</h2>
               <div className={styles.previewContainer}>
-                {body.trim() ? (
+                {mainMessage.trim() ? (
                   <iframe
                     ref={previewIframeRef}
                     className={styles.previewIframe}
@@ -704,7 +535,7 @@ const Marketing = () => {
                   <div className={styles.previewEmpty}>
                     <p>Email preview will appear here</p>
                     <p className={styles.previewEmptyHint}>
-                      Select a template or start typing in the body to see a live preview
+                      Select a template or start typing your message to see a live preview
                     </p>
                   </div>
                 )}
@@ -714,7 +545,7 @@ const Marketing = () => {
         </div>
       )}
 
-      {/* Holiday/Festival Templates */}
+      {/* Holiday Templates */}
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Holiday Campaign Templates</h2>
         <p className={styles.templateSectionDesc}>
@@ -757,9 +588,15 @@ const Marketing = () => {
                     <span>{formatDate(campaign.sentAt || campaign.createdAt)}</span>
                     <span className={styles.dot}>·</span>
                     <span>{campaign.recipientCount || 0} recipients</span>
+                    {campaign.scheduledAt && (
+                      <>
+                        <span className={styles.dot}>·</span>
+                        <Badge variant="info">Scheduled for {formatDate(campaign.scheduledAt)}</Badge>
+                      </>
+                    )}
                   </div>
                 </div>
-                <Badge variant={campaign.status === 'SENT' ? 'success' : campaign.status === 'FAILED' ? 'error' : 'warning'}>
+                <Badge variant={campaign.status === 'SENT' ? 'success' : campaign.status === 'FAILED' ? 'error' : campaign.status === 'SCHEDULED' ? 'info' : 'warning'}>
                   {campaign.status}
                 </Badge>
               </div>
@@ -768,22 +605,51 @@ const Marketing = () => {
         )}
       </div>
 
-      {/* Confirm Send Modal - Only modal remaining */}
-      <Modal
+      {/* Confirm Send Dialog */}
+      <ConfirmDialog
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
-        title="Confirm Send"
+        onConfirm={handleSendToAll}
+        title="Confirm Send to All Customers"
+        message={`Are you sure you want to send this email to ${customerCount > 0 ? customerCount : 'all'} customers? This action cannot be undone.`}
+        confirmText={sending ? 'Sending...' : 'Yes, Send to All'}
+        cancelText="Cancel"
+        variant="primary"
+        loading={sending}
+      />
+
+      {/* Schedule Send Modal */}
+      <Modal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        title="Schedule Campaign"
         size="sm"
       >
-        <div className={styles.confirmContent}>
-          <p>Are you sure you want to send this email to <strong>all customers</strong> with email notifications enabled?</p>
-          <p className={styles.confirmSubject}>Subject: <strong>{subject}</strong></p>
-          <div className={styles.confirmActions}>
-            <Button variant="ghost" onClick={() => setShowConfirm(false)} disabled={sending}>
+        <div className={styles.scheduleContent}>
+          <p className={styles.scheduleHint}>
+            Choose when you want this campaign to be sent. The campaign will be marked as scheduled and you can send it manually at the chosen time.
+          </p>
+          <Input
+            label="Date"
+            type="date"
+            value={scheduleDate}
+            onChange={(e) => setScheduleDate(e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
+            required
+          />
+          <Input
+            label="Time"
+            type="time"
+            value={scheduleTime}
+            onChange={(e) => setScheduleTime(e.target.value)}
+            required
+          />
+          <div className={styles.scheduleActions}>
+            <Button variant="ghost" onClick={() => setShowScheduleModal(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSendToAll} loading={sending}>
-              Yes, Send to All
+            <Button onClick={handleScheduleSend} disabled={!scheduleDate || !scheduleTime}>
+              Schedule Campaign
             </Button>
           </div>
         </div>

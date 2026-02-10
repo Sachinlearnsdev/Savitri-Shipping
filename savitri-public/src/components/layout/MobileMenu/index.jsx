@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { useAuth } from '@/hooks/useAuth';
 import { COMPANY_PHONE } from '@/utils/constants';
+import NotificationBell from '@/components/layout/NotificationBell';
 import styles from './MobileMenu.module.css';
 
 const InstagramIcon = () => (
@@ -85,21 +86,24 @@ const MobileMenu = () => {
         {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>Menu</h2>
-          <button
-            className={styles.closeButton}
-            onClick={closeMobileMenu}
-            aria-label="Close menu"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M18 6L6 18M6 6L18 18"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isAuthenticated && <NotificationBell />}
+            <button
+              className={styles.closeButton}
+              onClick={closeMobileMenu}
+              aria-label="Close menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* User Info */}

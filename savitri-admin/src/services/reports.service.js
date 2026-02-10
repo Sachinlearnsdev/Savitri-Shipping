@@ -22,6 +22,46 @@ export const getTopBoats = async (params = {}) => {
 };
 
 /**
+ * Get all bookings (for frontend aggregation of detailed analytics)
+ */
+export const getAllBookingsForReports = async (params = {}) => {
+  const response = await api.get(API_ENDPOINTS.BOOKINGS, { params });
+  return response.data;
+};
+
+/**
+ * Get all party bookings (for frontend aggregation)
+ */
+export const getAllPartyBookingsForReports = async (params = {}) => {
+  const response = await api.get(API_ENDPOINTS.PARTY_BOOKINGS, { params });
+  return response.data;
+};
+
+/**
+ * Get all customers (for customer segment analytics)
+ */
+export const getAllCustomersForReports = async (params = {}) => {
+  const response = await api.get(API_ENDPOINTS.CUSTOMERS, { params });
+  return response.data;
+};
+
+/**
+ * Get all speed boats (for utilization calculation)
+ */
+export const getAllSpeedBoatsForReports = async (params = {}) => {
+  const response = await api.get(API_ENDPOINTS.SPEED_BOATS, { params });
+  return response.data;
+};
+
+/**
+ * Get all party boats
+ */
+export const getAllPartyBoatsForReports = async (params = {}) => {
+  const response = await api.get(API_ENDPOINTS.PARTY_BOATS, { params });
+  return response.data;
+};
+
+/**
  * Export analytics data as CSV (triggers file download)
  */
 export const exportCSV = async (period = '30d') => {

@@ -181,7 +181,7 @@ const BoatDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/speed-boats')}>
-        &larr; Back to Speed Boats
+        Back to Speed Boats
       </button>
 
       {/* Header */}

@@ -207,7 +207,7 @@ const PartyBookingDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/party-bookings')}>
-        &larr; Back to Party Bookings
+        Back to Party Bookings
       </button>
 
       {/* Header */}

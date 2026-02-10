@@ -72,31 +72,32 @@ if (config.enableLogs) {
   }
 }
 
-// Rate limiting
-const apiLimiter = rateLimit({
-  windowMs: config.rateLimitWindowMs, // 15 minutes default
-  max: config.rateLimitMax, // 100 requests per window default
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-  legacyHeaders: false, // Disable `X-RateLimit-*` headers
-  message: {
-    success: false,
-    message: "Too many requests, please try again later.",
-  },
-});
-app.use("/api/", apiLimiter);
+// Rate limiting (production only - disabled in development)
+if (config.nodeEnv === "production") {
+  const apiLimiter = rateLimit({
+    windowMs: config.rateLimitWindowMs,
+    max: config.rateLimitMax,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      message: "Too many requests, please try again later.",
+    },
+  });
+  app.use("/api/", apiLimiter);
 
-// Stricter rate limiting for auth endpoints (prevent brute force)
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 attempts per 15 minutes
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many authentication attempts, please try again later.",
-  },
-});
-app.use("/api/auth/", authLimiter);
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      message: "Too many authentication attempts, please try again later.",
+    },
+  });
+  app.use("/api/auth/", authLimiter);
+}
 
 // Static files for uploads
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));

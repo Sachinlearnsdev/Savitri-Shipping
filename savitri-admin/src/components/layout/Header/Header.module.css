@@ -13,7 +13,8 @@
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
   z-index: var(--z-sticky);
-  transition: left var(--transition-normal);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
 }
 
 /* Left Section */
@@ -36,12 +37,12 @@
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 
 .hamburger:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
 }
 
@@ -65,19 +66,22 @@
 .breadcrumbLink {
   color: var(--text-tertiary);
   text-decoration: none;
-  transition: var(--transition-colors);
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
 
 .breadcrumbLink:hover {
   color: var(--color-primary);
+  text-decoration: none;
 }
 
 .breadcrumbSep {
   display: flex;
   align-items: center;
   color: var(--text-tertiary);
-  opacity: 0.6;
+  opacity: 0.5;
+  font-size: 11px;
+  padding: 0 1px;
 }
 
 .breadcrumbCurrent {
@@ -89,12 +93,13 @@
 .title {
   margin: 0;
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.02em;
 }
 
 /* Right Section */
@@ -114,14 +119,14 @@
   height: 38px;
   background: none;
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .iconButton:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
 }
 
@@ -138,9 +143,9 @@
   padding: var(--spacing-2);
   background: none;
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .userButton:hover {
@@ -203,20 +208,20 @@
   min-width: 220px;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
-  animation: menuSlideDown 0.15s ease-out;
+  animation: menuSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes menuSlideDown {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-10px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -253,15 +258,15 @@
   align-items: center;
   gap: var(--spacing-3);
   width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  font-family: var(--font-primary);
+  padding: 0.625rem var(--spacing-4);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   background: none;
   border: none;
   text-align: left;
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .menuItem:hover {
@@ -274,6 +279,7 @@
 
 .menuItem.danger:hover {
   background-color: var(--color-error-light);
+  color: var(--color-error-dark);
 }
 
 .menuIcon {
@@ -283,6 +289,65 @@
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+}
+
+/* Theme Menu */
+.themeMenuContainer {
+  position: relative;
+}
+
+.themeMenu {
+  position: absolute;
+  top: calc(100% + var(--spacing-2));
+  right: 0;
+  min-width: 160px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: menuSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  padding: var(--spacing-1) 0;
+}
+
+.themeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: 0.5rem var(--spacing-3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.themeOption:hover {
+  background-color: var(--bg-secondary);
+}
+
+.themeOptionActive {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.themeOptionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.themeCheck {
+  margin-left: auto;
+  color: var(--color-primary);
 }
 
 /* Notification Container */
@@ -313,13 +378,14 @@
   position: absolute;
   top: calc(100% + var(--spacing-2));
   right: 0;
-  width: 320px;
+  width: 360px;
+  max-width: calc(100vw - 2rem);
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
-  animation: menuSlideDown 0.15s ease-out;
+  animation: menuSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
 }
 

@@ -320,18 +320,22 @@
   border: 1px solid var(--border-color);
   overflow: hidden;
   cursor: pointer;
-  transition: var(--transition-all);
+  transition: all 0.3s ease;
 }
 
 .boatCard:hover {
   box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+}
+
+.boatCard:hover .boatCardImage img {
+  transform: scale(1.05);
 }
 
 .boatCardImage {
   position: relative;
   width: 100%;
-  height: 160px;
+  height: 180px;
   overflow: hidden;
   background-color: var(--bg-secondary);
 }
@@ -340,20 +344,72 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.boatCardImageOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+}
+
+.boatCardRatingOverlay {
+  position: absolute;
+  bottom: var(--spacing-3);
+  left: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.boatCardRatingOverlayStar {
+  color: #f59e0b;
+  font-size: var(--font-size-base);
+}
+
+.boatCardTypeBadge {
+  position: absolute;
+  top: var(--spacing-3);
+  right: var(--spacing-3);
+  z-index: 1;
 }
 
 .boatCardPlaceholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-2);
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--color-primary-100, #e0f2fe) 0%, var(--color-primary-50, #f0f9ff) 100%);
+  background: linear-gradient(135deg, #e0f2fe 0%, #cffafe 50%, #e0e7ff 100%);
 }
 
-.boatCardPlaceholder span {
-  font-size: 48px;
-  opacity: 0.5;
+.boatCardPlaceholderIcon {
+  width: 56px;
+  height: 56px;
+  color: var(--color-primary-400, #22d3ee);
+  opacity: 0.6;
+}
+
+.boatCardPlaceholderText {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-400, #22d3ee);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .boatCardBody {
@@ -368,19 +424,29 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .boatCardStats {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
   margin-top: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
 }
 
 .boatCardStat {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+}
+
+.boatCardStatDivider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-color);
 }
 
 .boatCardStatValue {
@@ -400,13 +466,27 @@
   gap: var(--spacing-3);
   margin-top: var(--spacing-1);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.boatCardMetaDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
 }
 
 .boatCardApproved {
+  display: flex;
+  align-items: center;
   color: var(--color-success-600, #16a34a);
 }
 
 .boatCardHidden {
+  display: flex;
+  align-items: center;
   color: var(--color-warning-600, #d97706);
 }
 
@@ -491,8 +571,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-3);
-  min-height: 200px;
+  gap: var(--spacing-2);
+  min-height: 280px;
   padding: var(--spacing-8);
   background-color: var(--bg-primary);
   border-radius: var(--radius-xl);
@@ -504,6 +584,23 @@
   margin: 0;
   font-size: var(--font-size-base);
   color: var(--text-tertiary);
+}
+
+.emptyStateIcon {
+  color: var(--text-tertiary);
+  margin-bottom: var(--spacing-2);
+}
+
+.emptyStateTitle {
+  font-size: var(--font-size-lg) !important;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary) !important;
+}
+
+.emptyStateDesc {
+  font-size: var(--font-size-sm) !important;
+  max-width: 360px;
+  line-height: 1.5;
 }
 
 /* ==================== RESPONSIVE ==================== */

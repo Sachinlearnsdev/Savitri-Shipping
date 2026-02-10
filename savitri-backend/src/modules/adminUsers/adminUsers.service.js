@@ -81,6 +81,29 @@ class AdminUsersService {
   }
 
   /**
+   * Generate next employee ID in format EMP-XXXX
+   */
+  async generateEmployeeId() {
+    // Find the last admin user with an EMP- prefixed employeeId, sorted descending
+    const lastUser = await AdminUser.findOne({
+      employeeId: { $regex: /^EMP-\d+$/ },
+    })
+      .sort({ employeeId: -1 })
+      .select('employeeId')
+      .lean();
+
+    let nextNumber = 1;
+    if (lastUser && lastUser.employeeId) {
+      const match = lastUser.employeeId.match(/^EMP-(\d+)$/);
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+
+    return `EMP-${String(nextNumber).padStart(4, '0')}`;
+  }
+
+  /**
    * Create admin user
    */
   async create(data) {
@@ -103,6 +126,9 @@ class AdminUsersService {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
+    // Auto-generate employee ID
+    const employeeId = await this.generateEmployeeId();
+
     // Create admin user
     const adminUser = await AdminUser.create({
       name,
@@ -110,6 +136,7 @@ class AdminUsersService {
       phone,
       password: hashedPassword,
       roleId,
+      employeeId,
     });
 
     const populated = await AdminUser.findById(adminUser._id)

@@ -68,7 +68,12 @@ export default function VerifyPhonePage() {
     <div className={styles.verifyPhonePage}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.icon}>📱</div>
+          <div className={styles.icon}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+              <line x1="12" y1="18" x2="12.01" y2="18" />
+            </svg>
+          </div>
           <h1 className={styles.title}>Verify Your Phone</h1>
           <p className={styles.subtitle}>
             Enter the OTP sent to

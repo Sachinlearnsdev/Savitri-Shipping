@@ -9,8 +9,9 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  transition: width var(--transition-normal);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: var(--z-fixed);
+  box-shadow: var(--shadow-sm);
 }
 
 .collapsed {
@@ -30,6 +31,7 @@
   height: var(--header-height);
   padding: 0 var(--spacing-4);
   border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
 }
 
 .logoIcon {
@@ -38,13 +40,15 @@
   justify-content: center;
   color: var(--color-primary);
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .logoText {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   white-space: nowrap;
+  letter-spacing: -0.02em;
 }
 
 .collapsed .logoText {
@@ -66,14 +70,16 @@
   border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
+  box-shadow: var(--shadow-sm);
 }
 
 .toggleButton:hover {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-white);
+  transform: scale(1.05);
 }
 
 /* Navigation */
@@ -81,7 +87,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--spacing-4) 0;
+  padding: var(--spacing-3) 0;
 }
 
 /* Menu */
@@ -102,16 +108,19 @@
   align-items: center;
   gap: var(--spacing-3);
   width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  font-family: var(--font-primary);
-  font-size: var(--font-size-base);
+  padding: 0.625rem var(--spacing-4);
+  margin: 0 0.5rem;
+  width: calc(100% - 1rem);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 0.9375rem;
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
   text-decoration: none;
   background: none;
   border: none;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: var(--transition-colors);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   position: relative;
 }
@@ -126,6 +135,7 @@
 .menuButton.active {
   color: var(--color-primary);
   background-color: var(--color-primary-50);
+  font-weight: var(--font-weight-semibold);
 }
 
 .menuLink.active::before,
@@ -133,17 +143,21 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  top: 50%;
+  transform: translateY(-50%);
   width: 3px;
+  height: 60%;
   background-color: var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 /* Collapsed State */
 .collapsed .menuLink,
 .collapsed .menuButton {
   justify-content: center;
-  padding: var(--spacing-3);
+  padding: 0.625rem;
+  margin: 0 var(--spacing-3);
+  width: calc(100% - 1.5rem);
 }
 
 /* Menu Icon */
@@ -198,11 +212,14 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) calc(var(--spacing-4) + var(--spacing-8));
+  padding: 0.5rem var(--spacing-4) 0.5rem calc(var(--spacing-4) + 2.5rem);
+  margin: 0 0.5rem;
+  width: calc(100% - 1rem);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   text-decoration: none;
-  transition: var(--transition-colors);
+  border-radius: var(--radius-md);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .submenuLink:hover {
@@ -212,12 +229,13 @@
 
 .submenuLink.active {
   color: var(--color-primary);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--color-primary-50);
 }
 
 /* Scrollbar */
 .nav::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .nav::-webkit-scrollbar-track {
@@ -227,10 +245,19 @@
 .nav::-webkit-scrollbar-thumb {
   background: var(--color-gray-300);
   border-radius: var(--radius-full);
+  transition: background 0.2s ease;
 }
 
 .nav::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-400);
+}
+
+[data-theme="dark"] .nav::-webkit-scrollbar-thumb {
+  background: var(--color-gray-600);
+}
+
+[data-theme="dark"] .nav::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
 }
 
 /* Notification Count Badges */

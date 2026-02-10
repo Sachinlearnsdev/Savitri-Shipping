@@ -104,6 +104,12 @@
   gap: var(--spacing-4);
 }
 
+.chartsRowTwo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-4);
+}
+
 .noData {
   text-align: center;
   padding: var(--spacing-8);
@@ -159,11 +165,359 @@
   gap: var(--spacing-2);
 }
 
+/* ==================== Monthly Comparison ==================== */
+
+.monthlyComparison {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.monthCompareRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.monthCompareCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-4);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.monthCompareLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.monthCompareValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.monthCompareBookings {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.monthChangeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.monthChangeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+}
+
+.changePositive {
+  background-color: #dcfce7;
+}
+
+.changeNegative {
+  background-color: #fee2e2;
+}
+
+.changeLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.changeValue {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.changePositive .changeValue {
+  color: #16a34a;
+}
+
+.changeNegative .changeValue {
+  color: #dc2626;
+}
+
+/* ==================== Conversion Stats ==================== */
+
+.conversionStats {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-6);
+  padding-top: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+/* ==================== Cancellation Stats ==================== */
+
+.cancellationStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.statValue {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+/* ==================== Retention ==================== */
+
+.retentionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.retentionCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.retentionValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.retentionLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ==================== Segment Cards ==================== */
+
+.segmentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-4);
+}
+
+.segmentCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.segmentHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.segmentIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.segmentIconNew {
+  background-color: #dbeafe;
+}
+
+.segmentIconRepeat {
+  background-color: #dcfce7;
+}
+
+.segmentIconInactive {
+  background-color: #fee2e2;
+}
+
+.segmentIconHighValue {
+  background-color: #fef3c7;
+}
+
+.segmentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.segmentName {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.segmentDesc {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.segmentCount {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.segmentCountLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* ==================== Campaign Analytics ==================== */
+
+.analyticsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
+}
+
+.analyticsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-5);
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.analyticsLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.analyticsValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.campaignHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.campaignHistoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.campaignHistoryInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.campaignHistorySubject {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.campaignHistoryMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.campaignHistoryStats {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: center;
+}
+
+.campaignStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.campaignStatValue {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.campaignStatLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+/* ==================== Responsive ==================== */
+
 @media (max-width: 1024px) {
   .chartsRow {
     grid-template-columns: 1fr;
   }
+  .chartsRowTwo {
+    grid-template-columns: 1fr;
+  }
   .overviewGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .segmentGrid {
+    grid-template-columns: 1fr;
+  }
+  .retentionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cancellationStats {
+    grid-template-columns: 1fr;
+  }
+  .analyticsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -179,6 +533,15 @@
     align-items: flex-start;
   }
   .overviewGrid {
+    grid-template-columns: 1fr;
+  }
+  .monthCompareRow {
+    grid-template-columns: 1fr;
+  }
+  .monthChangeRow {
+    grid-template-columns: 1fr;
+  }
+  .analyticsGrid {
     grid-template-columns: 1fr;
   }
 }

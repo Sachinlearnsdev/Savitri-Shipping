@@ -173,7 +173,7 @@ const CouponDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/coupons')}>
-        &larr; Back to Coupons
+        Back to Coupons
       </button>
 
       {/* Header */}

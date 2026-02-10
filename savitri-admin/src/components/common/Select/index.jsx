@@ -93,11 +93,13 @@ const Select = forwardRef(({
           disabled={disabled}
           {...props}
         >
-          <span className={styles.selectedText}>
+          <span className={`${styles.selectedText} ${!selectedOption ? styles.placeholder : ''}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           <span className={`${styles.arrow} ${isOpen ? styles.arrowUp : ''}`}>
-            ▼
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </span>
         </button>
         
@@ -105,15 +107,21 @@ const Select = forwardRef(({
           <div className={styles.dropdown}>
             {searchable && (
               <div className={styles.searchWrapper}>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  className={styles.searchInput}
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className={styles.searchInputContainer}>
+                  <svg className={styles.searchIcon} width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    className={styles.searchInput}
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
               </div>
             )}
             

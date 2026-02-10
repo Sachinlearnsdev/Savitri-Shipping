@@ -82,7 +82,7 @@ export default function RegisterPage() {
         <div className={styles.header}>
           <h1 className={styles.title}>Create Account</h1>
           <p className={styles.subtitle}>
-            Join Savitri Shipping for seamless booking
+            Create an account to book boats and track your rides
           </p>
         </div>
 

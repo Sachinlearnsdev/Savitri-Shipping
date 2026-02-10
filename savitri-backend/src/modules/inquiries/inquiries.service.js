@@ -372,6 +372,25 @@ class InquiriesService {
   }
 
   /**
+   * Customer adds a callback request / note to their inquiry (public)
+   */
+  async addCallbackRequest(id, customerId, data) {
+    const inquiry = await Inquiry.findOne({ _id: id, customerId, isDeleted: false });
+
+    if (!inquiry) {
+      throw ApiError.notFound('Inquiry not found');
+    }
+
+    // Append callback request info to specialRequests
+    const callbackNote = `\n\n--- Callback Request ---\nDate: ${data.preferredDate || 'Not specified'}\nTime: ${data.preferredTime || 'Not specified'}\nPhone: ${data.phone || inquiry.customerPhone}\nRequested at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+
+    inquiry.specialRequests = (inquiry.specialRequests || '') + callbackNote;
+    await inquiry.save();
+
+    return formatDocument(inquiry.toObject());
+  }
+
+  /**
    * Soft delete inquiry (admin)
    */
   async delete(id) {

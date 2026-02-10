@@ -15,6 +15,30 @@ const STATUS_CONFIG = {
   NO_SHOW: { label: 'No Show', className: 'statusCancelled' },
 };
 
+const INQUIRY_STATUS_CONFIG = {
+  PENDING: { label: 'Pending', className: 'statusPending' },
+  QUOTED: { label: 'Quoted', className: 'statusQuoted' },
+  ACCEPTED: { label: 'Accepted', className: 'statusConfirmed' },
+  REJECTED: { label: 'Declined', className: 'statusCancelled' },
+  CONVERTED: { label: 'Converted', className: 'statusCompleted' },
+  EXPIRED: { label: 'Expired', className: 'statusCancelled' },
+};
+
+const EVENT_TYPE_LABELS = {
+  WEDDING: 'Wedding',
+  BIRTHDAY: 'Birthday Party',
+  CORPORATE: 'Corporate Event',
+  COLLEGE_FAREWELL: 'College Farewell',
+  OTHER: 'Other',
+};
+
+const TIME_SLOT_LABELS = {
+  MORNING: 'Morning',
+  AFTERNOON: 'Afternoon',
+  EVENING: 'Evening',
+  FULL_DAY: 'Full Day',
+};
+
 const PAYMENT_STATUS_LABELS = {
   PENDING: 'Awaiting Payment',
   PAID: 'Paid',
@@ -25,7 +49,7 @@ const PAYMENT_STATUS_LABELS = {
 };
 
 export default function MyBookingsPage() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('all');
   const [bookings, setBookings] = useState([]);
   const [counts, setCounts] = useState({ all: 0, speed: 0, party: 0 });
@@ -34,6 +58,22 @@ export default function MyBookingsPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
+
+  // Inquiries state
+  const [inquiries, setInquiries] = useState([]);
+  const [inquiriesCount, setInquiriesCount] = useState(0);
+  const [inquiriesLoading, setInquiriesLoading] = useState(false);
+  const [inquiriesError, setInquiriesError] = useState(null);
+  const [respondLoading, setRespondLoading] = useState(null);
+  const [respondSuccess, setRespondSuccess] = useState(null);
+
+  // Callback request state
+  const [showCallbackDialog, setShowCallbackDialog] = useState(null);
+  const [callbackDate, setCallbackDate] = useState('');
+  const [callbackTime, setCallbackTime] = useState('');
+  const [callbackPhone, setCallbackPhone] = useState('');
+  const [callbackLoading, setCallbackLoading] = useState(false);
+  const [callbackSuccess, setCallbackSuccess] = useState(false);
 
   // Date modification - OTP-based flow
   const [showModifyDialog, setShowModifyDialog] = useState(null);
@@ -66,13 +106,97 @@ export default function MyBookingsPage() {
     }
   };
 
+  const fetchInquiries = async () => {
+    try {
+      setInquiriesLoading(true);
+      setInquiriesError(null);
+      const response = await api.get(`${API_ENDPOINTS.INQUIRIES.MY_INQUIRIES}?limit=50`);
+      if (response.success) {
+        const items = response.data.inquiries || response.data || [];
+        setInquiries(items);
+        setInquiriesCount(items.length);
+      }
+    } catch (err) {
+      setInquiriesError(err.message || 'Failed to load inquiries');
+    } finally {
+      setInquiriesLoading(false);
+    }
+  };
+
+  const handleRespondToQuote = async (inquiryId, response) => {
+    try {
+      setRespondLoading(inquiryId);
+      setRespondSuccess(null);
+      const result = await api.patch(API_ENDPOINTS.INQUIRIES.RESPOND(inquiryId), { response });
+      if (result.success) {
+        setRespondSuccess({ id: inquiryId, response });
+        setTimeout(() => {
+          setRespondSuccess(null);
+          fetchInquiries();
+        }, 2000);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to submit response');
+    } finally {
+      setRespondLoading(null);
+    }
+  };
+
+  const handleCallbackRequest = async (inquiryId) => {
+    if (!callbackDate || !callbackTime) {
+      alert('Please select a preferred date and time slot.');
+      return;
+    }
+    try {
+      setCallbackLoading(true);
+      const result = await api.post(API_ENDPOINTS.INQUIRIES.CALLBACK_REQUEST(inquiryId), {
+        preferredDate: callbackDate,
+        preferredTime: callbackTime,
+        phone: callbackPhone || user?.phone || '',
+      });
+      if (result.success) {
+        setCallbackSuccess(true);
+        setTimeout(() => {
+          setShowCallbackDialog(null);
+          setCallbackDate('');
+          setCallbackTime('');
+          setCallbackPhone('');
+          setCallbackSuccess(false);
+          fetchInquiries();
+        }, 2000);
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to submit callback request');
+    } finally {
+      setCallbackLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
-      fetchBookings(activeTab);
+      if (activeTab === 'inquiries') {
+        fetchInquiries();
+      } else {
+        fetchBookings(activeTab);
+      }
     } else {
       setLoading(false);
     }
   }, [isAuthenticated, activeTab]);
+
+  // Fetch inquiries count on mount for tab badge
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get(`${API_ENDPOINTS.INQUIRIES.MY_INQUIRIES}?limit=1`)
+        .then((res) => {
+          if (res.success) {
+            const total = res.data?.pagination?.total || (res.data?.inquiries || []).length;
+            setInquiriesCount(total);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isAuthenticated]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
@@ -242,10 +366,16 @@ export default function MyBookingsPage() {
     setAvailableSlots([]);
   };
 
+  const getInquiryBoatName = (inquiry) => {
+    if (inquiry.boatId && typeof inquiry.boatId === 'object') return inquiry.boatId.name;
+    return 'Party Boat';
+  };
+
   const tabs = [
     { id: 'all', label: 'All Bookings', count: counts.all },
     { id: 'speed', label: 'Speed Boats', count: counts.speed },
     { id: 'party', label: 'Party Boats', count: counts.party },
+    { id: 'inquiries', label: 'Inquiries & Quotes', count: inquiriesCount },
   ];
 
   if (!isAuthenticated) {
@@ -292,6 +422,274 @@ export default function MyBookingsPage() {
         ))}
       </div>
 
+      {/* ===== INQUIRIES TAB ===== */}
+      {activeTab === 'inquiries' && (
+        <>
+          {/* Inquiries Loading */}
+          {inquiriesLoading && (
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>&#x23F3;</div>
+              <h3 className={styles.emptyTitle}>Loading inquiries...</h3>
+            </div>
+          )}
+
+          {/* Inquiries Error */}
+          {!inquiriesLoading && inquiriesError && (
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>&#x26A0;</div>
+              <h3 className={styles.emptyTitle}>Something went wrong</h3>
+              <p className={styles.emptyText}>{inquiriesError}</p>
+              <button onClick={fetchInquiries} className={styles.emptyButton}>
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* Inquiries Empty */}
+          {!inquiriesLoading && !inquiriesError && inquiries.length === 0 && (
+            <div className={styles.emptyContainer}>
+              <div className={styles.emptyIcon}>&#x1F4E9;</div>
+              <h3 className={styles.emptyTitle}>No Inquiries Yet</h3>
+              <p className={styles.emptyText}>
+                You have not submitted any party boat inquiries. Browse our party boats and send an inquiry for a custom quote.
+              </p>
+              <Link href="/party-boats" className={styles.emptyButton}>
+                Browse Party Boats
+              </Link>
+            </div>
+          )}
+
+          {/* Inquiries List */}
+          {!inquiriesLoading && !inquiriesError && inquiries.length > 0 && (
+            <div className={styles.bookingsList}>
+              {inquiries.map((inquiry) => {
+                const statusConfig = INQUIRY_STATUS_CONFIG[inquiry.status] || { label: inquiry.status, className: 'statusPending' };
+                const boatName = getInquiryBoatName(inquiry);
+
+                return (
+                  <div key={inquiry.id} className={styles.bookingCard}>
+                    <div className={styles.bookingHeader}>
+                      <div className={styles.bookingHeaderLeft}>
+                        <span className={styles.bookingNumber}>{inquiry.inquiryNumber}</span>
+                        <span className={`${styles.typeBadge} ${styles.typeInquiry}`}>
+                          Inquiry
+                        </span>
+                      </div>
+                      <span className={`${styles.statusBadge} ${styles[statusConfig.className]}`}>
+                        {statusConfig.label}
+                      </span>
+                    </div>
+
+                    <div className={styles.bookingBody}>
+                      <div className={styles.boatName}>{boatName}</div>
+                      <div className={styles.bookingDetails}>
+                        <div className={styles.bookingDetail}>
+                          <span className={styles.detailLabel}>Event</span>
+                          <span className={styles.detailValue}>
+                            {EVENT_TYPE_LABELS[inquiry.eventType] || inquiry.eventType}
+                          </span>
+                        </div>
+                        {inquiry.numberOfGuests && (
+                          <div className={styles.bookingDetail}>
+                            <span className={styles.detailLabel}>Guests</span>
+                            <span className={styles.detailValue}>{inquiry.numberOfGuests}</span>
+                          </div>
+                        )}
+                        {inquiry.preferredDate && (
+                          <div className={styles.bookingDetail}>
+                            <span className={styles.detailLabel}>Preferred Date</span>
+                            <span className={styles.detailValue}>{formatLongDate(inquiry.preferredDate)}</span>
+                          </div>
+                        )}
+                        {inquiry.preferredTimeSlot && (
+                          <div className={styles.bookingDetail}>
+                            <span className={styles.detailLabel}>Time Slot</span>
+                            <span className={styles.detailValue}>
+                              {TIME_SLOT_LABELS[inquiry.preferredTimeSlot] || inquiry.preferredTimeSlot}
+                            </span>
+                          </div>
+                        )}
+                        {inquiry.budget && (
+                          <div className={styles.bookingDetail}>
+                            <span className={styles.detailLabel}>Your Budget</span>
+                            <span className={styles.detailValue}>{formatCurrency(inquiry.budget)}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status-specific content */}
+
+                      {/* PENDING - Waiting for quote */}
+                      {inquiry.status === 'PENDING' && (
+                        <div className={styles.inquiryStatusMessage}>
+                          <div className={styles.inquiryStatusIcon}>&#x23F3;</div>
+                          <div>
+                            <div className={styles.inquiryStatusTitle}>Waiting for quote from our team</div>
+                            <div className={styles.inquiryStatusText}>
+                              We have received your inquiry and will get back to you with a quote shortly.
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* QUOTED - Show quote details and action buttons */}
+                      {inquiry.status === 'QUOTED' && (
+                        <div className={styles.quoteSection}>
+                          <div className={styles.quoteHeader}>
+                            <span className={styles.quoteLabel}>Quoted Amount</span>
+                            <span className={styles.quoteAmount}>{formatCurrency(inquiry.quotedAmount)}</span>
+                          </div>
+                          {inquiry.quotedDetails && (
+                            <div className={styles.quoteDetails}>
+                              <span className={styles.quoteDetailsLabel}>Quote Details from Admin:</span>
+                              <p className={styles.quoteDetailsText}>{inquiry.quotedDetails}</p>
+                            </div>
+                          )}
+
+                          {/* Success message for respond */}
+                          {respondSuccess && respondSuccess.id === inquiry.id && (
+                            <div className={styles.respondSuccessMessage}>
+                              {respondSuccess.response === 'ACCEPTED'
+                                ? 'Quote accepted! Our team will confirm your booking soon.'
+                                : 'Quote declined. You can submit a new inquiry anytime.'}
+                            </div>
+                          )}
+
+                          {/* Action buttons */}
+                          {(!respondSuccess || respondSuccess.id !== inquiry.id) && (
+                            <div className={styles.quoteActions}>
+                              <button
+                                className={styles.acceptButton}
+                                onClick={() => handleRespondToQuote(inquiry.id, 'ACCEPTED')}
+                                disabled={respondLoading === inquiry.id}
+                              >
+                                {respondLoading === inquiry.id ? 'Processing...' : 'Accept Quote'}
+                              </button>
+                              <button
+                                className={styles.rejectButton}
+                                onClick={() => handleRespondToQuote(inquiry.id, 'REJECTED')}
+                                disabled={respondLoading === inquiry.id}
+                              >
+                                Decline Quote
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Schedule Call section */}
+                          {(!respondSuccess || respondSuccess.id !== inquiry.id) && (
+                            <div className={styles.callbackSection}>
+                              <button
+                                className={styles.callbackTrigger}
+                                onClick={() => {
+                                  setShowCallbackDialog(inquiry.id);
+                                  setCallbackPhone(user?.phone || '');
+                                  setCallbackDate('');
+                                  setCallbackTime('');
+                                  setCallbackSuccess(false);
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                                </svg>
+                                Schedule a Call Back
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ACCEPTED - Awaiting booking */}
+                      {inquiry.status === 'ACCEPTED' && (
+                        <div className={styles.inquiryStatusMessage}>
+                          <div className={styles.inquiryStatusIcon}>&#x2705;</div>
+                          <div>
+                            <div className={styles.inquiryStatusTitle}>Quote accepted - awaiting booking confirmation</div>
+                            <div className={styles.inquiryStatusText}>
+                              Our team will finalize your booking details and confirm shortly.
+                              {inquiry.quotedAmount && (
+                                <span className={styles.acceptedAmount}> Quoted: {formatCurrency(inquiry.quotedAmount)}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* CONVERTED - Link to booking */}
+                      {inquiry.status === 'CONVERTED' && (
+                        <div className={styles.inquiryStatusMessage}>
+                          <div className={styles.inquiryStatusIcon}>&#x1F389;</div>
+                          <div>
+                            <div className={styles.inquiryStatusTitle}>Booking Created</div>
+                            <div className={styles.inquiryStatusText}>
+                              Your inquiry has been converted to a booking.
+                              {inquiry.quotedAmount && (
+                                <span className={styles.acceptedAmount}> Amount: {formatCurrency(inquiry.quotedAmount)}</span>
+                              )}
+                            </div>
+                            <button
+                              className={styles.viewBookingLink}
+                              onClick={() => setActiveTab('party')}
+                            >
+                              View in Party Bookings
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* REJECTED - Declined */}
+                      {inquiry.status === 'REJECTED' && (
+                        <div className={styles.inquiryStatusMessage}>
+                          <div className={styles.inquiryStatusIcon}>&#x274C;</div>
+                          <div>
+                            <div className={styles.inquiryStatusTitle}>Quote declined</div>
+                            <div className={styles.inquiryStatusText}>
+                              You declined the quoted amount of {inquiry.quotedAmount ? formatCurrency(inquiry.quotedAmount) : 'N/A'}.
+                            </div>
+                            <Link href="/party-boats" className={styles.newInquiryLink}>
+                              Submit a New Inquiry
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* EXPIRED */}
+                      {inquiry.status === 'EXPIRED' && (
+                        <div className={styles.inquiryStatusMessage}>
+                          <div className={styles.inquiryStatusIcon}>&#x23F0;</div>
+                          <div>
+                            <div className={styles.inquiryStatusTitle}>Inquiry Expired</div>
+                            <div className={styles.inquiryStatusText}>
+                              This inquiry has expired. You can submit a new one anytime.
+                            </div>
+                            <Link href="/party-boats" className={styles.newInquiryLink}>
+                              Submit a New Inquiry
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.bookingActions}>
+                      <span className={styles.bookingDate}>
+                        Submitted on {formatDate(inquiry.createdAt)}
+                        {inquiry.quotedAt && (
+                          <span className={styles.modificationCount}>
+                            {' '}&middot; Quoted on {formatDate(inquiry.quotedAt)}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ===== BOOKINGS TABS (all / speed / party) ===== */}
+      {activeTab !== 'inquiries' && (
+        <>
       {/* Loading State */}
       {loading && (
         <div className={styles.emptyContainer}>
@@ -440,6 +838,91 @@ export default function MyBookingsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+        </>
+      )}
+
+      {/* Callback Request Dialog */}
+      {showCallbackDialog && (
+        <div className={styles.cancelDialog}>
+          <div className={styles.cancelDialogContent}>
+            <h4 className={styles.cancelDialogTitle}>Schedule a Call Back</h4>
+            <p className={styles.cancelDialogText}>
+              Our team will call you at your preferred time to discuss the quote details.
+            </p>
+
+            {callbackSuccess ? (
+              <div className={styles.respondSuccessMessage}>
+                Callback request submitted! Our team will call you at your preferred time.
+              </div>
+            ) : (
+              <>
+                <label className={styles.callbackFieldLabel}>Preferred Date</label>
+                <input
+                  type="date"
+                  className={styles.cancelReasonInput}
+                  value={callbackDate}
+                  onChange={(e) => setCallbackDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  max={new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]}
+                  style={{ padding: '10px 12px', marginBottom: '12px' }}
+                />
+
+                <label className={styles.callbackFieldLabel}>Preferred Time Slot</label>
+                <div className={styles.callbackTimeSlots}>
+                  {[
+                    { value: 'Morning 9-12', label: 'Morning (9 AM - 12 PM)' },
+                    { value: 'Afternoon 12-4', label: 'Afternoon (12 - 4 PM)' },
+                    { value: 'Evening 4-7', label: 'Evening (4 - 7 PM)' },
+                  ].map((slot) => (
+                    <button
+                      key={slot.value}
+                      type="button"
+                      className={`${styles.callbackTimeSlot} ${callbackTime === slot.value ? styles.callbackTimeSlotActive : ''}`}
+                      onClick={() => setCallbackTime(slot.value)}
+                    >
+                      {slot.label}
+                    </button>
+                  ))}
+                </div>
+
+                <label className={styles.callbackFieldLabel}>Phone Number</label>
+                <input
+                  type="tel"
+                  className={styles.cancelReasonInput}
+                  value={callbackPhone}
+                  onChange={(e) => setCallbackPhone(e.target.value)}
+                  placeholder="Enter your phone number"
+                  maxLength={10}
+                  style={{ padding: '10px 12px', marginBottom: '16px' }}
+                />
+
+                <div className={styles.cancelDialogActions}>
+                  <button
+                    className={styles.modifyConfirmButton}
+                    onClick={() => handleCallbackRequest(showCallbackDialog)}
+                    disabled={callbackLoading || !callbackDate || !callbackTime}
+                  >
+                    {callbackLoading ? 'Submitting...' : 'Request Call Back'}
+                  </button>
+                  <button
+                    className={styles.cancelDismissButton}
+                    onClick={() => {
+                      setShowCallbackDialog(null);
+                      setCallbackDate('');
+                      setCallbackTime('');
+                      setCallbackPhone('');
+                      setCallbackSuccess(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 

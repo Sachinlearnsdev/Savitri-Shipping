@@ -511,6 +511,270 @@
   background-color: var(--bg-secondary);
 }
 
+/* Inquiry Type Badge */
+.typeInquiry {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
+
+/* Quoted Status */
+.statusQuoted {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* Inquiry Status Message */
+.inquiryStatusMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-2);
+}
+
+.inquiryStatusIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.inquiryStatusTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.inquiryStatusText {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.acceptedAmount {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+/* Quote Section */
+.quoteSection {
+  margin-top: var(--spacing-2);
+}
+
+.quoteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-3);
+}
+
+.quoteLabel {
+  font-size: var(--font-size-sm);
+  color: #1e40af;
+  font-weight: var(--font-weight-medium);
+}
+
+.quoteAmount {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: #1e40af;
+}
+
+.quoteDetails {
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-3);
+}
+
+.quoteDetailsLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: var(--spacing-1);
+}
+
+.quoteDetailsText {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: 0;
+  white-space: pre-wrap;
+}
+
+/* Quote Action Buttons */
+.quoteActions {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+}
+
+.acceptButton {
+  flex: 1;
+  padding: var(--spacing-3) var(--spacing-5);
+  background-color: var(--color-success, #059669);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.acceptButton:hover {
+  background-color: var(--color-success-dark, #047857);
+}
+
+.acceptButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rejectButton {
+  flex: 1;
+  padding: var(--spacing-3) var(--spacing-5);
+  background-color: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rejectButton:hover {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.rejectButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Respond Success */
+.respondSuccessMessage {
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: var(--radius-md);
+  color: #166534;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+  margin-bottom: var(--spacing-3);
+}
+
+/* Callback Section */
+.callbackSection {
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--border-color);
+}
+
+.callbackTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.callbackTrigger:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Callback Dialog Fields */
+.callbackFieldLabel {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.callbackTimeSlots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.callbackTimeSlot {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.callbackTimeSlot:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.callbackTimeSlotActive {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-100, #eff6ff);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* View Booking Link & New Inquiry Link */
+.viewBookingLink {
+  display: inline-block;
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-3);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.viewBookingLink:hover {
+  background-color: var(--color-primary-dark);
+  color: white;
+}
+
+.newInquiryLink {
+  display: inline-block;
+  margin-top: var(--spacing-2);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+}
+
+.newInquiryLink:hover {
+  color: var(--color-primary-dark);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .header {
@@ -562,9 +826,22 @@
   }
 
   .cancelConfirmButton,
-  .cancelDismissButton {
+  .cancelDismissButton,
+  .modifyConfirmButton {
     width: 100%;
     text-align: center;
+  }
+
+  .quoteActions {
+    flex-direction: column;
+  }
+
+  .quoteAmount {
+    font-size: var(--font-size-xl);
+  }
+
+  .callbackTimeSlots {
+    flex-direction: column;
   }
 }
 

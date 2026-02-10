@@ -140,7 +140,7 @@ const PartyBoatDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/party-boats')}>
-        &larr; Back to Party Boats
+        Back to Party Boats
       </button>
 
       {/* Header */}

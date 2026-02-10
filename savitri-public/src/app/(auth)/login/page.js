@@ -121,7 +121,7 @@ export default function LoginPage() {
         <div className={styles.header}>
           <h1 className={styles.title}>Welcome Back</h1>
           <p className={styles.subtitle}>
-            Login to your Savitri Shipping account
+            Enter your email and password to access your account
           </p>
         </div>
 

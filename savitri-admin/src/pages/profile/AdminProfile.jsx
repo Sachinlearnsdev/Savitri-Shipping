@@ -101,7 +101,6 @@ const AdminProfile = () => {
         phone: phone || undefined,
         designation: designation || undefined,
         department: department || undefined,
-        employeeId: employeeId || undefined,
       });
       if (response.success) {
         setProfile(response.data);
@@ -357,10 +356,10 @@ const AdminProfile = () => {
             <label className={styles.label}>Employee ID</label>
             <input
               type="text"
-              className={styles.input}
+              className={`${styles.input} ${styles.inputReadOnly}`}
               value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-              placeholder="e.g. EMP001"
+              disabled
+              placeholder="Auto-generated"
             />
           </div>
         </div>

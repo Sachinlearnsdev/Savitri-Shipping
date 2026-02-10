@@ -9,9 +9,10 @@ import styles from './Sidebar.module.css';
 
 const Sidebar = () => {
   const location = useLocation();
-  const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, closeMobileSidebar } = useUIStore();
+  const { sidebarCollapsed, setSidebarCollapsed, toggleSidebar, mobileSidebarOpen, closeMobileSidebar } = useUIStore();
   const { hasPermission } = useAuth();
   const counts = useNotificationStore((s) => s.counts);
+  const markAsRead = useNotificationStore((s) => s.markAsRead);
   const [expandedMenus, setExpandedMenus] = useState({});
 
   const sidebarClasses = [
@@ -21,6 +22,16 @@ const Sidebar = () => {
   ].filter(Boolean).join(' ');
 
   const toggleMenu = (menuId) => {
+    // If sidebar is collapsed, expand it first and open this menu
+    if (sidebarCollapsed) {
+      setSidebarCollapsed(false);
+      setExpandedMenus(prev => ({
+        ...prev,
+        [menuId]: true,
+      }));
+      return;
+    }
+
     setExpandedMenus(prev => ({
       ...prev,
       [menuId]: !prev[menuId],
@@ -31,7 +42,11 @@ const Sidebar = () => {
 
   const isParentActive = (children) => children.some(child => location.pathname === child.path);
 
-  const handleLinkClick = () => {
+  const handleLinkClick = (countKey) => {
+    // Mark notifications as read for this menu item
+    if (countKey) {
+      markAsRead(countKey);
+    }
     closeMobileSidebar();
   };
 
@@ -139,7 +154,7 @@ const Sidebar = () => {
                               <Link
                                 to={child.path}
                                 className={`${styles.submenuLink} ${isActive(child.path) ? styles.active : ''}`}
-                                onClick={handleLinkClick}
+                                onClick={() => handleLinkClick(child.countKey)}
                               >
                                 {child.icon && <MenuIcon name={child.icon} size={14} />}
                                 <span>{child.label}</span>

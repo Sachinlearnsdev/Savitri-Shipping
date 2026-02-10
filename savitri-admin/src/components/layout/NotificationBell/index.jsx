@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useClickOutside from '../../../hooks/useClickOutside';
 import useNotificationStore from '../../../store/notificationStore';
 import { getSocket } from '../../../utils/socket';
 import styles from './NotificationBell.module.css';
@@ -77,7 +76,6 @@ const NOTIFICATION_CONFIG = {
     iconColor: 'yellow',
     getTitle: (data) => 'New Review',
     getDesc: (data) => {
-      const stars = data.rating ? `${'*'.repeat(data.rating)}` : '';
       return `${data.customerName} left a ${data.rating}-star review for ${data.boatName}`;
     },
     getRoute: () => '/reviews/company',
@@ -113,8 +111,6 @@ const NotificationBell = () => {
   const fetchCounts = useNotificationStore((s) => s.fetchCounts);
   const polledCounts = useNotificationStore((s) => s.counts);
 
-  const dropdownRef = useClickOutside(() => setIsOpen(false));
-
   /**
    * Add a new real-time notification
    */
@@ -137,13 +133,10 @@ const NotificationBell = () => {
 
     setNotifications((prev) => {
       const updated = [notification, ...prev];
-      // Keep only the last MAX_NOTIFICATIONS
       return updated.slice(0, MAX_NOTIFICATIONS);
     });
 
     setUnreadCount((prev) => prev + 1);
-
-    // Also refresh the polled notification counts
     fetchCounts();
   }, [fetchCounts]);
 
@@ -169,6 +162,18 @@ const NotificationBell = () => {
     };
   }, [addNotification]);
 
+  // Prevent body scroll when panel is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   /**
    * Mark all notifications as read
    */
@@ -180,22 +185,27 @@ const NotificationBell = () => {
   };
 
   /**
+   * Clear all notifications
+   */
+  const clearAll = () => {
+    setNotifications([]);
+    setUnreadCount(0);
+  };
+
+  /**
    * Handle clicking a notification
    */
   const handleNotifClick = (notification) => {
-    // Mark this notification as read
     setNotifications((prev) =>
       prev.map((n) =>
         n.id === notification.id ? { ...n, read: true } : n
       )
     );
 
-    // Decrease unread count if it was unread
     if (!notification.read) {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
 
-    // Navigate to the relevant page
     if (notification.route) {
       navigate(notification.route);
     }
@@ -207,11 +217,11 @@ const NotificationBell = () => {
   const totalBadge = unreadCount + (polledCounts.total || 0);
 
   return (
-    <div className={styles.container} ref={dropdownRef}>
+    <>
       <button
         className={styles.bellButton}
         aria-label="Notifications"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen(true)}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -224,132 +234,155 @@ const NotificationBell = () => {
         )}
       </button>
 
-      {isOpen && (
-        <div className={styles.dropdown}>
-          {/* Header */}
-          <div className={styles.dropdownHeader}>
-            <span className={styles.dropdownTitle}>Notifications</span>
+      {/* Backdrop */}
+      <div
+        className={`${styles.backdrop} ${isOpen ? styles.backdropVisible : ''}`}
+        onClick={() => setIsOpen(false)}
+      />
+
+      {/* Sliding Panel */}
+      <div className={`${styles.panel} ${isOpen ? styles.panelOpen : ''}`}>
+        {/* Panel Header */}
+        <div className={styles.panelHeader}>
+          <span className={styles.panelTitle}>Notifications</span>
+          <div className={styles.panelHeaderActions}>
             {unreadCount > 0 && (
               <button className={styles.markAllRead} onClick={markAllRead}>
                 Mark all read
               </button>
             )}
-          </div>
-
-          {/* Body */}
-          <div className={styles.dropdownBody}>
-            {/* Real-time notifications */}
-            {notifications.length > 0 && notifications.map((notif) => (
-              <button
-                key={notif.id}
-                className={`${styles.notifItem} ${!notif.read ? styles.unread : ''}`}
-                onClick={() => handleNotifClick(notif)}
-              >
-                <div className={`${styles.notifIcon} ${styles[notif.iconColor]}`}>
-                  {notif.icon}
-                </div>
-                <div className={styles.notifContent}>
-                  <p className={styles.notifTitle}>{notif.title}</p>
-                  <p className={styles.notifDesc}>{notif.description}</p>
-                  <span className={styles.notifTime}>{timeAgo(notif.timestamp)}</span>
-                </div>
+            {notifications.length > 0 && (
+              <button className={styles.clearAll} onClick={clearAll}>
+                Clear all
               </button>
-            ))}
+            )}
+            <button
+              className={styles.closeButton}
+              onClick={() => setIsOpen(false)}
+              aria-label="Close notifications"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-            {/* Polled pending counts (shown below real-time if no real-time notifications, or as summary) */}
-            {notifications.length === 0 && polledCounts.total === 0 && (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                </div>
-                <p className={styles.emptyText}>No notifications</p>
+        {/* Panel Body */}
+        <div className={styles.panelBody}>
+          {/* Real-time notifications */}
+          {notifications.length > 0 && notifications.map((notif) => (
+            <button
+              key={notif.id}
+              className={`${styles.notifItem} ${!notif.read ? styles.unread : ''}`}
+              onClick={() => handleNotifClick(notif)}
+            >
+              <div className={`${styles.notifIcon} ${styles[notif.iconColor]}`}>
+                {notif.icon}
               </div>
-            )}
+              <div className={styles.notifContent}>
+                <p className={styles.notifTitle}>{notif.title}</p>
+                <p className={styles.notifDesc}>{notif.description}</p>
+                <span className={styles.notifTime}>{timeAgo(notif.timestamp)}</span>
+              </div>
+            </button>
+          ))}
 
-            {/* Polled pending counts as clickable items when no real-time notifications */}
-            {notifications.length === 0 && polledCounts.total > 0 && (
-              <>
-                {polledCounts.pendingBookings > 0 && (
-                  <button
-                    className={styles.notifItem}
-                    onClick={() => { navigate('/bookings'); setIsOpen(false); }}
-                  >
-                    <div className={`${styles.notifIcon} ${styles.green}`}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                    </div>
-                    <div className={styles.notifContent}>
-                      <p className={styles.notifTitle}>Pending Speed Boat Bookings</p>
-                      <p className={styles.notifDesc}>
-                        {polledCounts.pendingBookings} booking{polledCounts.pendingBookings !== 1 ? 's' : ''} awaiting action
-                      </p>
-                    </div>
-                  </button>
-                )}
-                {polledCounts.pendingPartyBookings > 0 && (
-                  <button
-                    className={styles.notifItem}
-                    onClick={() => { navigate('/party-bookings'); setIsOpen(false); }}
-                  >
-                    <div className={`${styles.notifIcon} ${styles.green}`}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                    </div>
-                    <div className={styles.notifContent}>
-                      <p className={styles.notifTitle}>Pending Party Boat Bookings</p>
-                      <p className={styles.notifDesc}>
-                        {polledCounts.pendingPartyBookings} booking{polledCounts.pendingPartyBookings !== 1 ? 's' : ''} awaiting action
-                      </p>
-                    </div>
-                  </button>
-                )}
-                {polledCounts.pendingReviews > 0 && (
-                  <button
-                    className={styles.notifItem}
-                    onClick={() => { navigate('/reviews/company'); setIsOpen(false); }}
-                  >
-                    <div className={`${styles.notifIcon} ${styles.yellow}`}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg>
-                    </div>
-                    <div className={styles.notifContent}>
-                      <p className={styles.notifTitle}>Unapproved Reviews</p>
-                      <p className={styles.notifDesc}>
-                        {polledCounts.pendingReviews} review{polledCounts.pendingReviews !== 1 ? 's' : ''} pending approval
-                      </p>
-                    </div>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+          {/* Polled pending counts as clickable items when no real-time notifications */}
+          {notifications.length === 0 && polledCounts.total > 0 && (
+            <>
+              {polledCounts.pendingBookings > 0 && (
+                <button
+                  className={styles.notifItem}
+                  onClick={() => { navigate('/bookings'); setIsOpen(false); }}
+                >
+                  <div className={`${styles.notifIcon} ${styles.green}`}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                  </div>
+                  <div className={styles.notifContent}>
+                    <p className={styles.notifTitle}>Pending Speed Boat Bookings</p>
+                    <p className={styles.notifDesc}>
+                      {polledCounts.pendingBookings} booking{polledCounts.pendingBookings !== 1 ? 's' : ''} awaiting action
+                    </p>
+                  </div>
+                </button>
+              )}
+              {polledCounts.pendingPartyBookings > 0 && (
+                <button
+                  className={styles.notifItem}
+                  onClick={() => { navigate('/party-bookings'); setIsOpen(false); }}
+                >
+                  <div className={`${styles.notifIcon} ${styles.green}`}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                  </div>
+                  <div className={styles.notifContent}>
+                    <p className={styles.notifTitle}>Pending Party Boat Bookings</p>
+                    <p className={styles.notifDesc}>
+                      {polledCounts.pendingPartyBookings} booking{polledCounts.pendingPartyBookings !== 1 ? 's' : ''} awaiting action
+                    </p>
+                  </div>
+                </button>
+              )}
+              {polledCounts.pendingReviews > 0 && (
+                <button
+                  className={styles.notifItem}
+                  onClick={() => { navigate('/reviews/company'); setIsOpen(false); }}
+                >
+                  <div className={`${styles.notifIcon} ${styles.yellow}`}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </div>
+                  <div className={styles.notifContent}>
+                    <p className={styles.notifTitle}>Unapproved Reviews</p>
+                    <p className={styles.notifDesc}>
+                      {polledCounts.pendingReviews} review{polledCounts.pendingReviews !== 1 ? 's' : ''} pending approval
+                    </p>
+                  </div>
+                </button>
+              )}
+            </>
+          )}
 
-          {/* Footer - only show if there are notifications */}
-          {(notifications.length > 0 || polledCounts.total > 0) && (
-            <div className={styles.dropdownFooter}>
-              <button
-                className={styles.viewAllLink}
-                onClick={() => { navigate('/bookings'); setIsOpen(false); }}
-              >
-                View all bookings
-              </button>
+          {/* Empty state */}
+          {notifications.length === 0 && polledCounts.total === 0 && (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              </div>
+              <p className={styles.emptyTitle}>No notifications</p>
+              <p className={styles.emptyText}>You are all caught up. New notifications will appear here.</p>
             </div>
           )}
         </div>
-      )}
-    </div>
+
+        {/* Panel Footer */}
+        {(notifications.length > 0 || polledCounts.total > 0) && (
+          <div className={styles.panelFooter}>
+            <button
+              className={styles.viewAllLink}
+              onClick={() => { navigate('/bookings'); setIsOpen(false); }}
+            >
+              View all bookings
+            </button>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

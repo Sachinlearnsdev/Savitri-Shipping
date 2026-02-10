@@ -91,6 +91,19 @@ class InquiriesController {
       next(error);
     }
   }
+
+  async addCallbackRequest(req, res, next) {
+    try {
+      const inquiry = await inquiriesService.addCallbackRequest(
+        req.params.id,
+        req.customerId,
+        req.body
+      );
+      res.json(ApiResponse.success('Callback request submitted successfully', inquiry));
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new InquiriesController();

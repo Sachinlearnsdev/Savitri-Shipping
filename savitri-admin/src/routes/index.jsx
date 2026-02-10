@@ -21,6 +21,7 @@ import CustomerDetail from '../pages/users/CustomerDetail';
 
 // Profile Page
 import AdminProfile from '../pages/profile/AdminProfile';
+import Preferences from '../pages/profile/Preferences';
 
 // Settings Pages
 import GeneralSettings from '../pages/settings/GeneralSettings';
@@ -59,6 +60,8 @@ import CouponDetail from '../pages/coupons/CouponDetail';
 
 // Marketing Pages
 import Marketing from '../pages/marketing/Marketing';
+import CampaignAnalytics from '../pages/marketing/CampaignAnalytics';
+import CustomerSegments from '../pages/marketing/CustomerSegments';
 
 // Reports Pages
 import Reports from '../pages/reports/Reports';
@@ -99,6 +102,7 @@ const AppRoutes = () => {
             
             {/* Profile */}
             <Route path="/profile" element={<AdminProfile />} />
+            <Route path="/preferences" element={<Preferences />} />
             
             {/* Settings */}
             <Route path="/settings/general" element={<GeneralSettings />} />
@@ -140,6 +144,8 @@ const AppRoutes = () => {
 
             {/* Marketing */}
             <Route path="/marketing" element={<Marketing />} />
+            <Route path="/marketing/analytics" element={<CampaignAnalytics />} />
+            <Route path="/marketing/segments" element={<CustomerSegments />} />
 
             {/* Reports */}
             <Route path="/reports" element={<Navigate to="/reports/revenue" replace />} />

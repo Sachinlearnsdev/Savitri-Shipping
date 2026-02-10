@@ -1,3 +1,23 @@
+/* ==================== THEME VARIABLES ==================== */
+
+:root, [data-theme="light"] {
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04);
+  --input-bg: #ffffff;
+  --input-border: #e2e5e9;
+  --table-stripe: #f8f9fb;
+  --hover-bg: #f5f6f8;
+}
+
+[data-theme="dark"] {
+  --card-bg: #1A1F26;
+  --card-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3);
+  --input-bg: #242B33;
+  --input-border: #383E48;
+  --table-stripe: #1F252C;
+  --hover-bg: #242B33;
+}
+
 /* ==================== RESET & BASE STYLES ==================== */
 
 * {
@@ -16,11 +36,12 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
@@ -28,6 +49,7 @@ body {
   background-color: var(--bg-secondary);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -38,11 +60,12 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-heading);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--text-primary);
   margin-bottom: var(--spacing-4);
+  letter-spacing: -0.01em;
 }
 
 h1 {
@@ -77,11 +100,12 @@ p {
 a {
   color: var(--text-link);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 a:hover {
   color: var(--color-primary-dark);
+  text-decoration: none;
 }
 
 strong,
@@ -139,8 +163,8 @@ select:focus {
 /* ==================== SCROLLBAR ==================== */
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -148,24 +172,26 @@ select:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gray-400);
+  background: var(--color-gray-300);
   border-radius: var(--radius-full);
+  border: 2px solid var(--bg-secondary);
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-500);
+  background: var(--color-gray-400);
 }
 
 /* ==================== SELECTION ==================== */
 
 ::selection {
-  background-color: var(--color-primary-light);
-  color: var(--color-white);
+  background-color: var(--color-primary-200);
+  color: var(--text-primary);
 }
 
 ::-moz-selection {
-  background-color: var(--color-primary-light);
-  color: var(--color-white);
+  background-color: var(--color-primary-200);
+  color: var(--text-primary);
 }
 
 /* ==================== ROOT ==================== */
@@ -192,7 +218,8 @@ select:focus {
 
 *:focus-visible {
   outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 /* ==================== MOBILE OPTIMIZATIONS ==================== */
@@ -210,6 +237,27 @@ select:focus {
   select {
     font-size: 16px;
   }
+}
+
+/* ==================== DARK MODE OVERRIDES ==================== */
+
+[data-theme="dark"] ::selection {
+  background-color: var(--color-primary-700);
+  color: var(--color-primary-100);
+}
+
+[data-theme="dark"] ::-moz-selection {
+  background-color: var(--color-primary-700);
+  color: var(--color-primary-100);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--color-gray-600);
+  border-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
 }
 
 /* ==================== PRINT ==================== */

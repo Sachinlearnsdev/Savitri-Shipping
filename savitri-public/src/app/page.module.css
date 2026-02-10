@@ -29,33 +29,29 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* ==================== HERO CAROUSEL ==================== */
+/* ==================== HERO ==================== */
 .hero {
   position: relative;
-  height: 560px;
-  overflow: hidden;
-}
-
-.heroSlide {
-  position: absolute;
-  inset: 0;
+  min-height: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.8s ease-in-out;
-  z-index: 0;
+  overflow: hidden;
 }
 
-.heroSlideActive {
-  opacity: 1;
-  z-index: 1;
+.heroBackground {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #0c2d48 0%, #0a3d62 30%, #0891b2 70%, #064e3b 100%);
+  z-index: 0;
 }
 
 .heroOverlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+  background: radial-gradient(ellipse at 60% 40%, rgba(8, 145, 178, 0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 20% 80%, rgba(6, 78, 59, 0.2) 0%, transparent 50%);
+  z-index: 1;
 }
 
 .heroContent {
@@ -63,24 +59,28 @@
   z-index: 2;
   text-align: center;
   max-width: 800px;
-  padding: 0 var(--spacing-4);
+  padding: var(--spacing-8) var(--spacing-4);
   color: white;
 }
 
 .heroTitle {
-  font-size: 3.25rem;
+  font-size: 3.5rem;
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-4);
-  line-height: var(--line-height-tight);
-  text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+  margin-bottom: var(--spacing-5);
+  line-height: 1.15;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.02em;
 }
 
 .heroSubtitle {
   font-size: var(--font-size-xl);
-  margin-bottom: var(--spacing-8);
-  opacity: 0.95;
+  margin-bottom: var(--spacing-10);
+  opacity: 0.92;
   line-height: var(--line-height-relaxed);
-  text-shadow: 0 1px 10px rgba(0,0,0,0.15);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .heroActions {
@@ -93,17 +93,19 @@
 .primaryButton {
   padding: var(--spacing-4) var(--spacing-8);
   background-color: white;
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .primaryButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  color: var(--color-primary-dark);
 }
 
 .secondaryButton {
@@ -113,74 +115,96 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
-  border: 2px solid rgba(255,255,255,0.7);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
 }
 
 .secondaryButton:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.12);
   border-color: white;
+  color: white;
 }
 
-/* Hero Dots */
-.heroDots {
+/* Wave Animation */
+.waveContainer {
   position: absolute;
-  bottom: var(--spacing-6);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: var(--spacing-2);
-  z-index: 5;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  line-height: 0;
 }
 
-.heroDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.6);
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
+.wave {
+  width: 100%;
+  height: 80px;
+  display: block;
 }
 
-.heroDotActive {
-  background: white;
-  border-color: white;
-  width: 28px;
-  border-radius: 5px;
+.wavePath1 {
+  fill: var(--bg-primary);
+  opacity: 0.6;
+  animation: waveMove1 8s ease-in-out infinite;
 }
 
-/* ==================== STATS BAR ==================== */
-.statsBar {
-  background-color: var(--color-primary);
-  padding: var(--spacing-8) var(--spacing-4);
+.wavePath2 {
+  fill: var(--bg-primary);
+  opacity: 1;
+  animation: waveMove2 6s ease-in-out infinite;
+}
+
+@keyframes waveMove1 {
+  0%, 100% { d: path("M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60 L1440,120 L0,120 Z"); }
+  50% { d: path("M0,80 C240,20 480,100 720,40 C960,0 1200,80 1440,40 L1440,120 L0,120 Z"); }
+}
+
+@keyframes waveMove2 {
+  0%, 100% { d: path("M0,80 C240,20 480,100 720,40 C960,0 1200,80 1440,40 L1440,120 L0,120 Z"); }
+  50% { d: path("M0,50 C240,100 480,10 720,70 C960,110 1200,20 1440,70 L1440,120 L0,120 Z"); }
+}
+
+/* ==================== STATS ==================== */
+.statsSection {
+  padding: var(--spacing-12) var(--spacing-4);
+  background-color: var(--bg-primary);
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-6);
-  text-align: center;
 }
 
-.statItem {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
+.statCard {
+  text-align: center;
+  padding: var(--spacing-6) var(--spacing-4);
+  border-radius: var(--radius-xl);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-normal);
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
 }
 
 .statValue {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  color: white;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-2);
+  line-height: 1.2;
 }
 
 .statLabel {
   font-size: var(--font-size-sm);
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ==================== SERVICES ==================== */
@@ -203,6 +227,8 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
 }
 
 .serviceCard:hover {
@@ -211,15 +237,21 @@
   border-color: var(--color-primary-light);
 }
 
-.serviceIcon {
-  margin-bottom: var(--spacing-5);
+.serviceIconWrap {
   width: 72px;
   height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-secondary);
+  background-color: var(--color-primary-50);
   border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-5);
+  color: var(--color-primary);
+}
+
+.serviceIconParty {
+  background-color: #fef3c7;
+  color: var(--color-secondary-dark);
 }
 
 .serviceTitle {
@@ -233,227 +265,20 @@
   font-size: var(--font-size-base);
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
-  margin-bottom: var(--spacing-4);
-}
-
-.serviceFeatures {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 var(--spacing-5) 0;
-}
-
-.serviceFeatures li {
-  padding: var(--spacing-1) 0;
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  position: relative;
-  padding-left: var(--spacing-5);
-}
-
-.serviceFeatures li::before {
-  content: "\2713";
-  position: absolute;
-  left: 0;
-  color: var(--color-success);
-  font-weight: var(--font-weight-bold);
-}
-
-.serviceLink {
-  display: inline-block;
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.serviceLink:hover {
-  color: var(--color-primary-dark);
-}
-
-/* ==================== FEATURED BOATS ==================== */
-.featured {
-  padding: var(--spacing-16) var(--spacing-4);
-  background-color: var(--bg-secondary);
-}
-
-.featuredGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-6);
-}
-
-.boatCard {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  text-decoration: none;
-  transition: all var(--transition-normal);
-}
-
-.boatCard:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-lg);
-}
-
-.boatImage {
-  height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.boatTypeBadge {
-  position: absolute;
-  top: var(--spacing-3);
-  left: var(--spacing-3);
-  padding: 2px var(--spacing-2);
-  background-color: rgba(255,255,255,0.2);
-  backdrop-filter: blur(8px);
-  color: white;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  border-radius: var(--radius-sm);
-}
-
-.boatTypeBadgeParty {
-  background-color: rgba(217, 119, 6, 0.3);
-}
-
-.boatInfo {
-  padding: var(--spacing-4);
-}
-
-.boatNameRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-1);
-}
-
-.boatName {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.boatRating {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  flex-shrink: 0;
-}
-
-.star {
-  color: #f59e0b;
-}
-
-.boatReviewCount {
-  color: var(--text-tertiary);
-  font-weight: var(--font-weight-normal);
-  font-size: var(--font-size-xs);
-}
-
-.boatCapacity {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-3);
-}
-
-.boatPricing {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-.boatBaseRate {
-  font-size: var(--font-size-sm);
-  color: var(--text-tertiary);
-  text-decoration: line-through;
-}
-
-.boatActualRate {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-}
-
-/* ==================== HOW IT WORKS ==================== */
-.howItWorks {
-  padding: var(--spacing-16) var(--spacing-4);
-  background-color: var(--bg-primary);
-}
-
-.stepsGrid {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.step {
+  margin-bottom: var(--spacing-5);
   flex: 1;
-  text-align: center;
-  padding: 0 var(--spacing-4);
 }
 
-.stepNumber {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  margin: 0 auto var(--spacing-4);
-}
-
-.stepConnector {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 16px;
-  flex-shrink: 0;
-  width: 48px;
-}
-
-.stepTitle {
+.servicePrice {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-5);
 }
 
-.stepDescription {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  line-height: var(--line-height-relaxed);
-}
-
-/* ==================== TESTIMONIALS ==================== */
-.testimonials {
-  padding: var(--spacing-16) var(--spacing-4);
-  background-color: var(--bg-secondary);
-}
-
-.reviewCta {
-  text-align: center;
-  margin-bottom: var(--spacing-8);
-}
-
-.writeReviewLink {
+.serviceButton {
   display: inline-block;
-  padding: var(--spacing-2) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-6);
   background-color: var(--color-primary);
   color: white;
   font-size: var(--font-size-sm);
@@ -461,11 +286,83 @@
   text-decoration: none;
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
+  text-align: center;
+  align-self: flex-start;
 }
 
-.writeReviewLink:hover {
+.serviceButton:hover {
   background-color: var(--color-primary-dark);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+  color: white;
+}
+
+.serviceButtonParty {
+  background-color: var(--color-secondary);
+}
+
+.serviceButtonParty:hover {
+  background-color: var(--color-secondary-dark);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* ==================== WHY CHOOSE US ==================== */
+.whyChooseUs {
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--bg-secondary);
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-6);
+}
+
+.featureCard {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-5);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-normal);
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+.featureIcon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing-5);
+  background-color: var(--color-primary-50);
+  border-radius: 50%;
+  color: var(--color-primary);
+}
+
+.featureTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-3);
+}
+
+.featureDescription {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+/* ==================== TESTIMONIALS ==================== */
+.testimonials {
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--bg-primary);
 }
 
 .testimonialsGrid {
@@ -476,7 +373,7 @@
 
 .testimonialCard {
   padding: var(--spacing-6);
-  background-color: var(--bg-primary);
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   transition: all var(--transition-normal);
@@ -484,6 +381,11 @@
 
 .testimonialCard:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.testimonialCardSkeleton {
+  opacity: 0.5;
 }
 
 .testimonialStars {
@@ -508,6 +410,7 @@
   line-height: var(--line-height-relaxed);
   margin-bottom: var(--spacing-5);
   font-style: italic;
+  min-height: 72px;
 }
 
 .testimonialAuthor {
@@ -536,15 +439,22 @@
   color: var(--text-primary);
 }
 
-.testimonialLocation {
+.testimonialBadge {
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  color: var(--color-success);
+  font-weight: var(--font-weight-medium);
+}
+
+.emptyTestimonials {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--spacing-8) 0;
 }
 
 /* ==================== CTA ==================== */
 .cta {
   padding: var(--spacing-16) var(--spacing-4);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(135deg, #0c2d48 0%, var(--color-primary) 50%, #064e3b 100%);
   color: white;
   text-align: center;
 }
@@ -553,6 +463,7 @@
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
   margin-bottom: var(--spacing-4);
+  color: white;
 }
 
 .ctaDescription {
@@ -576,7 +487,7 @@
   display: inline-block;
   padding: var(--spacing-4) var(--spacing-8);
   background-color: white;
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
@@ -586,7 +497,8 @@
 
 .ctaButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  color: var(--color-primary-dark);
 }
 
 .ctaButtonOutline {
@@ -597,35 +509,36 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
-  border: 2px solid rgba(255,255,255,0.7);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
 }
 
 .ctaButtonOutline:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.12);
   border-color: white;
+  color: white;
 }
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
-  .featuredGrid {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-4);
+  }
+
+  .featuresGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .testimonialsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-4);
-  }
 }
 
 @media (max-width: 768px) {
   .hero {
-    height: 480px;
+    min-height: 500px;
   }
 
   .heroTitle {
@@ -649,21 +562,9 @@
     grid-template-columns: 1fr;
   }
 
-  .featuredGrid {
+  .featuresGrid {
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-4);
-  }
-
-  .stepsGrid {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-6);
-  }
-
-  .stepConnector {
-    transform: rotate(90deg);
-    width: 24px;
-    margin-top: 0;
   }
 
   .testimonialsGrid {
@@ -677,11 +578,15 @@
   .ctaDescription {
     font-size: var(--font-size-base);
   }
+
+  .wave {
+    height: 50px;
+  }
 }
 
 @media (max-width: 480px) {
   .hero {
-    height: 420px;
+    min-height: 440px;
   }
 
   .heroTitle {
@@ -704,7 +609,11 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .featuredGrid {
+  .featuresGrid {
     grid-template-columns: 1fr;
+  }
+
+  .wave {
+    height: 40px;
   }
 }

@@ -245,7 +245,7 @@ const AdminUserDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/users/admins')}>
-        &larr; Back to Admin Users
+        Back to Admin Users
       </button>
 
       {/* Header */}

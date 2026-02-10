@@ -173,23 +173,41 @@ const BoatProductCard = ({ boat, onClick }) => {
     <div className={styles.boatCard} onClick={onClick}>
       <div className={styles.boatCardImage}>
         {boat.boatImage ? (
-          <img src={boat.boatImage} alt={boat.boatName} />
+          <>
+            <img src={boat.boatImage} alt={boat.boatName} />
+            <div className={styles.boatCardImageOverlay}>
+              <div className={styles.boatCardRatingOverlay}>
+                <span className={styles.boatCardRatingOverlayStar}>&#9733;</span>
+                <span>{boat.avgRating}</span>
+              </div>
+            </div>
+          </>
         ) : (
           <div className={styles.boatCardPlaceholder}>
-            <span>&#9973;</span>
+            <svg className={styles.boatCardPlaceholderIcon} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 44L12 36H52L56 44H8Z" fill="currentColor" opacity="0.3"/>
+              <path d="M14 36L18 24H46L50 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 44C8 44 16 48 32 48C48 48 56 44 56 44" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M32 24V18M32 18L28 20M32 18L36 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 52C12 52 16 50 20 50C24 50 28 52 32 52C36 52 40 50 44 50C48 50 52 52 60 52" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+            </svg>
+            <span className={styles.boatCardPlaceholderText}>No Image</span>
           </div>
         )}
+        <div className={styles.boatCardTypeBadge}>
+          <Badge variant={REVIEW_TYPE_COLORS[boat.boatType] || 'default'}>
+            {REVIEW_TYPE_LABELS[boat.boatType] || boat.boatType}
+          </Badge>
+        </div>
       </div>
       <div className={styles.boatCardBody}>
         <h3 className={styles.boatCardName}>{boat.boatName}</h3>
-        <Badge variant={REVIEW_TYPE_COLORS[boat.boatType] || 'default'}>
-          {REVIEW_TYPE_LABELS[boat.boatType] || boat.boatType}
-        </Badge>
         <div className={styles.boatCardStats}>
           <div className={styles.boatCardStat}>
             <span className={styles.boatCardStatValue}>{boat.avgRating}</span>
             <StarRating rating={Math.round(boat.avgRating)} />
           </div>
+          <div className={styles.boatCardStatDivider} />
           <div className={styles.boatCardStat}>
             <span className={styles.boatCardStatValue}>{boat.reviewCount}</span>
             <span className={styles.boatCardStatLabel}>
@@ -198,9 +216,15 @@ const BoatProductCard = ({ boat, onClick }) => {
           </div>
         </div>
         <div className={styles.boatCardMeta}>
-          <span className={styles.boatCardApproved}>{boat.approvedCount} approved</span>
+          <span className={styles.boatCardApproved}>
+            <span className={styles.boatCardMetaDot} style={{ backgroundColor: '#16a34a' }} />
+            {boat.approvedCount} approved
+          </span>
           {boat.hiddenCount > 0 && (
-            <span className={styles.boatCardHidden}>{boat.hiddenCount} hidden</span>
+            <span className={styles.boatCardHidden}>
+              <span className={styles.boatCardMetaDot} style={{ backgroundColor: '#d97706' }} />
+              {boat.hiddenCount} hidden
+            </span>
           )}
         </div>
       </div>
@@ -536,7 +560,18 @@ const Reviews = ({ category = 'company' }) => {
         <div className={styles.loading}>Loading...</div>
       ) : boatAggregation.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No boat reviews found.</p>
+          <div className={styles.emptyStateIcon}>
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 44L12 36H52L56 44H8Z" fill="currentColor" opacity="0.15"/>
+              <path d="M14 36L18 24H46L50 36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+              <path d="M8 44C8 44 16 48 32 48C48 48 56 44 56 44" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.3"/>
+              <path d="M26 10L32 6L38 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.2"/>
+            </svg>
+          </div>
+          <p className={styles.emptyStateTitle}>No Boat Reviews Yet</p>
+          <p className={styles.emptyStateDesc}>
+            Reviews will appear here once customers start rating individual boats.
+          </p>
         </div>
       ) : (
         <div className={styles.boatGrid}>

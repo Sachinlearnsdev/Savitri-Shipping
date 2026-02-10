@@ -198,7 +198,7 @@ const CustomerDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/users/customers')}>
-        &larr; Back to Customers
+        Back to Customers
       </button>
 
       {/* Header */}

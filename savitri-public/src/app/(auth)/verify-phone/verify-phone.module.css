@@ -7,6 +7,7 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-8);
+  border: 1px solid var(--border-color);
 }
 
 .header {
@@ -15,8 +16,20 @@
 }
 
 .icon {
-  font-size: 4rem;
-  margin-bottom: var(--spacing-4);
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-4);
+  background-color: var(--color-primary-50);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
 }
 
 .title {
@@ -27,7 +40,7 @@
 }
 
 .subtitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   margin: 0;
   line-height: var(--line-height-relaxed);
@@ -67,6 +80,7 @@
 @media (max-width: 640px) {
   .card {
     padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
   }
 
   .title {
@@ -74,6 +88,7 @@
   }
 
   .icon {
-    font-size: 3rem;
+    width: 56px;
+    height: 56px;
   }
 }

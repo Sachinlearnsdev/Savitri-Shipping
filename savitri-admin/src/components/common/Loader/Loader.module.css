@@ -17,9 +17,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-overlay);
-  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(8px);
   z-index: var(--z-modal);
+  animation: overlayFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .content {
@@ -27,20 +37,50 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-xl);
+  background-color: var(--bg-primary);
+  box-shadow: var(--shadow-xl);
 }
 
-/* Loader Spinner */
+/* Loader Spinner - Double ring style */
 .loader {
   display: inline-block;
   border-radius: var(--radius-full);
   border-style: solid;
-  border-top-color: transparent;
-  animation: spin 0.8s linear infinite;
+  border-top-color: transparent !important;
+  border-right-color: transparent !important;
+  animation: spin 0.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  position: relative;
+}
+
+.loader::after {
+  content: '';
+  position: absolute;
+  border-radius: var(--radius-full);
+  border-style: solid;
+  border-color: inherit;
+  border-top-color: transparent !important;
+  border-left-color: transparent !important;
+  animation: spinReverse 0.65s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  opacity: 0.35;
 }
 
 @keyframes spin {
-  to {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverse {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
   }
 }
 
@@ -51,38 +91,91 @@
   border-width: 2px;
 }
 
+.sm::after {
+  top: 1px;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  border-width: 1.5px;
+}
+
 .md {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-width: 3px;
+}
+
+.md::after {
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border-width: 2px;
 }
 
 .lg {
-  width: 32px;
-  height: 32px;
-  border-width: 3px;
+  width: 40px;
+  height: 40px;
+  border-width: 3.5px;
+}
+
+.lg::after {
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border-width: 2.5px;
 }
 
 .xl {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-width: 4px;
+}
+
+.xl::after {
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border-width: 3px;
 }
 
 /* Colors */
 .primary {
-  border-color: var(--color-primary);
+  border-color: var(--color-primary, #0891b2);
   border-top-color: transparent;
+  border-right-color: transparent;
+}
+
+.primary::after {
+  border-color: var(--color-primary, #0891b2);
+  border-top-color: transparent;
+  border-left-color: transparent;
 }
 
 .secondary {
-  border-color: var(--color-secondary);
+  border-color: var(--color-secondary, #64748b);
   border-top-color: transparent;
+  border-right-color: transparent;
+}
+
+.secondary::after {
+  border-color: var(--color-secondary, #64748b);
+  border-top-color: transparent;
+  border-left-color: transparent;
 }
 
 .white {
-  border-color: var(--color-white);
+  border-color: #ffffff;
   border-top-color: transparent;
+  border-right-color: transparent;
+}
+
+.white::after {
+  border-color: #ffffff;
+  border-top-color: transparent;
+  border-left-color: transparent;
 }
 
 /* Loading Text */
@@ -91,11 +184,24 @@
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   text-align: center;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
+  animation: textPulse 2s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .fullScreen .text {
-  color: var(--color-white);
+  color: var(--text-primary);
   font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Responsive */
@@ -105,22 +211,58 @@
     height: 14px;
     border-width: 2px;
   }
-  
+
+  .sm::after {
+    top: 1px;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    border-width: 1px;
+  }
+
   .md {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
+    border-width: 2.5px;
+  }
+
+  .md::after {
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
     border-width: 2px;
   }
-  
+
   .lg {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-width: 3px;
   }
-  
+
+  .lg::after {
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border-width: 2px;
+  }
+
   .xl {
-    width: 40px;
-    height: 40px;
-    border-width: 3px;
+    width: 44px;
+    height: 44px;
+    border-width: 3.5px;
+  }
+
+  .xl::after {
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border-width: 2.5px;
+  }
+
+  .content {
+    padding: var(--spacing-4);
   }
 }

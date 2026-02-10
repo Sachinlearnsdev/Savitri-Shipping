@@ -38,5 +38,6 @@ publicRouter.post('/', (req, res, next) => {
 publicRouter.get('/my-inquiries', auth, inquiriesController.getMyInquiries);
 publicRouter.get('/:id', auth, inquiriesController.getMyInquiryById);
 publicRouter.patch('/:id/respond', auth, validate(respondInquirySchema), inquiriesController.respondToQuote);
+publicRouter.post('/:id/callback-request', auth, inquiriesController.addCallbackRequest);
 
 module.exports = { adminRouter, publicRouter };

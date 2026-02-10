@@ -200,7 +200,7 @@ const BookingDetail = () => {
     <div className={styles.container}>
       {/* Back Button */}
       <button className={styles.backBtn} onClick={() => navigate('/bookings')}>
-        &larr; Back to Bookings
+        Back to Bookings
       </button>
 
       {/* Header */}
@@ -539,7 +539,9 @@ const BookingDetail = () => {
                       <span style={{ fontSize: 'var(--font-size-sm)', color: '#ef4444', textDecoration: 'line-through' }}>
                         {formatDate(mod.previousDate)} {mod.previousStartTime || ''}
                       </span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>&rarr;</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                       <span style={{ fontSize: 'var(--font-size-sm)', color: '#059669', fontWeight: 'var(--font-weight-semibold)' }}>
                         {formatDate(mod.newDate)} {mod.newStartTime || ''}
                       </span>

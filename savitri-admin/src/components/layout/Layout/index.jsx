@@ -7,6 +7,7 @@ import ToastContainer from '../../common/Toast';
 import useUIStore from '../../../store/uiStore';
 import useAuthStore from '../../../store/authStore';
 import useNotificationStore from '../../../store/notificationStore';
+import useThemeStore from '../../../store/themeStore';
 import { connectSocket, disconnectSocket } from '../../../utils/socket';
 import styles from './Layout.module.css';
 
@@ -16,6 +17,9 @@ const Layout = () => {
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const fetchCounts = useNotificationStore((s) => s.fetchCounts);
   const token = useAuthStore((s) => s.token);
+
+  // Initialize theme on mount (store constructor already applied data-theme)
+  useThemeStore();
 
   // Connect Socket.io when authenticated
   useEffect(() => {

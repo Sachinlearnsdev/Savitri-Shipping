@@ -354,7 +354,7 @@ export const MENU_ITEMS = [
       {
         id: 'customers',
         label: 'Customers',
-        icon: 'admin-users',
+        icon: 'customers',
         path: '/users/customers',
         permission: 'customers.view',
       },
@@ -401,6 +401,8 @@ export const MENU_ITEMS = [
     children: [
       { id: 'coupons', label: 'Coupons', icon: 'coupon-list', path: '/coupons', permission: 'coupons.view' },
       { id: 'email-campaigns', label: 'Email Campaigns', icon: 'email-campaigns', path: '/marketing', permission: 'marketing.view' },
+      { id: 'campaign-analytics', label: 'Campaign Analytics', icon: 'boat-performance', path: '/marketing/analytics', permission: 'marketing.view' },
+      { id: 'customer-segments', label: 'Customer Segments', icon: 'revenue', path: '/marketing/segments', permission: 'marketing.view' },
     ],
   },
   {
@@ -416,7 +418,7 @@ export const MENU_ITEMS = [
   },
   {
     id: 'settings',
-    label: 'Settings',
+    label: 'Business Settings',
     icon: 'settings',
     permission: 'settings.view',
     children: [
@@ -482,10 +484,13 @@ export const ROUTE_TITLES = {
   '/settings/content': 'Content',
   '/coupons': 'Coupons',
   '/marketing': 'Email Campaigns',
+  '/marketing/analytics': 'Campaign Analytics',
+  '/marketing/segments': 'Customer Segments',
   '/reports/revenue': 'Revenue Reports',
   '/reports/bookings': 'Booking Reports',
   '/reports/boats': 'Boat Performance',
   '/profile': 'Profile',
+  '/preferences': 'Preferences',
 };
 
 // Parent labels for breadcrumbs
@@ -504,6 +509,8 @@ export const ROUTE_PARENTS = {
   '/reviews/product': { label: 'Reviews', path: '/reviews/company' },
   '/coupons': { label: 'Marketing', path: '/coupons' },
   '/marketing': { label: 'Marketing', path: '/coupons' },
+  '/marketing/analytics': { label: 'Marketing', path: '/coupons' },
+  '/marketing/segments': { label: 'Marketing', path: '/coupons' },
   '/reports/revenue': { label: 'Reports', path: '/reports/revenue' },
   '/reports/bookings': { label: 'Reports', path: '/reports/revenue' },
   '/reports/boats': { label: 'Reports', path: '/reports/revenue' },

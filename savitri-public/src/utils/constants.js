@@ -88,6 +88,7 @@ export const API_ENDPOINTS = {
     MY_INQUIRIES: '/inquiries/my-inquiries',
     BY_ID: (id) => `/inquiries/${id}`,
     RESPOND: (id) => `/inquiries/${id}/respond`,
+    CALLBACK_REQUEST: (id) => `/inquiries/${id}/callback-request`,
   },
 
   // Public Stats (no auth)

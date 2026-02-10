@@ -105,7 +105,7 @@ const ForgotPassword = () => {
         {/* Footer */}
         <div className={styles.footer}>
           <a href="/login" className={styles.link}>
-            ← Back to Login
+            Back to Login
           </a>
         </div>
       </div>

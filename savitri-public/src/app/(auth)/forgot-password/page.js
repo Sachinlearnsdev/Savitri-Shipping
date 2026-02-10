@@ -45,10 +45,15 @@ export default function ForgotPasswordPage() {
     <div className={styles.forgotPasswordPage}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.icon}>🔒</div>
+          <div className={styles.icon}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+          </div>
           <h1 className={styles.title}>Forgot Password?</h1>
           <p className={styles.subtitle}>
-            No worries! Enter your email and we'll send you a reset code.
+            We&apos;ll send you a reset link to your email
           </p>
         </div>
 
@@ -77,7 +82,7 @@ export default function ForgotPasswordPage() {
 
         <div className={styles.footer}>
           <Link href="/login" className={styles.backLink}>
-            ← Back to Login
+            Back to Login
           </Link>
         </div>
       </div>

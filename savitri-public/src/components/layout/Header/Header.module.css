@@ -1,58 +1,51 @@
-/* ==================== TOP BAR ==================== */
+/* ==================== TOP BAR - COUPON MARQUEE ==================== */
 .topBar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: var(--topbar-height);
-  background-color: #1e293b;
+  background-color: #0c2d48;
   z-index: var(--z-fixed);
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
-.topBarContainer {
-  max-width: var(--container-xl);
+.marqueeWrapper {
   width: 100%;
-  margin: 0 auto;
-  padding: 0 var(--spacing-4);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
 }
 
-.topBarPhone {
+.marqueeTrack {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  color: var(--color-gray-300);
-  text-decoration: none;
+  width: max-content;
+  animation: marqueeScroll 30s linear infinite;
+}
+
+.marqueeContent {
+  flex-shrink: 0;
+  padding: 0 var(--spacing-8);
   font-size: var(--font-size-xs);
-  transition: color var(--transition-fast);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
-.topBarPhone:hover {
-  color: var(--color-white);
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
-.topBarSocial {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.topBarSocialLink {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-gray-300);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-  padding: 2px;
-}
-
-.topBarSocialLink:hover {
-  color: var(--color-white);
+/* Pause on hover */
+.topBar:hover .marqueeTrack {
+  animation-play-state: paused;
 }
 
 /* ==================== MAIN HEADER ==================== */
