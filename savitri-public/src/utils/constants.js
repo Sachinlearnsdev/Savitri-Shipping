@@ -94,6 +94,7 @@ export const API_ENDPOINTS = {
   // Public Stats (no auth)
   PUBLIC: {
     STATS: '/public/stats',
+    CONTENT: '/public/content',
   },
 };
 

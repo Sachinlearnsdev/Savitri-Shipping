@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Textarea from '../../components/common/Textarea';
+import Toggle from '../../components/common/Toggle';
 import useUIStore from '../../store/uiStore';
 import { getSettingsByGroup, updateSettings } from '../../services/settings.service';
 import { SETTINGS_GROUPS } from '../../utils/constants';
@@ -23,6 +24,12 @@ const ContentSettings = () => {
     contactEmail: '',
     contactPhone: '',
     contactAddress: '',
+    promoBanner: {
+      enabled: false,
+      text: '',
+      couponCode: '',
+      backgroundColor: '#0891b2',
+    },
   });
 
   useEffect(() => {
@@ -43,6 +50,12 @@ const ContentSettings = () => {
             contactEmail: config.contactEmail || '',
             contactPhone: config.contactPhone || '',
             contactAddress: config.contactAddress || '',
+            promoBanner: {
+              enabled: config.promoBanner?.enabled || false,
+              text: config.promoBanner?.text || '',
+              couponCode: config.promoBanner?.couponCode || '',
+              backgroundColor: config.promoBanner?.backgroundColor || '#0891b2',
+            },
           });
         }
       } catch (err) {
@@ -123,6 +136,42 @@ const ContentSettings = () => {
             value={formData.heroSubtitle}
             onChange={(e) => handleChange('heroSubtitle', e.target.value)}
           />
+        </div>
+      </div>
+
+      {/* Promotional Banner */}
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Promotional Banner</h2>
+        <div className={styles.form}>
+          <Toggle
+            label="Enable Promotional Banner"
+            checked={formData.promoBanner?.enabled || false}
+            onChange={(checked) => handleChange('promoBanner', { ...formData.promoBanner, enabled: checked })}
+          />
+          {formData.promoBanner?.enabled && (
+            <>
+              <Input
+                label="Banner Text"
+                placeholder='e.g. Use code WELCOME10 for 10% off!'
+                value={formData.promoBanner?.text || ''}
+                onChange={(e) => handleChange('promoBanner', { ...formData.promoBanner, text: e.target.value })}
+              />
+              <div className={styles.formRow}>
+                <Input
+                  label="Coupon Code to Highlight"
+                  placeholder='e.g. WELCOME10'
+                  value={formData.promoBanner?.couponCode || ''}
+                  onChange={(e) => handleChange('promoBanner', { ...formData.promoBanner, couponCode: e.target.value })}
+                />
+                <Input
+                  label="Background Color (hex)"
+                  placeholder='#0891b2'
+                  value={formData.promoBanner?.backgroundColor || '#0891b2'}
+                  onChange={(e) => handleChange('promoBanner', { ...formData.promoBanner, backgroundColor: e.target.value })}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
 

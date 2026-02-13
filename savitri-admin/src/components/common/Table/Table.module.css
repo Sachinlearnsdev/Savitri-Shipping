@@ -9,7 +9,7 @@
   overflow-x: auto;
   background-color: var(--bg-primary);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
   border: 1px solid var(--border-color);
 }
 
@@ -22,16 +22,19 @@
 
 /* Table Head */
 .thead {
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-sunken, var(--bg-secondary));
   border-bottom: 1px solid var(--border-color);
 }
 
 .th {
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-5);
   text-align: left;
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--text-tertiary);
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .thContent {
@@ -43,15 +46,17 @@
 .sortable {
   cursor: pointer;
   user-select: none;
+  transition: background-color 120ms ease;
 }
 
 .sortable:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--hover-bg, var(--bg-tertiary));
 }
 
 .sortIcon {
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--color-primary);
+  opacity: 0.7;
 }
 
 /* Table Body */
@@ -60,8 +65,8 @@
 }
 
 .tr {
-  border-bottom: 1px solid var(--border-color);
-  transition: var(--transition-colors);
+  border-bottom: 1px solid var(--border-color-light, var(--border-color));
+  transition: background-color 120ms ease;
 }
 
 .tr:last-child {
@@ -69,18 +74,18 @@
 }
 
 .td {
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-5);
   color: var(--text-secondary);
 }
 
 /* Striped Rows */
 .striped .tr:nth-child(even) {
-  background-color: var(--bg-secondary);
+  background-color: var(--table-stripe, var(--bg-secondary));
 }
 
 /* Hoverable Rows */
 .hoverable .tr:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--hover-bg, var(--bg-tertiary));
 }
 
 /* Clickable Rows */
@@ -90,17 +95,17 @@
 
 /* Checkbox Cell */
 .checkboxCell {
-  width: 48px;
-  padding: var(--spacing-4) var(--spacing-5);
+  width: 44px;
+  padding: var(--spacing-3) var(--spacing-4);
 }
 
 /* Scrollbar */
 .tableContainer::-webkit-scrollbar {
-  height: 8px;
+  height: 6px;
 }
 
 .tableContainer::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: transparent;
 }
 
 .tableContainer::-webkit-scrollbar-thumb {
@@ -116,12 +121,16 @@
 @media (max-width: 768px) {
   .th,
   .td {
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-xs);
   }
-  
+
+  .th {
+    font-size: 10px;
+  }
+
   .checkboxCell {
-    width: 40px;
-    padding: var(--spacing-3) var(--spacing-4);
+    width: 36px;
+    padding: var(--spacing-2) var(--spacing-3);
   }
 }

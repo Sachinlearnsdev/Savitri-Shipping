@@ -110,6 +110,7 @@ export default function HomePage() {
   const [testimonials, setTestimonials] = useState([]);
   const [testimonialsLoading, setTestimonialsLoading] = useState(true);
   const [stats, setStats] = useState(DEFAULT_STATS);
+  const [promoBanner, setPromoBanner] = useState(null);
 
   // Fetch public stats
   useEffect(() => {
@@ -131,6 +132,25 @@ export default function HomePage() {
     };
 
     fetchStats();
+  }, []);
+
+  // Fetch content settings (for promo banner)
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const response = await api.get(API_ENDPOINTS.PUBLIC.CONTENT);
+        if (response.success && response.data) {
+          const content = response.data;
+          if (content.promoBanner) {
+            setPromoBanner(content.promoBanner);
+          }
+        }
+      } catch {
+        // Silently fail - no promo banner
+      }
+    };
+
+    fetchContent();
   }, []);
 
   // Fetch company reviews for testimonials
@@ -155,6 +175,18 @@ export default function HomePage() {
 
   return (
     <div className={styles.homepage}>
+      {/* Promotional Banner */}
+      {promoBanner?.enabled && promoBanner?.text && (
+        <div className={styles.promoBanner} style={{ backgroundColor: promoBanner.backgroundColor || '#0891b2' }}>
+          <div className={styles.promoBannerContent}>
+            <span className={styles.promoBannerText}>{promoBanner.text}</span>
+            {promoBanner.couponCode && (
+              <span className={styles.promoBannerCode}>{promoBanner.couponCode}</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroBackground} />

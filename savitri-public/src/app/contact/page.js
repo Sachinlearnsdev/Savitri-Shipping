@@ -52,95 +52,105 @@ function ContactForm() {
 
   return (
     <div className={styles.page}>
+      {/* Hero Section */}
       <section className={styles.hero}>
-        <h1 className={styles.heroTitle}>Contact Us</h1>
-        <p className={styles.heroSubtitle}>Have questions? We&apos;d love to hear from you.</p>
+        <div className={styles.heroOverlay} />
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>Get in Touch</h1>
+          <p className={styles.heroSubtitle}>
+            Have questions about our boats or services? We&apos;re here to help you plan the perfect experience on the water.
+          </p>
+        </div>
       </section>
 
       <div className={styles.container}>
-        <div className={styles.contentGrid}>
-          {/* Contact Info */}
+        {/* Info Cards Grid */}
+        <div className={styles.infoGrid}>
           <div className={styles.infoCard}>
-            <h2 className={styles.cardTitle}>Get in Touch</h2>
-            <div className={styles.infoList}>
-              <div className={styles.infoItem}>
-                <div className={styles.infoIcon}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
-                    <rect x="2" y="4" width="20" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M22 7L13.03 12.7C12.71 12.9 12.36 13 12 13C11.64 13 11.29 12.9 10.97 12.7L2 7" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3>Email</h3>
-                  <a href="mailto:info@savitrishipping.in" className={styles.link}>info@savitrishipping.in</a>
-                </div>
-              </div>
-
-              <div className={styles.infoItem}>
-                <div className={styles.infoIcon}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
-                    <path d="M22 16.92V19.92C22 20.48 21.56 20.93 21 20.97C20.74 20.99 20.48 21 20.22 21C10.76 21 3 13.24 3 3.78C3 3.52 3.01 3.26 3.03 3C3.07 2.44 3.52 2 4.08 2H7.08C7.56 2 7.97 2.34 8.05 2.81C8.14 3.39 8.3 3.95 8.53 4.48L7.01 6C8.24 8.39 10.11 10.26 12.5 11.49L14.02 9.97C14.55 10.2 15.11 10.36 15.69 10.45C16.16 10.53 16.5 10.94 16.5 11.42V16.92C16.5 17.47 16.97 17.92 17.52 17.92H22Z" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3>Phone</h3>
-                  <a href="tel:+919876543210" className={styles.link}>+91 98765 43210</a>
-                </div>
-              </div>
-
-              <div className={styles.infoItem}>
-                <div className={styles.infoIcon}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
-                    <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5.03 7.03 1 12 1S21 5.03 21 10Z" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3>Address</h3>
-                  <p>Mumbai, Maharashtra, India</p>
-                </div>
-              </div>
-
-              <div className={styles.infoItem}>
-                <div className={styles.infoIcon}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12 6V12L16 14" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3>Working Hours</h3>
-                  <p>Mon - Sun: 6:00 AM - 10:00 PM</p>
-                </div>
-              </div>
+            <div className={styles.infoIconWrap}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M22 7L13.03 12.7C12.71 12.9 12.36 13 12 13C11.64 13 11.29 12.9 10.97 12.7L2 7" />
+              </svg>
             </div>
+            <h3 className={styles.infoCardTitle}>Email Us</h3>
+            <a href="mailto:info@savitrishipping.in" className={styles.infoCardValue}>
+              info@savitrishipping.in
+            </a>
+            <p className={styles.infoCardDetail}>We reply within 24 hours</p>
           </div>
 
-          {/* Contact Form */}
-          <div className={styles.formCard}>
-            <h2 className={styles.cardTitle}>Send us a Message</h2>
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <Input
-                label="Name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                disabled={!!isUserField}
-                required
-              />
+          <div className={styles.infoCard}>
+            <div className={`${styles.infoIconWrap} ${styles.infoIconPhone}`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+              </svg>
+            </div>
+            <h3 className={styles.infoCardTitle}>Call Us</h3>
+            <a href="tel:+919876543210" className={styles.infoCardValue}>
+              +91 98765 43210
+            </a>
+            <p className={styles.infoCardDetail}>Available during working hours</p>
+          </div>
 
-              <Input
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                disabled={!!isUserField}
-                required
-              />
+          <div className={styles.infoCard}>
+            <div className={`${styles.infoIconWrap} ${styles.infoIconLocation}`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </div>
+            <h3 className={styles.infoCardTitle}>Visit Us</h3>
+            <p className={styles.infoCardValue}>Mumbai, Maharashtra</p>
+            <p className={styles.infoCardDetail}>India</p>
+          </div>
+
+          <div className={styles.infoCard}>
+            <div className={`${styles.infoIconWrap} ${styles.infoIconClock}`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </div>
+            <h3 className={styles.infoCardTitle}>Working Hours</h3>
+            <p className={styles.infoCardValue}>Mon - Sun</p>
+            <p className={styles.infoCardDetail}>6:00 AM - 10:00 PM</p>
+          </div>
+        </div>
+
+        {/* Contact Form */}
+        <div className={styles.formSection}>
+          <div className={styles.formCard}>
+            <div className={styles.formHeader}>
+              <h2 className={styles.formTitle}>Send us a Message</h2>
+              <p className={styles.formSubtitle}>Fill out the form below and we&apos;ll get back to you as soon as possible.</p>
+            </div>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.formRow}>
+                <Input
+                  label="Name"
+                  type="text"
+                  placeholder="Your full name"
+                  value={formData.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  disabled={!!isUserField}
+                  required
+                />
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  disabled={!!isUserField}
+                  required
+                />
+              </div>
 
               <Input
                 label="Subject"
                 type="text"
+                placeholder="What is this regarding?"
                 value={formData.subject}
                 onChange={(e) => handleChange('subject', e.target.value)}
                 required
@@ -148,6 +158,7 @@ function ContactForm() {
 
               <Textarea
                 label="Message"
+                placeholder="Tell us more about your inquiry..."
                 value={formData.message}
                 onChange={(e) => handleChange('message', e.target.value)}
                 rows={6}

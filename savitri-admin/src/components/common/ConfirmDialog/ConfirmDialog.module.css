@@ -12,7 +12,7 @@
 /* Message */
 .message {
   margin: 0;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
 }
@@ -22,8 +22,8 @@
   .actions {
     flex-direction: column-reverse;
   }
-  
+
   .message {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
   }
 }

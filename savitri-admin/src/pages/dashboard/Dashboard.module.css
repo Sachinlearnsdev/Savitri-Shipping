@@ -2,34 +2,36 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8);
+  gap: var(--spacing-6);
 }
 
 /* Welcome Section */
 .welcome {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: var(--spacing-1);
 }
 
 .title {
   margin: 0;
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
+  letter-spacing: -0.025em;
 }
 
 .subtitle {
   margin: 0;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  font-weight: var(--font-weight-normal);
 }
 
 /* Stats Grid */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-6);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
 }
 
 /* Stat Card */
@@ -37,59 +39,83 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
-  padding: var(--spacing-6);
+  padding: var(--spacing-5);
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition-all);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
+  transition: box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  opacity: 0;
+  transition: opacity 200ms ease;
 }
 
 .statCard:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover, var(--shadow-md));
+  transform: translateY(-1px);
+}
+
+.statCard:hover::before {
+  opacity: 1;
 }
 
 .statIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  font-size: 32px;
-  background-color: var(--color-primary-50);
-  border-radius: var(--radius-xl);
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100, rgba(11, 114, 133, 0.08)) 100%);
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
 }
 
 .statContent {
   flex: 1;
+  min-width: 0;
 }
 
 .statLabel {
-  margin: 0 0 var(--spacing-1) 0;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
+  margin: 0 0 2px 0;
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .statValue {
   margin: 0;
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .statSubInfo {
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   color: var(--text-tertiary);
+  margin-top: 2px;
 }
 
 /* Weather & Calendar Row */
 .weatherCalendarRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
 }
 
 /* Weather Card */
@@ -97,10 +123,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
-  padding: var(--spacing-6);
+  padding: var(--spacing-5);
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
 }
 
 .weatherMain {
@@ -110,48 +137,52 @@
 }
 
 .weatherEmoji {
-  font-size: 56px;
+  font-size: 48px;
   line-height: 1;
 }
 
 .weatherTemp {
   display: block;
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .weatherDesc {
   display: block;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
-  margin-top: var(--spacing-1);
+  margin-top: 2px;
+  text-transform: capitalize;
 }
 
 .weatherGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
 }
 
 .weatherDetail {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 2px;
   padding: var(--spacing-3);
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-sunken, var(--bg-secondary));
   border-radius: var(--radius-lg);
 }
 
 .weatherDetailLabel {
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
+  font-weight: var(--font-weight-medium);
 }
 
 .weatherDetailValue {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
@@ -162,33 +193,38 @@
 }
 
 .weatherBadge {
-  display: inline-block;
-  padding: var(--spacing-1) var(--spacing-3);
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--spacing-3);
   border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
 }
 
 .badgeSafe {
-  background-color: #dcfce7;
+  background-color: rgba(22, 163, 74, 0.1);
   color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .badgeCaution {
-  background-color: #fef3c7;
+  background-color: rgba(217, 119, 6, 0.1);
   color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .badgeDangerous {
-  background-color: #fef2f2;
+  background-color: rgba(220, 38, 38, 0.1);
   color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .weatherUnavailable {
   margin: 0;
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
-  padding: var(--spacing-8) 0;
+  padding: var(--spacing-6) 0;
   text-align: center;
 }
 
@@ -197,32 +233,34 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
-  padding: var(--spacing-6);
+  padding: var(--spacing-5);
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
 }
 
 /* Today's Date Display */
 .todayDateDisplay {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 2px;
   padding: var(--spacing-3) var(--spacing-4);
   background: linear-gradient(135deg, var(--color-primary-50, #f0f9ff) 0%, var(--color-primary-100, #e0f2fe) 100%);
   border-radius: var(--radius-lg);
-  border-left: 4px solid var(--color-primary-500, #0891b2);
+  border-left: 3px solid var(--color-primary-500, #0891b2);
 }
 
 .todayDayOfWeek {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary-700, #0e7490);
   line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .todayFullDate {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-primary-600, #0891b2);
 }
@@ -234,47 +272,53 @@
 }
 
 .calendarStatusLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .calendarStatusBadge {
-  display: inline-block;
-  padding: var(--spacing-1) var(--spacing-3);
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--spacing-3);
   border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
 }
 
 .calendarStatusOpen {
-  background-color: #dcfce7;
+  background-color: rgba(22, 163, 74, 0.1);
   color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .calendarStatusPartial {
-  background-color: #fef3c7;
+  background-color: rgba(217, 119, 6, 0.1);
   color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .calendarStatusClosed {
-  background-color: #fef2f2;
+  background-color: rgba(220, 38, 38, 0.1);
   color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .todayFestival {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  background-color: #fffbeb;
-  border: 1px solid #fcd34d;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
   border-radius: var(--radius-lg);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: #92400e;
+  font-weight: var(--font-weight-medium);
 }
 
 .todayFestivalIcon {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   flex-shrink: 0;
 }
 
@@ -286,11 +330,11 @@
 
 .upcomingTitle {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: 10px;
   font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .festivalItem {
@@ -298,24 +342,30 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  background-color: var(--surface-sunken, var(--bg-secondary));
+  border-radius: var(--radius-md);
+  transition: background-color 150ms ease;
+}
+
+.festivalItem:hover {
+  background-color: var(--hover-bg, var(--bg-tertiary));
 }
 
 .festivalName {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
 }
 
 .festivalDate {
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   color: var(--text-tertiary);
+  font-weight: var(--font-weight-medium);
 }
 
 .noFestivals {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }
 
@@ -323,21 +373,23 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 /* Table Card */
 .tableCard {
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
   overflow: hidden;
 }
 
@@ -351,29 +403,42 @@
 }
 
 .table thead {
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-sunken, var(--bg-secondary));
 }
 
 .table th {
   padding: var(--spacing-3) var(--spacing-4);
   text-align: left;
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .table td {
   padding: var(--spacing-3) var(--spacing-4);
   font-size: var(--font-size-sm);
   color: var(--text-primary);
-  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color-light, var(--border-color));
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: var(--table-stripe, var(--bg-secondary));
+}
+
+.table tbody tr {
+  transition: background-color 120ms ease;
 }
 
 .table tbody tr:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--hover-bg, var(--bg-tertiary));
 }
 
 .clickableRow {
@@ -381,13 +446,16 @@
 }
 
 .bookingNumber {
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-primary-600);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono, monospace);
 }
 
 .amount {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-600);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Empty Card */
@@ -396,12 +464,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-3);
-  min-height: 150px;
-  padding: var(--spacing-8);
+  gap: var(--spacing-2);
+  min-height: 140px;
+  padding: var(--spacing-6);
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
   text-align: center;
 }
 
@@ -415,7 +484,7 @@
 .quickActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
 }
 
 /* Loading */
@@ -424,12 +493,12 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
 }
 
 /* Responsive - Tablet */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -438,20 +507,20 @@
 /* Responsive - Mobile */
 @media (max-width: 768px) {
   .container {
-    gap: var(--spacing-6);
+    gap: var(--spacing-5);
   }
 
   .title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 
   .subtitle {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
   }
 
   .statsGrid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-4);
+    gap: var(--spacing-3);
   }
 
   .statCard {
@@ -459,18 +528,18 @@
   }
 
   .statIcon {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
   }
 
   .statValue {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 
   .weatherCalendarRow {
     grid-template-columns: 1fr;
-    gap: var(--spacing-4);
+    gap: var(--spacing-3);
   }
 
   .weatherCard,
@@ -479,15 +548,15 @@
   }
 
   .weatherEmoji {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   .weatherTemp {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 
   .sectionTitle {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
   }
 
   .table th,

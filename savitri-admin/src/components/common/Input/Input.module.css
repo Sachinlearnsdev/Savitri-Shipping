@@ -2,21 +2,22 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 6px;
   width: 100%;
 }
 
 /* Label */
 .label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
 }
 
 .required {
   color: var(--color-error);
-  margin-left: var(--spacing-1);
+  margin-left: 2px;
 }
 
 /* Input Container */
@@ -30,49 +31,55 @@
 .input {
   width: 100%;
   font-family: var(--font-primary);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   line-height: 1.5;
   color: var(--text-primary);
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background-color: var(--input-bg, var(--bg-primary));
+  border: 1px solid var(--input-border, var(--border-color));
   border-radius: var(--radius-lg);
   outline: none;
-  transition: var(--transition-colors);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
 .input::placeholder {
   color: var(--text-tertiary);
+  font-weight: var(--font-weight-normal);
 }
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-50);
+  box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
+}
+
+.input:hover:not(:focus):not(:disabled) {
+  border-color: var(--border-color-dark, var(--color-gray-300));
 }
 
 .input:disabled {
   background-color: var(--bg-tertiary);
   color: var(--text-tertiary);
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Sizes */
 .sm {
   height: var(--input-height-sm);
   padding: 0 var(--input-padding-x-sm);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .md {
   height: var(--input-height-md);
   padding: 0 var(--input-padding-x-md);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
 }
 
 .lg {
   height: var(--input-height-lg);
   padding: 0 var(--input-padding-x-lg);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
 }
 
 /* With Icons */
@@ -116,8 +123,8 @@
   border: none;
   cursor: pointer;
   color: var(--text-tertiary);
-  transition: var(--transition-colors);
-  font-size: var(--font-size-lg);
+  transition: color 150ms ease;
+  font-size: var(--font-size-base);
 }
 
 .passwordToggle:hover {
@@ -135,7 +142,7 @@
 
 .hasError .input:focus {
   border-color: var(--color-error);
-  box-shadow: 0 0 0 3px var(--color-error-light);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .focused .input {
@@ -150,16 +157,17 @@
 /* Hint & Error Messages */
 .hint,
 .error {
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .hint {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
 }
 
 .error {
   color: var(--color-error);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Number Input - Hide Spinners */
@@ -180,16 +188,16 @@
     padding: 0 var(--spacing-2);
     font-size: var(--font-size-xs);
   }
-  
+
   .md {
     height: 36px;
     padding: 0 var(--spacing-3);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
   }
-  
+
   .lg {
     height: 44px;
     padding: 0 var(--spacing-4);
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
   }
 }
