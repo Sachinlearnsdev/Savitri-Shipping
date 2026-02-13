@@ -2,7 +2,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-5);
 }
 
 /* Back Button */
@@ -12,17 +12,18 @@
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-3);
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: transparent;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: var(--transition-all);
+  transition: all 150ms ease;
   align-self: flex-start;
 }
 
 .backBtn:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--hover-bg, var(--bg-secondary));
   color: var(--text-primary);
 }
 
@@ -42,24 +43,26 @@
 
 .title {
   margin: 0;
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 /* Cards Grid */
 .cardsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
 }
 
 /* Card */
 .card {
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-6);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
+  padding: var(--spacing-5);
 }
 
 .cardFull {
@@ -68,11 +71,12 @@
 
 .cardTitle {
   margin: 0 0 var(--spacing-4) 0;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   padding-bottom: var(--spacing-3);
   border-bottom: 1px solid var(--border-color);
+  letter-spacing: -0.01em;
 }
 
 /* Info Grid */
@@ -85,15 +89,15 @@
 .infoItem {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 3px;
 }
 
 .infoLabel {
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .infoValue {
@@ -106,25 +110,26 @@
 .pricingList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
 }
 
 .pricingRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-2) 0;
+  padding: var(--spacing-1) 0;
 }
 
 .pricingLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
 .pricingValue {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .pricingDivider {
@@ -134,15 +139,28 @@
 }
 
 .pricingTotal {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
 }
 
 .pricingTotalValue {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary-600);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Advance Payment Info */
+.advancePaymentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--color-primary-50, rgba(11, 114, 133, 0.06));
+  border: 1px solid var(--color-primary-200, rgba(11, 114, 133, 0.15));
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-xs);
 }
 
 /* Status Actions */
@@ -159,15 +177,17 @@
 }
 
 .statusLabel {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-  min-width: 100px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-tertiary);
+  min-width: 90px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .actionButtons {
   display: flex;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
   flex-wrap: wrap;
   padding-top: var(--spacing-4);
   border-top: 1px solid var(--border-color);
@@ -192,8 +212,8 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
 }
 
 .error {
@@ -205,14 +225,16 @@
   min-height: 300px;
   padding: var(--spacing-8);
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
   text-align: center;
 }
 
 .error p {
   margin: 0;
   color: var(--color-error-600, #dc2626);
+  font-size: var(--font-size-sm);
 }
 
 /* Payment Proof */
@@ -222,11 +244,14 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: var(--transition-all);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  object-fit: cover;
 }
 
 .proofImage:hover {
-  opacity: 0.8;
+  opacity: 0.85;
+  box-shadow: var(--shadow-md);
+  transform: scale(1.02);
 }
 
 .fileUploadArea {
@@ -236,18 +261,24 @@
 }
 
 .fileUploadLabel {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
 
 .fileUploadInput {
-  padding: var(--spacing-2);
-  border: 1px dashed var(--border-color);
+  padding: var(--spacing-3);
+  border: 1px dashed var(--border-color-dark, var(--border-color));
   border-radius: var(--radius-lg);
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-sunken, var(--bg-secondary));
   cursor: pointer;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.fileUploadInput:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-50, rgba(11, 114, 133, 0.04));
 }
 
 .filePreview {
@@ -260,23 +291,30 @@
   max-height: 120px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
+  object-fit: cover;
 }
 
 .fileRemoveBtn {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 24px;
-  height: 24px;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: none;
+  border: 2px solid var(--bg-primary);
   background-color: #ef4444;
   color: white;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 120ms ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.fileRemoveBtn:hover {
+  transform: scale(1.1);
 }
 
 /* Responsive */

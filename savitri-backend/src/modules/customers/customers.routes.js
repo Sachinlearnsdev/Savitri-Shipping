@@ -6,7 +6,7 @@ const customersController = require('./customers.controller');
 const { validate, validateQuery } = require('../../middleware/validate');
 const adminAuth = require('../../middleware/adminAuth');
 const { roleCheck } = require('../../middleware/roleCheck');
-const { querySchema, updateStatusSchema, toggleVenuePaymentSchema } = require('./customers.validator');
+const { querySchema, updateStatusSchema } = require('./customers.validator');
 
 // All routes require admin authentication
 router.use(adminAuth);
@@ -40,14 +40,6 @@ router.patch(
   roleCheck('customers', 'edit'),
   validate(updateStatusSchema),
   customersController.updateStatus
-);
-
-// Toggle venue payment allowed
-router.patch(
-  '/:id/venue-payment',
-  roleCheck('customers', 'edit'),
-  validate(toggleVenuePaymentSchema),
-  customersController.toggleVenuePayment
 );
 
 module.exports = router;

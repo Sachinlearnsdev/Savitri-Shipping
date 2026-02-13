@@ -1,4 +1,4 @@
-const { PartyBoatBooking, PartyBoat, Customer, Coupon } = require('../../models');
+const { PartyBoatBooking, PartyBoat, Customer, Coupon, Setting } = require('../../models');
 const ApiError = require('../../utils/ApiError');
 const { formatDocument, formatDocuments } = require('../../utils/responseFormatter');
 const { paginate, calculateGST, hashPassword, formatCurrency } = require('../../utils/helpers');
@@ -194,21 +194,23 @@ class PartyBookingsService {
       pricing.finalAmount = pricing.totalAmount - pricing.discountAmount;
     }
 
-    // 8b. Venue payment eligibility check
-    if (data.paymentMode === 'AT_VENUE') {
-      const customerForCheck = await Customer.findById(customerId);
-      if (customerForCheck && !customerForCheck.venuePaymentAllowed && (customerForCheck.completedRidesCount || 0) < 5) {
-        throw ApiError.badRequest('At-venue payment is available for customers with 5+ completed rides. Please use online payment.');
-      }
-    }
-
     // Determine initial status based on payment mode
     let initialStatus = 'PENDING';
     let initialPaymentStatus = 'PENDING';
+    let advanceAmount = 0;
+    let remainingAmount = 0;
 
     if (data.paymentMode === 'ONLINE') {
       initialStatus = 'CONFIRMED';
       initialPaymentStatus = 'PAID';
+    } else if (data.paymentMode === 'AT_VENUE') {
+      const bookingSettings = await Setting.findOne({ group: 'booking', key: 'config' });
+      const advancePercent = bookingSettings?.value?.advancePaymentPercent || 25;
+      const finalAmount = pricing.finalAmount;
+      advanceAmount = Math.round((finalAmount * advancePercent) / 100);
+      remainingAmount = finalAmount - advanceAmount;
+      initialStatus = 'CONFIRMED';
+      initialPaymentStatus = 'ADVANCE_PAID';
     }
 
     // 9. Generate booking number
@@ -229,6 +231,8 @@ class PartyBookingsService {
       status: initialStatus,
       paymentStatus: initialPaymentStatus,
       paymentMode: data.paymentMode,
+      advanceAmount,
+      remainingAmount,
       adminNotes: data.adminNotes,
       createdByType: 'ADMIN',
       createdById: adminUserId,

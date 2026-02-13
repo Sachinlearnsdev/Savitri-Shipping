@@ -15,12 +15,7 @@ const updateStatusSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE', 'LOCKED']),
 });
 
-const toggleVenuePaymentSchema = z.object({
-  venuePaymentAllowed: z.boolean(),
-});
-
 module.exports = {
   querySchema,
   updateStatusSchema,
-  toggleVenuePaymentSchema,
 };

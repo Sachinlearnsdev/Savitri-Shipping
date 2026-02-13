@@ -540,7 +540,9 @@ export default function SpeedBoatBookPage() {
               <p className={styles.successPaymentNoteText}>
                 {isOnlinePayment
                   ? 'Your booking has been created. Payment status will be updated once payment is verified by our team.'
-                  : 'Your booking has been created. Please pay at the venue on the day of your booking.'}
+                  : bookingSuccess.advanceAmount > 0
+                    ? `Your booking has been created. Advance of ${formatCurrency(bookingSuccess.advanceAmount)} has been recorded. Please pay the remaining ${formatCurrency(bookingSuccess.remainingAmount)} at the venue.`
+                    : 'Your booking has been created. Please pay at the venue on the day of your booking.'}
               </p>
             </div>
 
@@ -1050,7 +1052,14 @@ export default function SpeedBoatBookPage() {
                             </svg>
                             Pay at Venue
                           </span>
-                          <span className={styles.radioDesc}>Pay when you arrive at the dock</span>
+                          <span className={styles.radioDesc}>
+                            {(() => {
+                              const totalAmt = pricing ? (couponApplied ? pricing.totalAmount - couponApplied.discountAmount : pricing.finalAmount) : (boat.baseRate * effectiveDuration * selectedBoatIds.length * 1.18);
+                              const advAmt = Math.round((totalAmt * 25) / 100);
+                              const remAmt = Math.round(totalAmt) - advAmt;
+                              return `Pay ${formatCurrency(advAmt)} advance now + ${formatCurrency(remAmt)} at venue`;
+                            })()}
+                          </span>
                         </div>
                       </label>
                     </div>
@@ -1072,20 +1081,7 @@ export default function SpeedBoatBookPage() {
 
                   {bookingError && (
                     <div className={styles.bookingErrorBox}>
-                      <p>
-                        {bookingError.includes('5+ completed rides') || bookingError.includes('venue payment')
-                          ? 'At-venue payment is available for customers with 5 or more completed rides. Please use online payment.'
-                          : bookingError}
-                      </p>
-                      {(bookingError.includes('5+ completed rides') || bookingError.includes('venue payment')) && (
-                        <button
-                          className={styles.backButton}
-                          onClick={() => setPaymentMode('ONLINE')}
-                          style={{ marginTop: '0.75rem' }}
-                        >
-                          Switch to Online Payment
-                        </button>
-                      )}
+                      <p>{bookingError}</p>
                     </div>
                   )}
                 </div>

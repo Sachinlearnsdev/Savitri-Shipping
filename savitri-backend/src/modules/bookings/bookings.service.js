@@ -259,7 +259,7 @@ class BookingsService {
   /**
    * Calculate pricing for a booking
    */
-  async calculatePrice({ date, startTime, duration, numberOfBoats, boatIds }) {
+  async calculatePrice({ date, startTime, duration, numberOfBoats, boatIds, paymentMode }) {
     // Find matching pricing rule
     const matchingRule = await pricingRulesService.findMatchingRule(date, startTime);
 
@@ -306,7 +306,7 @@ class BookingsService {
       const adjustedRate = Math.round((boatPricing.reduce((sum, bp) => sum + bp.adjustedRate, 0) / boatPricing.length) * 100) / 100;
       const gst = calculateGST(subtotal, GST.PERCENTAGE, GST.IS_INCLUSIVE);
 
-      return {
+      const result = {
         baseRate,
         appliedRule,
         adjustedRate,
@@ -321,6 +321,17 @@ class BookingsService {
         finalAmount: gst.totalAmount,
         boatPricing,
       };
+
+      // Add advance payment info if paymentMode is AT_VENUE
+      if (paymentMode === 'AT_VENUE') {
+        const bookingSettings = await Setting.findOne({ group: 'booking', key: 'config' });
+        const advancePercent = bookingSettings?.value?.advancePaymentPercent || 25;
+        result.advancePaymentPercent = advancePercent;
+        result.advanceAmount = Math.round((result.finalAmount * advancePercent) / 100);
+        result.remainingAmount = result.finalAmount - result.advanceAmount;
+      }
+
+      return result;
     }
 
     // Fallback: generic pricing (legacy behavior)
@@ -345,7 +356,7 @@ class BookingsService {
     const subtotal = adjustedRate * resolvedCount * duration;
     const gst = calculateGST(subtotal, GST.PERCENTAGE, GST.IS_INCLUSIVE);
 
-    return {
+    const result = {
       baseRate,
       appliedRule,
       adjustedRate,
@@ -359,6 +370,17 @@ class BookingsService {
       totalAmount: gst.totalAmount,
       finalAmount: gst.totalAmount,
     };
+
+    // Add advance payment info if paymentMode is AT_VENUE
+    if (paymentMode === 'AT_VENUE') {
+      const bookingSettings = await Setting.findOne({ group: 'booking', key: 'config' });
+      const advancePercent = bookingSettings?.value?.advancePaymentPercent || 25;
+      result.advancePaymentPercent = advancePercent;
+      result.advanceAmount = Math.round((result.finalAmount * advancePercent) / 100);
+      result.remainingAmount = result.finalAmount - result.advanceAmount;
+    }
+
+    return result;
   }
 
   /**
@@ -468,21 +490,23 @@ class BookingsService {
       pricing.finalAmount = pricing.totalAmount - pricing.discountAmount;
     }
 
-    // Venue payment eligibility check
-    if (data.paymentMode === 'AT_VENUE') {
-      const customerForCheck = await Customer.findById(resolvedCustomerId);
-      if (customerForCheck && !customerForCheck.venuePaymentAllowed && (customerForCheck.completedRidesCount || 0) < 5) {
-        throw ApiError.badRequest('At-venue payment is available for customers with 5+ completed rides. Please use online payment.');
-      }
-    }
-
     // Determine initial status based on payment mode
     let initialStatus = 'PENDING';
     let initialPaymentStatus = 'PENDING';
+    let advanceAmount = 0;
+    let remainingAmount = 0;
 
     if (data.paymentMode === 'ONLINE') {
       initialStatus = 'CONFIRMED';
       initialPaymentStatus = 'PAID';
+    } else if (data.paymentMode === 'AT_VENUE') {
+      const bookingSettings = await Setting.findOne({ group: 'booking', key: 'config' });
+      const advancePercent = bookingSettings?.value?.advancePaymentPercent || 25;
+      const finalAmount = pricing.finalAmount;
+      advanceAmount = Math.round((finalAmount * advancePercent) / 100);
+      remainingAmount = finalAmount - advanceAmount;
+      initialStatus = 'CONFIRMED';
+      initialPaymentStatus = 'ADVANCE_PAID';
     }
 
     // Generate booking number
@@ -505,6 +529,8 @@ class BookingsService {
       status: initialStatus,
       paymentStatus: initialPaymentStatus,
       paymentMode: data.paymentMode,
+      advanceAmount,
+      remainingAmount,
       customerNotes: data.customerNotes,
       adminNotes: data.adminNotes,
       createdByType: customerId ? 'CUSTOMER' : (data.adminOverrideAmount !== undefined ? 'ADMIN' : 'CUSTOMER'),
@@ -1028,7 +1054,7 @@ class BookingsService {
 
     // Check slot availability if startTime provided
     if (data.newStartTime) {
-      const endTime = this._addMinutes(data.newStartTime, booking.duration * 60);
+      const endTime = this._calculateEndTime(data.newStartTime, booking.duration);
       const bookedCount = await this._getBookedBoatCount(newDate, data.newStartTime, endTime, 30);
       const totalBoats = await SpeedBoat.countDocuments({ status: 'ACTIVE', isDeleted: false });
       if (totalBoats - bookedCount < 1) {
@@ -1054,7 +1080,7 @@ class BookingsService {
     booking.date = newDate;
     if (data.newStartTime) {
       booking.startTime = data.newStartTime;
-      booking.endTime = this._addMinutes(data.newStartTime, booking.duration * 60);
+      booking.endTime = this._calculateEndTime(data.newStartTime, booking.duration);
     }
 
     await booking.save();

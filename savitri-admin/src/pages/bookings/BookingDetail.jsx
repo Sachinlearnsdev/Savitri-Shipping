@@ -193,7 +193,7 @@ const BookingDetail = () => {
   const canConfirm = booking.status === BOOKING_STATUS.PENDING;
   const canComplete = booking.status === BOOKING_STATUS.CONFIRMED;
   const canCancel = [BOOKING_STATUS.PENDING, BOOKING_STATUS.CONFIRMED].includes(booking.status);
-  const canMarkPaid = booking.paymentStatus === PAYMENT_STATUS.PENDING;
+  const canMarkPaid = booking.paymentStatus === PAYMENT_STATUS.PENDING || booking.paymentStatus === PAYMENT_STATUS.ADVANCE_PAID;
   const canMarkNoShow = booking.status === BOOKING_STATUS.CONFIRMED;
 
   return (
@@ -432,6 +432,23 @@ const BookingDetail = () => {
                 {PAYMENT_STATUS_LABELS[booking.paymentStatus] || booking.paymentStatus || 'Pending'}
               </Badge>
             </div>
+
+            {booking.advanceAmount > 0 && (
+              <div className={styles.advancePaymentInfo}>
+                <div className={styles.statusRow}>
+                  <span className={styles.statusLabel}>Advance Paid</span>
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-primary-600, #2563eb)' }}>
+                    {formatCurrency(booking.advanceAmount)}
+                  </span>
+                </div>
+                <div className={styles.statusRow}>
+                  <span className={styles.statusLabel}>Remaining at Venue</span>
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--text-primary)' }}>
+                    {formatCurrency(booking.remainingAmount)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {booking.cancellation?.reason && (
               <div className={styles.statusRow}>

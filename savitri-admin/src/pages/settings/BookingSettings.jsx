@@ -21,6 +21,7 @@ const BookingSettings = () => {
     maxDurationHours: '8',
     operatingStartTime: '08:00',
     operatingEndTime: '18:00',
+    advancePaymentPercent: '25',
     cancellation24hRefund: '100',
     cancellation12hRefund: '50',
     cancellationLateRefund: '0',
@@ -43,6 +44,7 @@ const BookingSettings = () => {
             maxDurationHours: config.maxDurationHours || '8',
             operatingStartTime: config.operatingStartTime || '08:00',
             operatingEndTime: config.operatingEndTime || '18:00',
+            advancePaymentPercent: config.advancePaymentPercent || '25',
             cancellation24hRefund: config.cancellation24hRefund || '100',
             cancellation12hRefund: config.cancellation12hRefund || '50',
             cancellationLateRefund: config.cancellationLateRefund || '0',
@@ -75,6 +77,7 @@ const BookingSettings = () => {
           maxDurationHours: Number(formData.maxDurationHours),
           operatingStartTime: formData.operatingStartTime,
           operatingEndTime: formData.operatingEndTime,
+          advancePaymentPercent: Number(formData.advancePaymentPercent),
           cancellation24hRefund: Number(formData.cancellation24hRefund),
           cancellation12hRefund: Number(formData.cancellation12hRefund),
           cancellationLateRefund: Number(formData.cancellationLateRefund),
@@ -188,6 +191,25 @@ const BookingSettings = () => {
               type="time"
               value={formData.operatingEndTime}
               onChange={(e) => handleChange('operatingEndTime', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Venue Payment */}
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Venue Payment</h2>
+        <div className={styles.form}>
+          <div className={styles.formRow}>
+            <Input
+              label="Advance Payment for Venue Bookings (%)"
+              type="number"
+              placeholder="25"
+              value={formData.advancePaymentPercent}
+              onChange={(e) => handleChange('advancePaymentPercent', e.target.value)}
+              hint="Percentage of total amount collected as advance for at-venue bookings (default: 25%)"
+              min="1"
+              max="100"
             />
           </div>
         </div>

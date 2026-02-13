@@ -91,9 +91,17 @@ const speedBoatBookingSchema = new mongoose.Schema({
     enum: ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'],
     default: 'PENDING',
   },
+  advanceAmount: {
+    type: Number,
+    default: 0,
+  },
+  remainingAmount: {
+    type: Number,
+    default: 0,
+  },
   paymentStatus: {
     type: String,
-    enum: ['PENDING', 'PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'],
+    enum: ['PENDING', 'PAID', 'ADVANCE_PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'],
     default: 'PENDING',
   },
   paymentMode: {
