@@ -35,7 +35,7 @@ const initSocket = (server) => {
       if (!decoded) {
         return next(new Error('Invalid token'));
       }
-      socket.adminId = decoded.id;
+      socket.adminId = decoded.adminUserId || decoded.id;
       next();
     } catch (err) {
       next(new Error('Invalid token'));

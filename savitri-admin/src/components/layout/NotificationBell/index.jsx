@@ -141,24 +141,45 @@ const NotificationBell = () => {
   }, [fetchCounts]);
 
   /**
-   * Listen for Socket.io events
+   * Listen for Socket.io events with retry for socket availability
    */
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
     const events = Object.keys(NOTIFICATION_CONFIG);
+    let handlers = {};
+    let currentSocket = null;
+    let retryTimer = null;
 
-    const handlers = {};
-    events.forEach((event) => {
-      handlers[event] = (data) => addNotification(event, data);
-      socket.on(event, handlers[event]);
-    });
+    const attachListeners = () => {
+      const socket = getSocket();
+      if (!socket) {
+        // Socket not ready yet, retry in 1 second
+        retryTimer = setTimeout(attachListeners, 1000);
+        return;
+      }
+
+      currentSocket = socket;
+      events.forEach((event) => {
+        handlers[event] = (data) => addNotification(event, data);
+        socket.on(event, handlers[event]);
+      });
+
+      // Re-attach listeners if socket reconnects
+      socket.on('connect', () => {
+        // Listeners persist across reconnects in socket.io, no action needed
+      });
+    };
+
+    attachListeners();
 
     return () => {
-      events.forEach((event) => {
-        socket.off(event, handlers[event]);
-      });
+      if (retryTimer) clearTimeout(retryTimer);
+      if (currentSocket) {
+        events.forEach((event) => {
+          if (handlers[event]) {
+            currentSocket.off(event, handlers[event]);
+          }
+        });
+      }
     };
   }, [addNotification]);
 

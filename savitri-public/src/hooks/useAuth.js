@@ -219,7 +219,7 @@ export const useAuth = () => {
       return response;
     } catch (error) {
       const message = getErrorMessage(error);
-      showError(error);
+      showError(message);
       throw error;
     } finally {
       setLoading(false);

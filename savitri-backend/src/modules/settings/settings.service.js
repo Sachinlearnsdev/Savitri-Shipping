@@ -56,8 +56,8 @@ class SettingsService {
       throw ApiError.badRequest("Invalid settings group");
     }
 
-    // For most groups, we store all data under a single 'config' key
-    const key = group === SETTINGS_GROUPS.CONTENT ? "pages" : "config";
+    // Store all data under a single 'config' key
+    const key = "config";
 
     // Upsert setting
     const setting = await Setting.findOneAndUpdate(

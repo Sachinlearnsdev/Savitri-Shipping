@@ -24,7 +24,7 @@ const BookingReminderJob = {
     const dateFilter = {
       date: { $gte: startOfTomorrow, $lte: endOfTomorrow },
       status: 'CONFIRMED',
-      paymentStatus: 'PAID',
+      paymentStatus: { $in: ['PAID', 'ADVANCE_PAID'] },
       isDeleted: false,
     };
 

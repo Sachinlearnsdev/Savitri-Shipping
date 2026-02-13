@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 
 let socket = null;
+let currentToken = null;
 
 /**
  * Get the backend base URL (without /api suffix)
@@ -33,7 +34,15 @@ const getBackendUrl = () => {
  * @returns {object} Socket instance
  */
 export const connectSocket = (token) => {
-  if (socket?.connected) return socket;
+  if (socket?.connected) {
+    // If token changed, reconnect with new token
+    if (token !== currentToken) {
+      socket.disconnect();
+      socket = null;
+    } else {
+      return socket;
+    }
+  }
 
   // Disconnect any existing stale socket
   if (socket) {
@@ -41,29 +50,33 @@ export const connectSocket = (token) => {
     socket = null;
   }
 
+  currentToken = token;
   const backendUrl = getBackendUrl();
 
   socket = io(`${backendUrl}/admin`, {
     auth: { token },
     transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 2000,
+    reconnectionDelayMax: 30000,
+    timeout: 10000,
   });
 
   socket.on('connect', () => {
-    if (import.meta.env.DEV) {
-      console.log('Socket connected to admin namespace');
-    }
+    console.log('[Socket] Connected to admin namespace');
   });
 
   socket.on('disconnect', (reason) => {
-    if (import.meta.env.DEV) {
-      console.log('Socket disconnected:', reason);
+    console.log('[Socket] Disconnected:', reason);
+    // If server disconnected us, try to reconnect
+    if (reason === 'io server disconnect') {
+      socket.connect();
     }
   });
 
   socket.on('connect_error', (err) => {
-    if (import.meta.env.DEV) {
-      console.log('Socket connection error:', err.message);
-    }
+    console.warn('[Socket] Connection error:', err.message);
   });
 
   return socket;
@@ -76,6 +89,7 @@ export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
     socket = null;
+    currentToken = null;
   }
 };
 
@@ -84,3 +98,9 @@ export const disconnectSocket = () => {
  * @returns {object|null} Socket instance or null
  */
 export const getSocket = () => socket;
+
+/**
+ * Check if socket is connected
+ * @returns {boolean}
+ */
+export const isSocketConnected = () => socket?.connected || false;

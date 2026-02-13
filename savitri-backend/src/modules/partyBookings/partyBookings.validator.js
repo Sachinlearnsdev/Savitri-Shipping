@@ -48,7 +48,7 @@ const partyBookingQuerySchema = z.object({
   limit: z.string().optional(),
   search: z.string().optional(),
   status: z.enum(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']).optional(),
-  paymentStatus: z.enum(['PENDING', 'PAID', 'PARTIALLY_REFUNDED', 'REFUNDED']).optional(),
+  paymentStatus: z.enum(['PENDING', 'PAID', 'ADVANCE_PAID', 'PARTIALLY_REFUNDED', 'REFUNDED']).optional(),
   date: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
