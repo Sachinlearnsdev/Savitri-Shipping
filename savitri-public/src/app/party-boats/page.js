@@ -363,7 +363,7 @@ export default function PartyBoatsPage() {
                       className={styles.boatImage}
                       style={{
                         background: boat.images && boat.images.length > 0
-                          ? `url(${boat.images[0]}) center/cover no-repeat`
+                          ? `url(${typeof boat.images[0] === 'string' ? boat.images[0] : boat.images[0].url}) center/cover no-repeat`
                           : gradient,
                       }}
                     >

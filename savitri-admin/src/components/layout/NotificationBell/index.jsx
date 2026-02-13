@@ -152,14 +152,18 @@ const NotificationBell = () => {
     const attachListeners = () => {
       const socket = getSocket();
       if (!socket) {
-        // Socket not ready yet, retry in 1 second
+        console.log('[NotificationBell] Socket not ready, retrying in 1s...');
         retryTimer = setTimeout(attachListeners, 1000);
         return;
       }
 
+      console.log('[NotificationBell] Socket found, attaching event listeners');
       currentSocket = socket;
       events.forEach((event) => {
-        handlers[event] = (data) => addNotification(event, data);
+        handlers[event] = (data) => {
+          console.log(`[NotificationBell] Received event: ${event}`, data);
+          addNotification(event, data);
+        };
         socket.on(event, handlers[event]);
       });
 

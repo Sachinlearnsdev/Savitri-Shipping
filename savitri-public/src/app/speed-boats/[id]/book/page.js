@@ -642,7 +642,7 @@ export default function SpeedBoatBookPage() {
           <div className={styles.selectedBoatImage} style={{ background: getBoatGradient() }}>
             {boat.images && boat.images.length > 0 ? (
               <img
-                src={boat.images[0]}
+                src={typeof boat.images[0] === 'string' ? boat.images[0] : boat.images[0].url}
                 alt={boat.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
               />
@@ -669,6 +669,7 @@ export default function SpeedBoatBookPage() {
             <div
               key={step.num}
               className={`${styles.stepIndicator} ${currentStep === step.num ? styles.stepIndicatorActive : ''} ${currentStep > step.num ? styles.stepIndicatorDone : ''}`}
+              onClick={() => { if (step.num < currentStep) setCurrentStep(step.num); }}
             >
               <div className={styles.stepCircle}>
                 {currentStep > step.num ? (

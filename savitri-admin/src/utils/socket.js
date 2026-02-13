@@ -55,7 +55,7 @@ export const connectSocket = (token) => {
 
   socket = io(`${backendUrl}/admin`, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 2000,
