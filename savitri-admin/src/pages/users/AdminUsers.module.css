@@ -28,6 +28,12 @@
   flex-wrap: wrap;
 }
 
+.searchInputWrapper {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* Legacy - replaced by custom components */
 .searchInput {
   flex: 1;
   min-width: 250px;
@@ -41,11 +47,13 @@
   transition: var(--transition-all);
 }
 
+/* Legacy - replaced by custom components */
 .searchInput:focus {
   border-color: var(--color-primary-600);
   box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
 }
 
+/* Legacy - replaced by custom components */
 .filterSelect {
   padding: var(--spacing-2) var(--spacing-3);
   border: 1px solid var(--border-color);
@@ -130,6 +138,10 @@
 
 .actionBtn:hover {
   background-color: var(--bg-secondary);
+}
+
+.viewBtn {
+  color: var(--color-primary-600);
 }
 
 .editBtn {
@@ -226,10 +238,16 @@
     width: 100%;
   }
 
+  .searchInputWrapper {
+    min-width: 100%;
+  }
+
+  /* Legacy - replaced by custom components */
   .searchInput {
     min-width: 100%;
   }
 
+  /* Legacy - replaced by custom components */
   .filterSelect {
     width: 100%;
   }

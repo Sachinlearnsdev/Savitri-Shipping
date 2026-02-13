@@ -230,31 +230,25 @@ const AdminUsers = () => {
 
       {/* Filters */}
       <div className={styles.filters}>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select
-          className={styles.filterSelect}
+        <div className={styles.searchInputWrapper}>
+          <Input
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select
+          options={filterRoleOptions}
           value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-        >
-          {filterRoleOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-        <select
-          className={styles.filterSelect}
+          onChange={(val) => { setRoleFilter(val); setPage(1); }}
+          placeholder="All Roles"
+        />
+        <Select
+          options={filterStatusOptions}
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-        >
-          {filterStatusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+          onChange={(val) => { setStatusFilter(val); setPage(1); }}
+          placeholder="All Statuses"
+        />
       </div>
 
       {/* Content */}
@@ -313,6 +307,13 @@ const AdminUsers = () => {
                     <td>{formatDate(adminUser.lastLoginAt || adminUser.lastLogin)}</td>
                     <td>
                       <div className={styles.actions}>
+                        <button
+                          className={`${styles.actionBtn} ${styles.viewBtn}`}
+                          onClick={() => navigate(`/users/admins/${adminUser.id || adminUser._id}`)}
+                          title="View"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
                         <button
                           className={`${styles.actionBtn} ${styles.editBtn}`}
                           onClick={() => handleOpenEdit(adminUser)}

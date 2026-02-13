@@ -55,12 +55,18 @@ const GREETING_OPTIONS = [
  */
 const generateEmailHTML = (fields, templateId) => {
   const theme = TEMPLATE_THEMES[templateId] || TEMPLATE_THEMES.custom;
-  const { greeting, mainMessage, ctaText, showOffer, offerHeadline, discountPercent, couponCode, companyName, closing } = fields;
+  const { greeting, mainMessage, ctaText, showOffer, offerHeadline, discountPercent, fixedDiscountAmount, couponCode, companyName, closing } = fields;
 
-  const offerSection = showOffer && (discountPercent || couponCode) ? `
+  const offerText = discountPercent
+    ? `Get <strong>${discountPercent}% off</strong> on all boat rides!`
+    : fixedDiscountAmount
+      ? `Get <strong>\u20B9${fixedDiscountAmount} off</strong> on all boat rides!`
+      : '';
+
+  const offerSection = showOffer && (discountPercent || fixedDiscountAmount || couponCode) ? `
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background-color:${theme.offerBg};border-left:4px solid ${theme.offerBorder};padding:20px;border-radius:4px;">
 <h2 style="color:${theme.offerTitle};margin:0 0 8px;font-size:20px;">${theme.offerEmoji} ${offerHeadline || 'Special Offer!'}</h2>
-<p style="color:#333333;font-size:16px;margin:0;">${discountPercent ? `Get <strong>${discountPercent}% off</strong> on all boat rides!` : ''}${couponCode ? ` Use code: <strong>${couponCode}</strong>` : ''}</p>
+<p style="color:#333333;font-size:16px;margin:0;">${offerText}${couponCode ? ` Use code: <strong>${couponCode}</strong>` : ''}</p>
 </td></tr></table>` : '';
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:${theme.bodyBg};font-family:Arial,Helvetica,sans-serif;">
@@ -111,6 +117,7 @@ const Marketing = () => {
   const [companyName, setCompanyName] = useState('');
   const [discountPercent, setDiscountPercent] = useState('');
   const [selectedCoupon, setSelectedCoupon] = useState('');
+  const [fixedDiscountAmount, setFixedDiscountAmount] = useState('');
 
   // Data
   const [coupons, setCoupons] = useState([]);
@@ -119,6 +126,10 @@ const Marketing = () => {
 
   // Track which template is active
   const [activeTemplateId, setActiveTemplateId] = useState('custom');
+
+  // Compose tabs (Details / Design)
+  const [composeTab, setComposeTab] = useState('details');
+  const [customHTML, setCustomHTML] = useState('');
 
   // Schedule state
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -219,16 +230,17 @@ const Marketing = () => {
       showOffer,
       offerHeadline,
       discountPercent,
+      fixedDiscountAmount,
       couponCode: selectedCoupon,
       companyName,
       closing,
     }, activeTemplateId);
-  }, [greeting, customGreeting, mainMessage, ctaText, showOffer, offerHeadline, discountPercent, selectedCoupon, companyName, closing, activeTemplateId]);
+  }, [greeting, customGreeting, mainMessage, ctaText, showOffer, offerHeadline, discountPercent, fixedDiscountAmount, selectedCoupon, companyName, closing, activeTemplateId]);
 
   // Update preview whenever fields change
   useEffect(() => {
     if (!showCompose) return;
-    const html = generateCurrentHTML();
+    const html = customHTML || generateCurrentHTML();
     if (previewIframeRef.current && html) {
       const iframe = previewIframeRef.current;
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -238,7 +250,7 @@ const Marketing = () => {
         doc.close();
       }
     }
-  }, [generateCurrentHTML, showCompose]);
+  }, [generateCurrentHTML, showCompose, customHTML]);
 
   const handleUseTemplate = (template) => {
     setActiveTemplateId(template.id);
@@ -269,6 +281,9 @@ const Marketing = () => {
     setActiveTemplateId('custom');
     setDiscountPercent('');
     setSelectedCoupon('');
+    setFixedDiscountAmount('');
+    setComposeTab('details');
+    setCustomHTML('');
     setShowCompose(true);
   };
 
@@ -285,6 +300,9 @@ const Marketing = () => {
     setActiveTemplateId('custom');
     setDiscountPercent('');
     setSelectedCoupon('');
+    setFixedDiscountAmount('');
+    setComposeTab('details');
+    setCustomHTML('');
     if (user?.email) {
       setTestEmail(user.email);
     }
@@ -301,8 +319,9 @@ const Marketing = () => {
     }
     try {
       setSendingTest(true);
-      const body = generateCurrentHTML();
-      await sendTestEmail({ subject, body, testEmail });
+      const finalSubject = subject.replace(/\{\{companyName\}\}/g, companyName || defaultCompanyName || 'Savitri Shipping');
+      const body = customHTML || generateCurrentHTML();
+      await sendTestEmail({ subject: finalSubject, body, testEmail });
       showSuccess(`Test email sent to ${testEmail}`);
     } catch (err) {
       showError(err.message || 'Failed to send test email');
@@ -318,8 +337,9 @@ const Marketing = () => {
     }
     try {
       setSending(true);
-      const body = generateCurrentHTML();
-      const response = await sendCampaign({ subject, body });
+      const finalSubject = subject.replace(/\{\{companyName\}\}/g, companyName || defaultCompanyName || 'Savitri Shipping');
+      const body = customHTML || generateCurrentHTML();
+      const response = await sendCampaign({ subject: finalSubject, body });
       showSuccess(`Email sent to ${response.data?.recipientCount || 0} customers`);
       setShowConfirm(false);
       handleCloseCompose();
@@ -382,109 +402,163 @@ const Marketing = () => {
             <div className={styles.composeLeft}>
               <h2 className={styles.composeSectionTitle}>Compose Email</h2>
 
-              {/* Section 2: Email Content */}
-              <Input
-                label="Subject"
-                placeholder="Enter email subject..."
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                required
-              />
-
-              <div className={styles.greetingRow}>
-                <Select
-                  label="Greeting"
-                  options={GREETING_OPTIONS}
-                  value={greeting}
-                  onChange={(val) => setGreeting(val)}
-                  placeholder="Select a greeting..."
-                />
-                {greeting === 'custom' && (
-                  <Input
-                    label="Custom Greeting"
-                    placeholder="Type your greeting..."
-                    value={customGreeting}
-                    onChange={(e) => setCustomGreeting(e.target.value)}
-                  />
-                )}
+              <div className={styles.composeTabs}>
+                <button
+                  className={`${styles.composeTab} ${composeTab === 'details' ? styles.composeTabActive : ''}`}
+                  onClick={() => setComposeTab('details')}
+                >
+                  Details
+                </button>
+                <button
+                  className={`${styles.composeTab} ${composeTab === 'design' ? styles.composeTabActive : ''}`}
+                  onClick={() => {
+                    if (!customHTML) setCustomHTML(generateCurrentHTML());
+                    setComposeTab('design');
+                  }}
+                >
+                  Design
+                </button>
               </div>
 
-              <Textarea
-                label="Main Message"
-                placeholder="Write your email message here... (No HTML needed)"
-                value={mainMessage}
-                onChange={(e) => setMainMessage(e.target.value)}
-                rows={5}
-                required
-                hint="This is the body paragraph of your email. Just write naturally - no HTML or formatting needed."
-              />
-
-              <Input
-                label="Call to Action Text"
-                placeholder="e.g. Book Now, Explore Offers..."
-                value={ctaText}
-                onChange={(e) => setCtaText(e.target.value)}
-                hint="Text shown on the action button in the email"
-              />
-
-              {/* Offer Section with Toggle */}
-              <div className={styles.offerSection}>
-                <div className={styles.offerToggle}>
-                  <Toggle
-                    label="Include Offer Section"
-                    checked={showOffer}
-                    onChange={(checked) => setShowOffer(checked)}
+              {composeTab === 'details' && (
+                <>
+                  {/* Section 2: Email Content */}
+                  <Input
+                    label="Subject"
+                    placeholder="Enter email subject..."
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    required
                   />
-                </div>
-                {showOffer && (
-                  <div className={styles.offerFields}>
-                    <Input
-                      label="Offer Headline"
-                      placeholder="e.g. Diwali Special Offer!"
-                      value={offerHeadline}
-                      onChange={(e) => setOfferHeadline(e.target.value)}
+
+                  <div className={styles.greetingRow}>
+                    <Select
+                      label="Greeting"
+                      options={GREETING_OPTIONS}
+                      value={greeting}
+                      onChange={(val) => setGreeting(val)}
+                      placeholder="Select a greeting..."
                     />
-                    <div className={styles.offerRow}>
+                    {greeting === 'custom' && (
                       <Input
-                        label="Discount %"
-                        type="number"
-                        placeholder="e.g. 20"
-                        value={discountPercent}
-                        onChange={(e) => setDiscountPercent(e.target.value)}
-                        min="0"
-                        max="100"
+                        label="Custom Greeting"
+                        placeholder="Type your greeting..."
+                        value={customGreeting}
+                        onChange={(e) => setCustomGreeting(e.target.value)}
                       />
-                      <Select
-                        label="Coupon Code"
-                        options={couponOptions}
-                        value={selectedCoupon}
-                        onChange={(val) => setSelectedCoupon(val)}
-                        placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'}
-                        disabled={loadingCoupons}
-                        searchable
+                    )}
+                  </div>
+
+                  <Textarea
+                    label="Main Message"
+                    placeholder="Write your email message here... (No HTML needed)"
+                    value={mainMessage}
+                    onChange={(e) => setMainMessage(e.target.value)}
+                    rows={5}
+                    required
+                    hint="This is the body paragraph of your email. Just write naturally - no HTML or formatting needed."
+                  />
+
+                  <Input
+                    label="Call to Action Text"
+                    placeholder="e.g. Book Now, Explore Offers..."
+                    value={ctaText}
+                    onChange={(e) => setCtaText(e.target.value)}
+                    hint="Text shown on the action button in the email"
+                  />
+
+                  {/* Offer Section with Toggle */}
+                  <div className={styles.offerSection}>
+                    <div className={styles.offerToggle}>
+                      <Toggle
+                        label="Include Offer Section"
+                        checked={showOffer}
+                        onChange={(checked) => setShowOffer(checked)}
                       />
                     </div>
+                    {showOffer && (
+                      <div className={styles.offerFields}>
+                        <Input
+                          label="Offer Headline"
+                          placeholder="e.g. Diwali Special Offer!"
+                          value={offerHeadline}
+                          onChange={(e) => setOfferHeadline(e.target.value)}
+                        />
+                        <div className={styles.offerRow}>
+                          <Input
+                            label="Discount %"
+                            type="number"
+                            placeholder="e.g. 20"
+                            value={discountPercent}
+                            onChange={(e) => setDiscountPercent(e.target.value)}
+                            min="0"
+                            max="100"
+                            disabled={!!fixedDiscountAmount}
+                          />
+                          <Select
+                            label="Coupon Code"
+                            options={couponOptions}
+                            value={selectedCoupon}
+                            onChange={(val) => {
+                              setSelectedCoupon(val);
+                              const coupon = coupons.find(c => c.code === val);
+                              if (coupon) {
+                                if (coupon.discountType === 'PERCENTAGE') {
+                                  setDiscountPercent(String(coupon.discountValue));
+                                  setFixedDiscountAmount('');
+                                } else if (coupon.discountType === 'FIXED') {
+                                  setDiscountPercent('');
+                                  setFixedDiscountAmount(String(coupon.discountValue));
+                                }
+                              } else {
+                                setFixedDiscountAmount('');
+                              }
+                            }}
+                            placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'}
+                            disabled={loadingCoupons}
+                            searchable
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Company Name & Closing */}
-              <div className={styles.closingRow}>
-                <Input
-                  label="Company Name"
-                  placeholder="Your company name..."
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  hint="Shown in the email footer"
-                />
-                <Input
-                  label="Closing Message"
-                  placeholder="e.g. Wishing you a wonderful time!"
-                  value={closing}
-                  onChange={(e) => setClosing(e.target.value)}
-                  hint="Short farewell before footer"
-                />
-              </div>
+                  {/* Company Name & Closing */}
+                  <div className={styles.closingRow}>
+                    <Input
+                      label="Company Name"
+                      placeholder="Your company name..."
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      hint="Shown in the email footer"
+                    />
+                    <Input
+                      label="Closing Message"
+                      placeholder="e.g. Wishing you a wonderful time!"
+                      value={closing}
+                      onChange={(e) => setClosing(e.target.value)}
+                      hint="Short farewell before footer"
+                    />
+                  </div>
+                </>
+              )}
+
+              {composeTab === 'design' && (
+                <div className={styles.designTab}>
+                  <p className={styles.designHint}>
+                    Edit the HTML template directly. Changes here will override the Details tab fields in the preview.
+                  </p>
+                  <textarea
+                    className={styles.htmlEditor}
+                    value={customHTML || generateCurrentHTML()}
+                    onChange={(e) => setCustomHTML(e.target.value)}
+                    spellCheck={false}
+                  />
+                  <Button variant="ghost" size="sm" onClick={() => setCustomHTML('')}>
+                    Reset to Generated HTML
+                  </Button>
+                </div>
+              )}
 
               {/* Test Email */}
               <div className={styles.testSection}>

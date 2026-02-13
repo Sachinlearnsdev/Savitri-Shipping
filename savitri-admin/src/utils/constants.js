@@ -204,9 +204,9 @@ export const BOOKING_STATUS_COLORS = { PENDING: 'warning', CONFIRMED: 'success',
 
 // ==================== PAYMENT STATUS ====================
 
-export const PAYMENT_STATUS = { PENDING: 'PENDING', PAID: 'PAID', PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED', REFUNDED: 'REFUNDED' };
-export const PAYMENT_STATUS_LABELS = { PENDING: 'Pending', PAID: 'Paid', PARTIALLY_REFUNDED: 'Partial Refund', REFUNDED: 'Refunded' };
-export const PAYMENT_STATUS_COLORS = { PENDING: 'warning', PAID: 'success', PARTIALLY_REFUNDED: 'warning', REFUNDED: 'error' };
+export const PAYMENT_STATUS = { PENDING: 'PENDING', PAID: 'PAID', ADVANCE_PAID: 'ADVANCE_PAID', PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED', REFUNDED: 'REFUNDED' };
+export const PAYMENT_STATUS_LABELS = { PENDING: 'Pending', PAID: 'Paid', ADVANCE_PAID: 'Advance Paid', PARTIALLY_REFUNDED: 'Partial Refund', REFUNDED: 'Refunded' };
+export const PAYMENT_STATUS_COLORS = { PENDING: 'warning', PAID: 'success', ADVANCE_PAID: 'info', PARTIALLY_REFUNDED: 'warning', REFUNDED: 'error' };
 
 // ==================== PAYMENT MODE ====================
 
